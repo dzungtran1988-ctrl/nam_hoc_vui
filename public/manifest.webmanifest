@@ -1,0 +1,18 @@
+{
+  "name": "Nấm Học Vui",
+  "short_name": "Nấm Học Vui",
+  "description": "Một góc học tập nhỏ, thật nhiều niềm vui cùng Bé Nấm!",
+  "start_url": "/",
+  "display": "fullscreen",
+  "orientation": "landscape",
+  "background_color": "#fff5f8",
+  "theme_color": "#ff85a2",
+  "icons": [
+    {
+      "src": "/mushroom.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    }
+  ]
+}

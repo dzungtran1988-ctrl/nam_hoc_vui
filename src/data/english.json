@@ -1,0 +1,56 @@
+[
+  {
+    "id": "english-001",
+    "type": "english",
+    "teacher": "Kuromi",
+    "title": "Hello! Giới thiệu bản thân",
+    "level": "Cơ bản",
+    "greeting": "Hello!",
+    "phrase": "My name is Nam.",
+    "phraseMeaning": "Tên tớ là Nấm.",
+    "vocabulary": [
+      { "word": "apple", "meaning": "quả táo", "icon": "🍎" },
+      { "word": "book", "meaning": "quyển sách", "icon": "📖" },
+      { "word": "cat", "meaning": "chú mèo", "icon": "🐱" }
+    ],
+    "question": "Quả táo trong tiếng Anh đọc là gì nhỉ?",
+    "choices": ["book", "cat", "apple"],
+    "correctAnswer": "apple"
+  },
+  {
+    "id": "english-002",
+    "type": "english",
+    "teacher": "Kuromi",
+    "title": "Colors - Sắc màu rực rỡ",
+    "level": "Màu sắc",
+    "greeting": "I like colors!",
+    "phrase": "The sky is blue.",
+    "phraseMeaning": "Bầu trời màu xanh dương.",
+    "vocabulary": [
+      { "word": "red", "meaning": "màu đỏ", "icon": "🔴" },
+      { "word": "blue", "meaning": "màu xanh dương", "icon": "🔵" },
+      { "word": "yellow", "meaning": "màu vàng", "icon": "🟡" }
+    ],
+    "question": "Màu đỏ tượng trưng cho màu áo của Nấm là từ nào?",
+    "choices": ["red", "blue", "yellow"],
+    "correctAnswer": "red"
+  },
+  {
+    "id": "english-003",
+    "type": "english",
+    "teacher": "Kuromi",
+    "title": "Numbers - Số đếm vui nhộn",
+    "level": "Số đếm",
+    "greeting": "Let's count together!",
+    "phrase": "One, two, three!",
+    "phraseMeaning": "Một, hai, ba!",
+    "vocabulary": [
+      { "word": "one", "meaning": "số 1", "icon": "1️⃣" },
+      { "word": "two", "meaning": "số 2", "icon": "2️⃣" },
+      { "word": "three", "meaning": "số 3", "icon": "3️⃣" }
+    ],
+    "question": "Số 'Hai' trong tiếng Anh là gì?",
+    "choices": ["one", "two", "three"],
+    "correctAnswer": "two"
+  }
+]

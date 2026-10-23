@@ -1,0 +1,179 @@
+[
+  {
+    "id": "music-001",
+    "type": "music",
+    "teacher": "Cinnamoroll",
+    "title": "Một Với Một Là Hai",
+    "shortTab": "🎵 1 Với 1 Là 2",
+    "level": "Bài hát đếm số (4 câu)",
+    "lines": [
+      "Một với một là hai",
+      "Hai thêm hai là bốn",
+      "Bốn với một là năm",
+      "Năm ngón tay sạch đều!"
+    ],
+    "melody": [
+      { "word": "Một", "note": 0, "dur": 420, "line": 0 },
+      { "word": "với", "note": 1, "dur": 420, "line": 0 },
+      { "word": "một", "note": 2, "dur": 420, "line": 0 },
+      { "word": "là", "note": 0, "dur": 420, "line": 0 },
+      { "word": "hai", "note": 4, "dur": 750, "line": 0 },
+
+      { "word": "Hai", "note": 4, "dur": 420, "line": 1 },
+      { "word": "thêm", "note": 5, "dur": 420, "line": 1 },
+      { "word": "hai", "note": 4, "dur": 420, "line": 1 },
+      { "word": "là", "note": 3, "dur": 420, "line": 1 },
+      { "word": "bốn", "note": 2, "dur": 800, "line": 1 },
+
+      { "word": "Bốn", "note": 0, "dur": 420, "line": 2 },
+      { "word": "với", "note": 1, "dur": 420, "line": 2 },
+      { "word": "một", "note": 2, "dur": 420, "line": 2 },
+      { "word": "là", "note": 0, "dur": 420, "line": 2 },
+      { "word": "năm", "note": 4, "dur": 750, "line": 2 },
+
+      { "word": "Năm", "note": 5, "dur": 420, "line": 3 },
+      { "word": "ngón", "note": 4, "dur": 420, "line": 3 },
+      { "word": "tay", "note": 3, "dur": 420, "line": 3 },
+      { "word": "sạch", "note": 1, "dur": 420, "line": 3 },
+      { "word": "đều!", "note": 0, "dur": 900, "line": 3 }
+    ]
+  },
+  {
+    "id": "music-002",
+    "type": "music",
+    "teacher": "Cinnamoroll",
+    "title": "Kìa Con Bướm Vàng",
+    "shortTab": "🦋 Bướm Vàng",
+    "level": "Nhịp vui rộn ràng (4 câu)",
+    "lines": [
+      "Kìa con bướm vàng, kìa con bướm vàng",
+      "Xòe đôi cánh, xòe đôi cánh",
+      "Bươm bướm bay đôi ba vòng",
+      "Em ngồi xem, em ngồi xem!"
+    ],
+    "melody": [
+      { "word": "Kìa", "note": 0, "dur": 380, "line": 0 },
+      { "word": "con", "note": 1, "dur": 380, "line": 0 },
+      { "word": "bướm", "note": 2, "dur": 380, "line": 0 },
+      { "word": "vàng,", "note": 0, "dur": 560, "line": 0 },
+      { "word": "kìa", "note": 0, "dur": 380, "line": 0 },
+      { "word": "con", "note": 1, "dur": 380, "line": 0 },
+      { "word": "bướm", "note": 2, "dur": 380, "line": 0 },
+      { "word": "vàng", "note": 0, "dur": 620, "line": 0 },
+
+      { "word": "Xòe", "note": 2, "dur": 420, "line": 1 },
+      { "word": "đôi", "note": 3, "dur": 420, "line": 1 },
+      { "word": "cánh,", "note": 4, "dur": 680, "line": 1 },
+      { "word": "xòe", "note": 2, "dur": 420, "line": 1 },
+      { "word": "đôi", "note": 3, "dur": 420, "line": 1 },
+      { "word": "cánh", "note": 4, "dur": 720, "line": 1 },
+
+      { "word": "Bươm", "note": 4, "dur": 340, "line": 2 },
+      { "word": "bướm", "note": 5, "dur": 340, "line": 2 },
+      { "word": "bay", "note": 4, "dur": 340, "line": 2 },
+      { "word": "đôi", "note": 3, "dur": 340, "line": 2 },
+      { "word": "ba", "note": 2, "dur": 480, "line": 2 },
+      { "word": "vòng", "note": 0, "dur": 680, "line": 2 },
+
+      { "word": "Em", "note": 0, "dur": 420, "line": 3 },
+      { "word": "ngồi", "note": 4, "dur": 420, "line": 3 },
+      { "word": "xem,", "note": 0, "dur": 650, "line": 3 },
+      { "word": "em", "note": 0, "dur": 420, "line": 3 },
+      { "word": "ngồi", "note": 4, "dur": 420, "line": 3 },
+      { "word": "xem!", "note": 0, "dur": 850, "line": 3 }
+    ]
+  },
+  {
+    "id": "music-003",
+    "type": "music",
+    "teacher": "Cinnamoroll",
+    "title": "Cháu Yêu Bà",
+    "shortTab": "👵 Cháu Yêu Bà",
+    "level": "Giai điệu tình cảm (4 câu)",
+    "lines": [
+      "Bà ơi bà, cháu yêu bà lắm",
+      "Tóc bà trắng, màu trắng như mây",
+      "Cháu yêu bà, cháu nắm bàn tay",
+      "Khi cháu vâng lời, cháu biết bà vui!"
+    ],
+    "melody": [
+      { "word": "Bà", "note": 4, "dur": 450, "line": 0 },
+      { "word": "ơi", "note": 2, "dur": 420, "line": 0 },
+      { "word": "bà,", "note": 0, "dur": 620, "line": 0 },
+      { "word": "cháu", "note": 5, "dur": 420, "line": 0 },
+      { "word": "yêu", "note": 4, "dur": 420, "line": 0 },
+      { "word": "bà", "note": 0, "dur": 450, "line": 0 },
+      { "word": "lắm", "note": 1, "dur": 750, "line": 0 },
+
+      { "word": "Tóc", "note": 2, "dur": 450, "line": 1 },
+      { "word": "bà", "note": 0, "dur": 450, "line": 1 },
+      { "word": "trắng,", "note": 5, "dur": 620, "line": 1 },
+      { "word": "màu", "note": 1, "dur": 420, "line": 1 },
+      { "word": "trắng", "note": 2, "dur": 420, "line": 1 },
+      { "word": "như", "note": 3, "dur": 420, "line": 1 },
+      { "word": "mây", "note": 4, "dur": 780, "line": 1 },
+
+      { "word": "Cháu", "note": 5, "dur": 450, "line": 2 },
+      { "word": "yêu", "note": 4, "dur": 420, "line": 2 },
+      { "word": "bà,", "note": 2, "dur": 620, "line": 2 },
+      { "word": "cháu", "note": 5, "dur": 420, "line": 2 },
+      { "word": "nắm", "note": 4, "dur": 420, "line": 2 },
+      { "word": "bàn", "note": 1, "dur": 420, "line": 2 },
+      { "word": "tay", "note": 2, "dur": 750, "line": 2 },
+
+      { "word": "Khi", "note": 3, "dur": 380, "line": 3 },
+      { "word": "cháu", "note": 2, "dur": 380, "line": 3 },
+      { "word": "vâng", "note": 1, "dur": 380, "line": 3 },
+      { "word": "lời,", "note": 0, "dur": 580, "line": 3 },
+      { "word": "cháu", "note": 1, "dur": 400, "line": 3 },
+      { "word": "biết", "note": 2, "dur": 400, "line": 3 },
+      { "word": "bà", "note": 1, "dur": 420, "line": 3 },
+      { "word": "vui!", "note": 0, "dur": 880, "line": 3 }
+    ]
+  },
+  {
+    "id": "music-004",
+    "type": "music",
+    "teacher": "Cinnamoroll",
+    "title": "Đàn Gà Con",
+    "shortTab": "🐥 Đàn Gà Con",
+    "level": "Nhịp vui nhộn (4 câu)",
+    "lines": [
+      "Trông kia đàn gà con lông vàng",
+      "Đi theo mẹ tìm ăn trong vườn",
+      "Cùng tìm mồi ăn ngon ngon",
+      "Đàn gà con đi lon ton!"
+    ],
+    "melody": [
+      { "word": "Trông", "note": 0, "dur": 380, "line": 0 },
+      { "word": "kia", "note": 0, "dur": 380, "line": 0 },
+      { "word": "đàn", "note": 1, "dur": 380, "line": 0 },
+      { "word": "gà", "note": 2, "dur": 380, "line": 0 },
+      { "word": "con", "note": 3, "dur": 450, "line": 0 },
+      { "word": "lông", "note": 3, "dur": 450, "line": 0 },
+      { "word": "vàng", "note": 2, "dur": 750, "line": 0 },
+
+      { "word": "Đi", "note": 1, "dur": 380, "line": 1 },
+      { "word": "theo", "note": 1, "dur": 380, "line": 1 },
+      { "word": "mẹ", "note": 2, "dur": 380, "line": 1 },
+      { "word": "tìm", "note": 3, "dur": 380, "line": 1 },
+      { "word": "ăn", "note": 4, "dur": 450, "line": 1 },
+      { "word": "trong", "note": 1, "dur": 450, "line": 1 },
+      { "word": "vườn", "note": 0, "dur": 780, "line": 1 },
+
+      { "word": "Cùng", "note": 5, "dur": 420, "line": 2 },
+      { "word": "tìm", "note": 5, "dur": 420, "line": 2 },
+      { "word": "mồi", "note": 3, "dur": 450, "line": 2 },
+      { "word": "ăn", "note": 4, "dur": 420, "line": 2 },
+      { "word": "ngon", "note": 4, "dur": 420, "line": 2 },
+      { "word": "ngon", "note": 2, "dur": 750, "line": 2 },
+
+      { "word": "Đàn", "note": 3, "dur": 380, "line": 3 },
+      { "word": "gà", "note": 2, "dur": 380, "line": 3 },
+      { "word": "con", "note": 1, "dur": 380, "line": 3 },
+      { "word": "đi", "note": 2, "dur": 420, "line": 3 },
+      { "word": "lon", "note": 1, "dur": 420, "line": 3 },
+      { "word": "ton!", "note": 0, "dur": 880, "line": 3 }
+    ]
+  }
+]

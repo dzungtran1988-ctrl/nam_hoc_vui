@@ -1,0 +1,62 @@
+[
+  {
+    "id": "reading-001",
+    "type": "reading",
+    "title": "Đến lớp thật vui",
+    "level": "Cơ bản",
+    "lines": ["Sáng nay em đến lớp vui,", "Gặp bao bè bạn, tiếng cười rộn vang."],
+    "wordDurationMs": 750,
+    "comprehensionQuestion": {
+      "question": "Bạn nhỏ cảm thấy thế nào khi đến lớp?",
+      "choices": ["Vui vẻ", "Lo lắng", "Buồn ngủ"],
+      "correctIndex": 0,
+      "hint": "Mình đọc lại nhé: “lớp vui”, “tiếng cười rộn vang”. Bạn nhỏ đang có cảm xúc gì nhỉ?",
+      "feedback": "Đúng rồi! Bạn nhỏ rất vui khi đến lớp, gặp bạn bè và nghe tiếng cười rộn vang."
+    }
+  },
+  {
+    "id": "reading-002",
+    "type": "reading",
+    "title": "Bạn tốt của Nấm",
+    "level": "Cơ bản",
+    "lines": ["Bạn cho mình mượn bút chì,", "Cùng nhau chăm học, việc gì cũng xong."],
+    "wordDurationMs": 750,
+    "comprehensionQuestion": {
+      "question": "Hai bạn nhỏ đã giúp đỡ nhau điều gì?",
+      "choices": ["Cho mượn bút chì", "Cho mượn đồ chơi", "Cùng ăn kẹo"],
+      "correctIndex": 0,
+      "hint": "Câu đầu tiên nhắc đến đồ dùng học tập nào bạn cho mượn nhỉ?",
+      "feedback": "Chính xác! Giúp đỡ bạn bè cùng tiến bộ là một việc rất ngoan!"
+    }
+  },
+  {
+    "id": "reading-003",
+    "type": "reading",
+    "title": "Chiếc ba lô xinh",
+    "level": "Nâng cao",
+    "lines": ["Ba lô mang sách mang vở,", "Mỗi ngày theo bé đến trường chăm ngoan."],
+    "wordDurationMs": 700,
+    "comprehensionQuestion": {
+      "question": "Bên trong chiếc ba lô đựng những gì?",
+      "choices": ["Sách và vở", "Bánh và kẹo", "Quả bóng"],
+      "correctIndex": 0,
+      "hint": "Ba lô đựng đồ dùng để bé học bài mỗi ngày.",
+      "feedback": "Tuyệt vời! Sách vở giúp bé Nấm học thêm bao điều bổ ích."
+    }
+  },
+  {
+    "id": "reading-004",
+    "type": "reading",
+    "title": "Chú mèo con tinh nghịch",
+    "level": "Nâng cao",
+    "lines": ["Mèo con nằm sưởi nắng hồng,", "Meo meo rửa mặt trông thật đáng yêu."],
+    "wordDurationMs": 700,
+    "comprehensionQuestion": {
+      "question": "Mèo con kêu như thế nào?",
+      "choices": ["Meo meo", "Gâu gâu", "Chíp chíp"],
+      "correctIndex": 0,
+      "hint": "Tiếng kêu quen thuộc của bạn mèo nhỏ.",
+      "feedback": "Đúng rồi! Bạn mèo kêu meo meo đáng yêu quá!"
+    }
+  }
+]

@@ -1,0 +1,54 @@
+[
+  {
+    "id": "math-001",
+    "type": "math",
+    "title": "Giỏ táo của My Melody",
+    "level": "Cộng trong 10",
+    "question": "My Melody có 4 quả táo, Nấm mang thêm 3 quả. Có tất cả mấy quả táo?",
+    "expression": "4 + 3 = ?",
+    "objects": { "icon": "🍎", "groups": [4, 3] },
+    "choices": [6, 7, 8],
+    "correctAnswer": 7,
+    "explanation": "Đếm 4 quả táo, thêm 3 quả nữa: 5, 6, 7 quả!",
+    "feedback": "Chính xác! 4 + 3 = 7. Nấm tính siêu quá!"
+  },
+  {
+    "id": "math-002",
+    "type": "math",
+    "title": "Bé Nấm chia dâu tây",
+    "level": "Trừ trong 10",
+    "question": "Có 8 quả dâu tây, bạn ăn bớt 2 quả. Hỏi còn lại bao nhiêu quả?",
+    "expression": "8 - 2 = ?",
+    "objects": { "icon": "🍓", "groups": [8, -2] },
+    "choices": [5, 6, 7],
+    "correctAnswer": 6,
+    "explanation": "Bớt 2 từ 8 quả: 8 bớt 1 còn 7, bớt thêm 1 còn 6 quả!",
+    "feedback": "Tuyệt vời! 8 - 2 = 6 quả dâu tây thơm ngon."
+  },
+  {
+    "id": "math-003",
+    "type": "math",
+    "title": "Bong bóng sắc màu",
+    "level": "Cộng tròn 10",
+    "question": "My Melody cầm 5 quả bóng, Nấm cầm 5 quả bóng. Cả hai bạn có mấy quả?",
+    "expression": "5 + 5 = ?",
+    "objects": { "icon": "🎈", "groups": [5, 5] },
+    "choices": [9, 10, 11],
+    "correctAnswer": 10,
+    "explanation": "5 ngón tay cộng thêm 5 ngón tay là trọn vẹn 10!",
+    "feedback": "Đúng rồi! 5 + 5 = 10 quả bóng bay lơ lửng trên trời."
+  },
+  {
+    "id": "math-004",
+    "type": "math",
+    "title": "So sánh số lớn hơn",
+    "level": "So sánh",
+    "question": "Trong hai số 9 và 6, số nào lớn hơn?",
+    "expression": "9 hay 6?",
+    "objects": { "icon": "⭐", "groups": [9, 6] },
+    "choices": [9, 6, 0],
+    "correctAnswer": 9,
+    "explanation": "Số 9 có 9 ngôi sao, nhiều hơn 6 ngôi sao!",
+    "feedback": "Chính xác! Số 9 lớn hơn số 6."
+  }
+]
