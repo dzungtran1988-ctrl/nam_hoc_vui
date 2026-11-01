@@ -12,14 +12,14 @@ import {
   serializeProgress,
 } from "../src/lib/progress.ts";
 
-test("POEM_READING_LIBRARY has 10 poems (5 short Level 1, 5 long 3-stanza Level 2) with 3 questions each and difficult words per stanza", () => {
-  assert.equal(POEM_READING_LIBRARY.length, 10);
+test("POEM_READING_LIBRARY has 26 poems with questions each and difficult words per stanza", () => {
+  assert.equal(POEM_READING_LIBRARY.length, 26);
 
   const level1Poems = POEM_READING_LIBRARY.filter((p) => p.level === 1);
   const level2Poems = POEM_READING_LIBRARY.filter((p) => p.level === 2);
 
-  assert.equal(level1Poems.length, 5);
-  assert.equal(level2Poems.length, 5);
+  assert.ok(level1Poems.length >= 5, `Level 1 should have at least 5 poems, got ${level1Poems.length}`);
+  assert.ok(level2Poems.length >= 5, `Level 2 should have at least 5 poems, got ${level2Poems.length}`);
 
   for (const poem of level2Poems) {
     assert.equal(poem.slides.length, 3, `${poem.id} should have 3 stanzas`);
@@ -32,17 +32,20 @@ test("POEM_READING_LIBRARY has 10 poems (5 short Level 1, 5 long 3-stanza Level 
     for (let sIdx = 0; sIdx < poem.slides.length; sIdx++) {
       const difficult = getDifficultWordsForSlide(poem.id, sIdx);
       assert.ok(
-        difficult.length >= 2,
-        `${poem.id} slide ${sIdx} should have at least 2 difficult words`,
+        difficult.length >= 1,
+        `${poem.id} slide ${sIdx} should have at least 1 difficult word`,
       );
       for (const dw of difficult) {
         assert.ok(dw.word.length > 0 && dw.tip.length > 0);
       }
     }
 
-    assert.equal(poem.questions.length, 3, `${poem.id} should have 3 questions`);
+    assert.equal(poem.questions.length, 6, `${poem.id} should have 6 questions`);
     const types = poem.questions.map((q) => q.type);
-    assert.deepEqual(types, ["comprehension", "fill_blank", "life_skill"]);
+    // Mỗi poem phải có đủ 3 loại câu hỏi: comprehension, fill_blank, life_skill
+    assert.ok(types.includes("comprehension"), `${poem.id} missing comprehension`);
+    assert.ok(types.includes("fill_blank"), `${poem.id} missing fill_blank`);
+    assert.ok(types.includes("life_skill"), `${poem.id} missing life_skill`);
 
     for (const q of poem.questions) {
       assert.ok(

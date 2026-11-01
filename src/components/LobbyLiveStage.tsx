@@ -3,8 +3,8 @@ import { useEffect, useRef, useState } from "react";
 export interface LobbyCharacterDef {
   id: string;
   name: string;
-  centerX: number; // 0..1 normalized horizontal center on scene-lobby-pastel.png
-  centerY: number; // 0..1 normalized vertical center on scene-lobby-pastel.png
+  centerX: number; // 0..1 normalized horizontal center on scene-lobby-pastel.webp
+  centerY: number; // 0..1 normalized vertical center on scene-lobby-pastel.webp
   widthPct: number;
   heightPct: number;
   theme: "pink" | "gold" | "rainbow";

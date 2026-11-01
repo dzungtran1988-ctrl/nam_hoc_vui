@@ -11,7 +11,9 @@ import {
   Volume2,
 } from "lucide-react";
 import {
+  drawQuestionsForPoem,
   drawRandomFlashcardsForSet,
+  drawRandomPoemByLevel,
   getDifficultWordsForSlide,
   PICTURE_WORD_FLASHCARD_SETS,
   POEM_READING_LIBRARY,
@@ -25,6 +27,8 @@ import {
 import { useSpeech } from "../hooks/useSpeech";
 import { playCardPlaceSound, playRewardTone } from "../lib/sound";
 import type { ActivityProps } from "../types";
+import { KittyPhonicsLessonModal } from "./reading/KittyPhonicsLessonModal";
+import { WordBlendQuizModal } from "./reading/WordBlendQuizModal";
 
 function normalizeCleanWord(raw: string): string {
   return raw
@@ -51,9 +55,9 @@ export function ReadingActivity({
   onReaction,
   onLessonIndexChange,
 }: ActivityProps) {
-  const [viewMode, setViewMode] = useState<"menu" | "poem" | "flashcards">(
-    "menu",
-  );
+  const [viewMode, setViewMode] = useState<
+    "menu" | "poem" | "flashcards" | "phonics" | "blend-quiz"
+  >("menu");
   const [menuTab, setMenuTab] = useState<"flashcards" | 1 | 2>("flashcards");
   const [selectedPoemLevel, setSelectedPoemLevel] = useState<1 | 2>(1);
   const [poemId, setPoemId] = useState<string>(POEM_READING_LIBRARY[0].id);
@@ -72,7 +76,7 @@ export function ReadingActivity({
   >("cards");
   const [flashcardQuizQueue, setFlashcardQuizQueue] = useState<
     PictureWordCard[]
-  >(() => PICTURE_WORD_FLASHCARD_SETS[0].cards.slice(0, 3));
+  >(() => PICTURE_WORD_FLASHCARD_SETS[0].cards.slice(0, 5));
   const [flashcardQuizStep, setFlashcardQuizStep] = useState(0);
   const [quizTargetCard, setQuizTargetCard] = useState<PictureWordCard>(
     PICTURE_WORD_FLASHCARD_SETS[0].cards[0],
@@ -92,7 +96,10 @@ export function ReadingActivity({
     tip?: string;
   } | null>(null);
 
-  // Trạng thái Câu Hỏi Nhanh Cuối Bài Thơ
+  // Trạng thái 5 Câu Hỏi Nhanh Cuối Bài Thơ (rút không trùng lặp từ kho 6 câu của bài)
+  const [activePoemQuestions, setActivePoemQuestions] = useState<
+    PoemQuizItem[]
+  >(() => drawQuestionsForPoem(POEM_READING_LIBRARY[0], 5));
   const [poemStage, setPoemStage] = useState<"reading" | "question" | "correct">(
     "reading",
   );
@@ -244,14 +251,15 @@ export function ReadingActivity({
 
   const currentQuestion: PoemQuizItem = useMemo(
     () =>
-      currentPoem.questions[questionIdx] ||
+      activePoemQuestions[questionIdx] ||
+      activePoemQuestions[0] ||
       currentPoem.questions[0] ||
       currentPoem.comprehensionQuestion,
-    [currentPoem, questionIdx],
+    [activePoemQuestions, currentPoem, questionIdx],
   );
 
-  const setupQuestion = (poem: PoemReadingItem, qIndex: number) => {
-    const q = poem.questions[qIndex] || poem.questions[0];
+  const setupQuestion = (questionsList: PoemQuizItem[], qIndex: number) => {
+    const q = questionsList[qIndex] || questionsList[0];
     const rawChoices = q.choices.map((text, idx) => ({
       text,
       isCorrect: idx === q.correctIndex,
@@ -266,7 +274,9 @@ export function ReadingActivity({
 
   const startPoemLesson = (poem: PoemReadingItem) => {
     stop();
+    const drawnQuestions = drawQuestionsForPoem(poem, 5);
     setPoemId(poem.id);
+    setActivePoemQuestions(drawnQuestions);
     setSlideIdx(0);
     setGlowLineIdx(0);
     setAutoPaceRunning(true);
@@ -285,7 +295,7 @@ export function ReadingActivity({
     setViewMode("poem");
     onReaction?.(
       "idle",
-      `Mình cùng đọc bài thơ «${poem.title}» nhé! Chữ nào khó Nấm bấm vào chữ đó để nghe cô đọc nhé!`,
+      `Mình cùng đọc bài thơ «${poem.title}» rồi trả lời 5 câu hỏi nhận Sticker nhé!`,
     );
   };
 
@@ -358,12 +368,17 @@ export function ReadingActivity({
       return;
     }
 
-    // Sang chuỗi 3 câu hỏi cuối bài
-    setupQuestion(currentPoem, 0);
-    const firstQ = currentPoem.questions[0];
+    // Sang chuỗi 5 câu hỏi cuối bài
+    const drawnQuestions =
+      activePoemQuestions.length >= 5
+        ? activePoemQuestions
+        : drawQuestionsForPoem(currentPoem, 5);
+    setActivePoemQuestions(drawnQuestions);
+    setupQuestion(drawnQuestions, 0);
+    const firstQ = drawnQuestions[0];
     onReaction?.(
       "happy",
-      "Nấm đọc hết bài thơ giỏi quá! Giờ mình trả lời 3 câu hỏi nhỏ nhé!",
+      `Nấm đọc hết bài thơ giỏi quá! Giờ mình trả lời ${drawnQuestions.length} câu hỏi nhỏ để nhận Sao & Sticker nhé!`,
     );
     if (soundEnabled && firstQ) {
       speak(firstQ.question, "vi-VN");
@@ -397,7 +412,7 @@ export function ReadingActivity({
       }
 
       if (
-        questionIdx >= currentPoem.questions.length - 1 &&
+        questionIdx >= activePoemQuestions.length - 1 &&
         !completedSessionRef.current
       ) {
         completedSessionRef.current = true;
@@ -436,9 +451,9 @@ export function ReadingActivity({
   const handleNextQuestion = () => {
     stop();
     const nextQIdx = questionIdx + 1;
-    if (nextQIdx < currentPoem.questions.length) {
-      setupQuestion(currentPoem, nextQIdx);
-      const nextQ = currentPoem.questions[nextQIdx];
+    if (nextQIdx < activePoemQuestions.length) {
+      setupQuestion(activePoemQuestions, nextQIdx);
+      const nextQ = activePoemQuestions[nextQIdx];
       if (soundEnabled && nextQ) {
         speak(nextQ.question, "vi-VN");
       }
@@ -457,7 +472,7 @@ export function ReadingActivity({
     setRevealedCardIds([]);
     setFlashcardStage("cards");
     setFlashcardQuizWrongId(null);
-    const quizPool = shuffleArray(drawnCards).slice(0, 3);
+    const quizPool = shuffleArray(drawnCards).slice(0, 5);
     setFlashcardQuizQueue(quizPool);
     setFlashcardQuizStep(0);
     setQuizTargetCard(quizPool[0] || drawnCards[0]);
@@ -465,7 +480,7 @@ export function ReadingActivity({
     setViewMode("flashcards");
     onReaction?.(
       "happy",
-      `Mỗi lần vào là 5 thẻ chữ mới tinh! Nấm thử đọc to 5 chữ trên bảng rồi chạm từng thẻ để mở hình 3D kiểm tra nhé!`,
+      `Mỗi lần vào là 5 thẻ chữ mới tinh! Nấm lật mở 5 thẻ rồi trả lời 5 câu đố vui để nhận Sticker nhé!`,
     );
   };
 
@@ -481,10 +496,11 @@ export function ReadingActivity({
     setRevealedCardIds([]);
     setFlashcardStage("cards");
     setFlashcardQuizWrongId(null);
-    const quizPool = shuffleArray(newCards).slice(0, 3);
+    const quizPool = shuffleArray(newCards).slice(0, 5);
     setFlashcardQuizQueue(quizPool);
     setFlashcardQuizStep(0);
     setQuizTargetCard(quizPool[0] || newCards[0]);
+    completedSessionRef.current = false;
     onReaction?.(
       "happy",
       `✨ Đã đổi 5 thẻ chữ 3D mới tinh trong chủ đề «${currentFlashcardSet.title.replace(/^Thẻ Từ:\s*/i, "")}»! Nấm đọc thử xem nào!`,
@@ -508,7 +524,7 @@ export function ReadingActivity({
       activeFlashcards.length > 0
         ? activeFlashcards
         : currentFlashcardSet.cards;
-    const quizQueue = shuffleArray(cardsToQuiz).slice(0, 3);
+    const quizQueue = shuffleArray(cardsToQuiz).slice(0, 5);
     const firstTarget = quizQueue[0] || cardsToQuiz[0];
     setFlashcardQuizQueue(quizQueue);
     setFlashcardQuizStep(0);
@@ -516,7 +532,7 @@ export function ReadingActivity({
     setFlashcardQuizWrongId(null);
     setFlashcardStage("quiz");
     if (soundEnabled) {
-      speak(`Câu 1: Chữ ${firstTarget.word} là hình nào nhỉ?`, "vi-VN", {
+      speak(`Câu 1 trên 5: Chữ ${firstTarget.word} là hình nào nhỉ?`, "vi-VN", {
         playbackRate: 0.92,
       });
     }
@@ -578,10 +594,75 @@ export function ReadingActivity({
 
   return (
     <div className="wb-content reading-wb">
-      {viewMode === "menu" ? (
+      {viewMode === "phonics" ? (
+        <KittyPhonicsLessonModal
+          soundEnabled={soundEnabled}
+          speak={speak}
+          stopSpeech={stop}
+          onClose={() => setViewMode("menu")}
+          onStartPractice={() => setViewMode("blend-quiz")}
+          onReaction={onReaction}
+          onClaimReward={(tableTitle) => {
+            onComplete({
+              attempts: 1,
+              answers: [`Thuộc bảng vần ghép: ${tableTitle}`],
+              activityId: `phonics-${tableTitle}`,
+              skillIds: ["phonics-blending"],
+            });
+          }}
+        />
+      ) : viewMode === "blend-quiz" ? (
+        <WordBlendQuizModal
+          soundEnabled={soundEnabled}
+          speak={speak}
+          stopSpeech={stop}
+          onClose={() => setViewMode("menu")}
+          onReaction={onReaction}
+          onCompleteRound={(answers, attempts) => {
+            onComplete({
+              attempts,
+              answers,
+              activityId: "blend-quiz-5q",
+              skillIds: ["phonics-blending", "word-recognition"],
+            });
+          }}
+        />
+      ) : viewMode === "menu" ? (
         <div className="lesson-picker-screen">
           <div className="reading-level-header single-row-level-bar">
             <div className="reading-level-pills" style={{ width: "100%", justifyContent: "center" }}>
+              <button
+                type="button"
+                className="level-switch-pill active-green"
+                style={{
+                  background: "linear-gradient(135deg, #FCE7F3 0%, #FDE68A 100%)",
+                  borderColor: "#EC4899",
+                  color: "#BE185D",
+                  fontWeight: 900,
+                }}
+                onClick={() => {
+                  stop();
+                  setViewMode("phonics");
+                }}
+              >
+                🎀 Bảng 132 Vần Ghép
+              </button>
+              <button
+                type="button"
+                className="level-switch-pill active-green"
+                style={{
+                  background: "linear-gradient(135deg, #DBEAFE 0%, #F3E8FF 100%)",
+                  borderColor: "#2563EB",
+                  color: "#1D4ED8",
+                  fontWeight: 900,
+                }}
+                onClick={() => {
+                  stop();
+                  setViewMode("blend-quiz");
+                }}
+              >
+                🧩 Ghép Chữ (5 Câu)
+              </button>
               <button
                 type="button"
                 className={`level-switch-pill ${
@@ -618,11 +699,7 @@ export function ReadingActivity({
             </div>
           </div>
 
-          <div
-            className={`wb-lesson-list ${
-              menuTab === "flashcards" ? "flashcard-menu-grid" : ""
-            }`}
-          >
+          <div className="wb-lesson-list flashcard-menu-grid">
             {menuTab === "flashcards"
               ? PICTURE_WORD_FLASHCARD_SETS.map((fcSet, idx) => (
                   <button
@@ -666,6 +743,13 @@ export function ReadingActivity({
                           src={item.heroImage}
                           alt={item.title}
                           className="wb-row-icon-img"
+                          onError={(e) => {
+                            const target = e.currentTarget;
+                            target.style.display = "none";
+                            if (target.parentElement) {
+                              target.parentElement.textContent = item.icon;
+                            }
+                          }}
                         />
                       ) : (
                         item.icon
@@ -758,14 +842,18 @@ export function ReadingActivity({
                         flexDirection: "column",
                         alignItems: "center",
                         justifyContent: "center",
-                        gap: "6px",
-                        background: isRevealed ? "#fffbeb" : "#ffffff",
-                        border: `3px solid ${isRevealed ? "#f59e0b" : accent}`,
-                        borderRadius: "18px",
-                        padding: "8px 6px",
+                        gap: "8px",
+                        background: isRevealed
+                          ? "rgba(255, 251, 235, 0.9)"
+                          : "rgba(255, 255, 255, 0.88)",
+                        border: isRevealed
+                          ? "2px solid #fbbf24"
+                          : "1.5px solid rgba(244, 114, 182, 0.25)",
+                        borderRadius: "20px",
+                        padding: "10px 6px",
                         cursor: "pointer",
-                        boxShadow: "0 6px 14px rgba(15, 23, 42, 0.08)",
-                        transition: "transform 0.18s ease",
+                        boxShadow: "0 4px 12px rgba(15, 23, 42, 0.05)",
+                        transition: "transform 0.18s ease, background 0.18s ease",
                         minWidth: 0,
                       }}
                     >
@@ -774,25 +862,24 @@ export function ReadingActivity({
                           src={card.imageUrl}
                           alt={card.word}
                           style={{
-                            width: "clamp(58px, 13vh, 96px)",
-                            height: "clamp(58px, 13vh, 96px)",
+                            width: "clamp(64px, 14.5vh, 104px)",
+                            height: "clamp(64px, 14.5vh, 104px)",
                             objectFit: "contain",
                             filter:
-                              "drop-shadow(0 6px 10px rgba(15,23,42,0.16))",
+                              "drop-shadow(0 6px 10px rgba(15,23,42,0.14))",
                           }}
                         />
                       ) : (
                         <div
                           style={{
-                            width: "clamp(54px, 11.5vh, 84px)",
-                            height: "clamp(54px, 11.5vh, 84px)",
+                            width: "clamp(56px, 12vh, 86px)",
+                            height: "clamp(56px, 12vh, 86px)",
                             borderRadius: "50%",
-                            background: "#fdf2f8",
-                            border: "2px dashed #f472b6",
+                            background: "rgba(253, 242, 248, 0.85)",
                             display: "flex",
                             alignItems: "center",
                             justifyContent: "center",
-                            fontSize: "1.45rem",
+                            fontSize: "1.5rem",
                           }}
                         >
                           👀
@@ -801,7 +888,7 @@ export function ReadingActivity({
 
                       <strong
                         style={{
-                          fontSize: "clamp(1.05rem, 1.85vw, 1.45rem)",
+                          fontSize: "clamp(1.1rem, 1.95vw, 1.5rem)",
                           color: accent,
                           letterSpacing: "0.02em",
                           fontWeight: 900,
@@ -816,11 +903,11 @@ export function ReadingActivity({
                       {isRevealed && card.englishName && (
                         <span
                           style={{
-                            fontSize: "0.7rem",
+                            fontSize: "0.72rem",
                             fontWeight: 800,
                             color: "#0284c7",
-                            background: "#e0f2fe",
-                            padding: "2px 6px",
+                            background: "rgba(224, 242, 254, 0.75)",
+                            padding: "2px 8px",
                             borderRadius: "999px",
                             maxWidth: "100%",
                             overflow: "hidden",
@@ -831,17 +918,6 @@ export function ReadingActivity({
                           {card.icon} {card.englishName}
                         </span>
                       )}
-
-                      <small
-                        style={{
-                          fontSize: "0.72rem",
-                          fontWeight: 700,
-                          color: isRevealed ? "#16a34a" : "#64748b",
-                          textAlign: "center",
-                        }}
-                      >
-                        {isRevealed ? "✓ Chạm nghe lại" : "👆 Đọc & chạm mở!"}
-                      </small>
                     </button>
                   );
                 })}
@@ -852,11 +928,10 @@ export function ReadingActivity({
                   style={{
                     fontSize: "0.84rem",
                     fontWeight: 700,
-                    color: "#475569",
+                    color: "#64748b",
                   }}
                 >
-                  💡 Nấm tự đánh vần 5 chữ trên bảng rồi chạm từng thẻ mở hình
-                  3D! Bấm «Đổi 5 từ mới» để lấy 5 hình khác!
+                  💡 Chạm vào thẻ chữ để lật mở hình 3D và nghe phát âm
                 </span>
 
                 <button
@@ -865,7 +940,7 @@ export function ReadingActivity({
                   style={{ marginLeft: "auto" }}
                   onClick={handleStartFlashcardQuiz}
                 >
-                  <Sparkles size={16} /> Đố vui 3 câu Nhận Sao ▶
+                  <Sparkles size={16} /> Đố vui 5 câu Nhận Sao ▶
                 </button>
               </div>
             </>
@@ -1070,7 +1145,7 @@ export function ReadingActivity({
               </div>
             ) : (
               <div className="quiz-step-pills">
-                {currentPoem.questions.map((q, idx) => (
+                {activePoemQuestions.map((q, idx) => (
                   <span
                     key={q.id}
                     className={`quiz-step-pill ${
@@ -1082,7 +1157,7 @@ export function ReadingActivity({
                     }`}
                   >
                     {idx < questionIdx ? "✓ " : ""}Câu {idx + 1}/
-                    {currentPoem.questions.length}
+                    {activePoemQuestions.length}
                   </span>
                 ))}
               </div>
@@ -1091,13 +1166,9 @@ export function ReadingActivity({
 
           {poemStage === "reading" ? (
             <>
-              <div className="wb-poem-box colorful-poem-box">
+              <div className="wb-poem-box colorful-poem-box open-book-poem-canvas">
                 {poemWordsPerLine.map((words: string[], lineIdx: number) => {
                   const isGlowActive = glowLineIdx === lineIdx;
-                  const lineAccent =
-                    WORD_COLOR_PALETTE[
-                      (slideIdx * 2 + lineIdx) % WORD_COLOR_PALETTE.length
-                    ];
 
                   return (
                     <div
@@ -1105,11 +1176,6 @@ export function ReadingActivity({
                       className={`wb-poem-line colorful-line-row ${
                         isGlowActive ? "line-glow-active" : ""
                       }`}
-                      style={
-                        {
-                          "--line-accent": lineAccent,
-                        } as React.CSSProperties
-                      }
                       onMouseEnter={() => {
                         setIsHoveringLine(true);
                         setGlowLineIdx(lineIdx);
@@ -1119,10 +1185,6 @@ export function ReadingActivity({
                       }}
                       onClick={() => setGlowLineIdx(lineIdx)}
                     >
-                      <span className="colorful-line-index">
-                        {isGlowActive ? "✨" : `${lineIdx + 1}`}
-                      </span>
-
                       <span className="colorful-line-words">
                         {words.map((word: string, wIdx: number) => {
                           const globalIdx = wordRunningCursor++;
@@ -1133,10 +1195,6 @@ export function ReadingActivity({
                           const isDifficultToken = difficultTokenMap.has(
                             normalizeCleanWord(word),
                           );
-                          const wordColor =
-                            WORD_COLOR_PALETTE[
-                              (lineIdx * 3 + wIdx) % WORD_COLOR_PALETTE.length
-                            ];
 
                           return (
                             <button
@@ -1145,16 +1203,11 @@ export function ReadingActivity({
                               className={`wb-word decorated-poem-word ${
                                 isDifficultToken ? "difficult-word-badge" : ""
                               } ${isWordActive ? "active" : ""}`}
-                              style={
-                                {
-                                  "--word-color": wordColor,
-                                } as React.CSSProperties
-                              }
                               onClick={(e) => {
                                 e.stopPropagation();
                                 handleSpeakSingleWord(word, lineIdx);
                               }}
-                              title="Bấm vào chữ này nếu con cần nghe phát âm"
+                              title="Chạm vào chữ để nghe phát âm"
                             >
                               {word}
                             </button>
@@ -1166,29 +1219,28 @@ export function ReadingActivity({
                 })}
               </div>
 
-              {/* Khay Hỗ trợ Từ Khó & Giải nghĩa nhanh */}
+              {/* Dòng giải nghĩa từ khó gọn nhẹ không viền (chỉ hiện nhẹ nhàng dưới khổ thơ) */}
               <div className="difficult-words-support-bar">
-                <div className="difficult-words-pills-group">
-                  <span className="difficult-bar-label">
-                    <HelpCircle size={14} /> Từ khó khổ này (bấm để nghe):
-                  </span>
-                  {currentDifficultWords.map((item) => (
-                    <button
-                      key={item.word}
-                      type="button"
-                      className={`difficult-word-chip ${
-                        activeWordHelp?.word.includes(item.word) ? "active" : ""
-                      }`}
-                      onClick={() => handleSpeakDifficultPhrase(item)}
-                    >
-                      <Volume2 size={13} /> {item.word}
-                    </button>
-                  ))}
-                </div>
-                {activeWordHelp && (
+                {activeWordHelp ? (
                   <div className="difficult-word-tip-box">
                     <strong>🔊 «{activeWordHelp.word}»:</strong>{" "}
                     <span>{activeWordHelp.tip}</span>
+                  </div>
+                ) : (
+                  <div className="difficult-words-pills-group">
+                    <span className="difficult-bar-label">
+                      <HelpCircle size={13} /> Chạm chữ bất kỳ để nghe · Từ khó:
+                    </span>
+                    {currentDifficultWords.map((item) => (
+                      <button
+                        key={item.word}
+                        type="button"
+                        className="difficult-word-chip"
+                        onClick={() => handleSpeakDifficultPhrase(item)}
+                      >
+                        <Volume2 size={12} /> {item.word}
+                      </button>
+                    ))}
                   </div>
                 )}
               </div>
@@ -1217,6 +1269,21 @@ export function ReadingActivity({
                     : "Nghe cô đọc kiểm tra"}
                 </button>
 
+                <button
+                  type="button"
+                  className="chunky-btn chunky-orange btn-sm"
+                  onClick={() => {
+                    const nextPoem = drawRandomPoemByLevel(
+                      currentPoem.level,
+                      currentPoem.id,
+                    );
+                    startPoemLesson(nextPoem);
+                  }}
+                  title="Đổi sang 1 bài thơ mới chưa đọc"
+                >
+                  <RotateCcw size={15} /> Đổi bài thơ mới
+                </button>
+
                 {slideIdx > 0 && (
                   <button
                     type="button"
@@ -1235,7 +1302,7 @@ export function ReadingActivity({
                   <Sparkles size={16} />{" "}
                   {slideIdx + 1 < currentPoem.slides.length
                     ? `Sang Khổ ${slideIdx + 2}/${currentPoem.slides.length} ▶`
-                    : "Vào trả lời 3 câu hỏi 🎯"}
+                    : `Vào trả lời ${activePoemQuestions.length} câu hỏi 🎯`}
                 </button>
               </div>
             </>
@@ -1398,25 +1465,28 @@ export function ReadingActivity({
                   >
                     <Check size={16} /> Con chọn xong ✅
                   </button>
-                ) : questionIdx + 1 < currentPoem.questions.length ? (
+                ) : questionIdx + 1 < activePoemQuestions.length ? (
                   <button
                     type="button"
                     className="chunky-btn chunky-green btn-sm"
                     onClick={handleNextQuestion}
                   >
                     <Sparkles size={16} /> Sang Câu {questionIdx + 2}/
-                    {currentPoem.questions.length} ▶
+                    {activePoemQuestions.length} ▶
                   </button>
                 ) : (
                   <button
                     type="button"
                     className="chunky-btn chunky-green btn-sm"
                     onClick={() => {
-                      stop();
-                      setViewMode("menu");
+                      const nextPoem = drawRandomPoemByLevel(
+                        currentPoem.level,
+                        currentPoem.id,
+                      );
+                      startPoemLesson(nextPoem);
                     }}
                   >
-                    <Check size={16} /> Hoàn thành · Chọn bài thơ mới 🌟
+                    <Check size={16} /> Đọc tiếp Bài Thơ Mới 🌟
                   </button>
                 )}
               </div>

@@ -690,7 +690,7 @@ h1 {
   gap: 8px;
 }
 
-/* 2. HOME LOBBY (SCENE-LOBBY.PNG) */
+/* 2. HOME LOBBY (SCENE-LOBBY.webp) */
 .wooden-sign-banner {
   position: absolute;
   left: 28%;
@@ -5065,6 +5065,21 @@ h1 {
   line-height: 1.25;
   max-width: 100%;
   cursor: pointer;
+  transition: transform 0.16s ease, opacity 0.16s ease;
+}
+
+.karaoke-stanza-line.is-line-active {
+  transform: scale(1.03);
+}
+
+.karaoke-stanza-line.is-line-active .karaoke-plain-word {
+  background-image: linear-gradient(90deg, #00e5ff 0%, #38bdf8 100%);
+  filter: drop-shadow(0 0 8px rgba(56, 189, 248, 0.65))
+    drop-shadow(0 2px 3px rgba(0, 0, 0, 0.95));
+}
+
+.karaoke-stanza-line.is-line-past {
+  opacity: 0.72;
 }
 
 /* Chữ 1 màu trắng chuẩn Karaoke, luôn nằm trên 1 dòng, hát đến đâu quét đổi sang màu xanh sáng đến đó */
@@ -6821,27 +6836,48 @@ h1 {
 .sticker-notebook-workspace {
   flex: 1;
   min-height: 0;
-  display: flex;
-  flex-direction: column;
-  gap: 6px;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 310px;
+  align-items: stretch;
+  gap: 10px;
+}
+
+.sticker-notebook-workspace.photo-showcase-mode {
+  grid-template-columns: minmax(0, 1fr);
+  justify-items: center;
 }
 
 .sticker-page-canvas {
   position: relative;
-  flex: 1;
-  min-height: 0;
   width: 100%;
+  height: 100%;
+  max-height: 100%;
+  aspect-ratio: 16 / 9;
+  margin: auto;
   border-radius: 22px;
   border: 4px solid #ffffff;
   box-shadow:
     0 10px 24px rgba(0, 0, 0, 0.15),
     0 0 0 3px #f472b6;
-  background-size: 100% 100%;
+  background-size: cover;
   background-repeat: no-repeat;
-  background-position: center;
+  background-position: center center;
   overflow: hidden;
   user-select: none;
   touch-action: none;
+}
+
+@media (max-width: 960px) {
+  .sticker-notebook-workspace {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+  }
+  .sticker-page-canvas {
+    height: auto;
+    aspect-ratio: 16 / 9;
+    background-size: cover;
+  }
 }
 
 .photo-showcase-mode .sticker-page-canvas {
@@ -6950,6 +6986,14 @@ h1 {
   background: rgba(255, 255, 255, 0.18);
 }
 
+.placed-sticker-node.is-3d-plushie {
+  width: 126px;
+  height: 126px;
+  filter:
+    drop-shadow(0 8px 12px rgba(45, 20, 62, 0.28))
+    drop-shadow(0 2px 3px rgba(255, 182, 213, 0.45));
+}
+
 .sticker-edit-floating-bar {
   position: absolute;
   top: 10px;
@@ -7016,16 +7060,19 @@ h1 {
   z-index: 25;
 }
 
-/* KHAY STICKER DƯỚI ĐÁY VỞ */
+/* KHAY STICKER BÊN PHẢI / DƯỚI ĐÁY VỞ */
 .sticker-book-bottom-drawer {
-  background: rgba(255, 255, 255, 0.95);
+  background: rgba(255, 255, 255, 0.96);
   border: 2.5px solid #f472b6;
   border-radius: 18px;
-  padding: 5px 10px 6px;
+  padding: 8px 10px;
   box-shadow: 0 6px 16px rgba(236, 72, 153, 0.16);
   display: flex;
   flex-direction: column;
-  gap: 4px;
+  gap: 6px;
+  min-height: 0;
+  max-height: 100%;
+  overflow: hidden;
 }
 
 .drawer-filter-tabs {
@@ -7033,6 +7080,9 @@ h1 {
   align-items: center;
   flex-wrap: wrap;
   gap: 4px;
+  max-height: 120px;
+  overflow-y: auto;
+  padding-bottom: 2px;
 }
 
 .drawer-tab-btn {
@@ -7055,25 +7105,41 @@ h1 {
 }
 
 .drawer-stickers-strip {
-  display: flex;
-  align-items: center;
+  flex: 1;
+  min-height: 0;
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  align-content: start;
   gap: 6px;
-  overflow-x: auto;
-  padding: 2px 2px 2px;
+  overflow-y: auto;
+  overflow-x: hidden;
+  padding: 2px;
 }
 
 .drawer-sticker-card {
-  flex: 0 0 auto;
-  width: 78px;
+  width: 100%;
   border: 2px solid #f9a8d4;
   background: #ffffff;
   border-radius: 12px;
-  padding: 3px 4px;
+  padding: 4px 4px;
   display: flex;
   flex-direction: column;
   align-items: center;
   cursor: pointer;
   transition: transform 0.14s ease, box-shadow 0.14s ease;
+}
+
+@media (max-width: 960px) {
+  .drawer-stickers-strip {
+    display: flex;
+    align-items: center;
+    overflow-x: auto;
+    overflow-y: hidden;
+  }
+  .drawer-sticker-card {
+    flex: 0 0 auto;
+    width: 78px;
+  }
 }
 
 .drawer-sticker-card.unlocked:hover {
@@ -8398,13 +8464,51 @@ h1 {
   position: relative;
   width: 100%;
   flex: 1;
-  min-height: 60px;
+  min-height: 90px;
   background: transparent;
   border: none;
   cursor: pointer;
   display: flex;
+  flex-direction: column;
   align-items: center;
   justify-content: center;
+  gap: 8px;
+  padding: 6px 4px;
+}
+
+.compare-hero-number-box {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 78px;
+  min-height: 74px;
+  padding: 6px 20px;
+  border-radius: 22px;
+  background: linear-gradient(180deg, #fffbeb 0%, #fef08a 100%);
+  border: 3px solid #f59e0b;
+  box-shadow:
+    0 5px 0 #d97706,
+    0 8px 16px rgba(245, 158, 11, 0.24);
+}
+
+.pizza-plate-card.plate-match-ok .compare-hero-number-box {
+  background: linear-gradient(180deg, #ecfdf5 0%, #a7f3d0 100%);
+  border-color: #10b981;
+  box-shadow:
+    0 5px 0 #059669,
+    0 8px 16px rgba(16, 185, 129, 0.24);
+}
+
+.compare-hero-number {
+  font-size: clamp(2.6rem, 3.8vw, 3.4rem);
+  font-weight: 900;
+  line-height: 1;
+  color: #92400e;
+  text-shadow: 0 2px 0 rgba(255, 255, 255, 0.9);
+}
+
+.pizza-plate-card.plate-match-ok .compare-hero-number {
+  color: #065f46;
 }
 
 .plate-bg-img {
@@ -8423,15 +8527,15 @@ h1 {
   flex-wrap: wrap;
   align-items: center;
   justify-content: center;
-  gap: 3px;
-  padding: 6px;
+  gap: 10px;
+  padding: 4px 8px;
 }
 
 .plate-slice-item-img {
-  width: clamp(26px, 2.8vw, 38px);
-  height: clamp(26px, 2.8vw, 38px);
+  width: clamp(38px, 4vw, 54px);
+  height: clamp(38px, 4vw, 54px);
   object-fit: contain;
-  filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.22));
+  filter: drop-shadow(0 4px 6px rgba(0, 0, 0, 0.18));
   animation: popFullscreenBoard 0.18s ease;
 }
 
@@ -10733,7 +10837,7 @@ button.eq-num-box {
   width: 100%;
   background:
     linear-gradient(180deg, rgba(23, 19, 58, 0.34) 0%, rgba(45, 18, 77, 0.44) 62%, rgba(59, 29, 94, 0.56) 100%),
-    url("/assets/stickerbook/bg-nam-stage.png?v=starstage") center / cover no-repeat;
+    url("/assets/stickerbook/bg-nam-stage.webp?v=starstage") center / cover no-repeat;
   border: 3.5px solid #f472b6;
   border-radius: 22px;
   padding: 10px 12px 10px;
@@ -12500,7 +12604,7 @@ button.eq-num-box {
   color: #8c4d1f;
 }
 
-/* Lưới 8 Ô Môn Học (4 cột × 2 hàng) khớp 100% khung kem của scene-lobby-pastel.png */
+/* Lưới 8 Ô Môn Học (4 cột × 2 hàng) khớp 100% khung kem của scene-lobby-pastel.webp */
 .lobby-cards-dock.pastel-8-cards-grid {
   position: absolute !important;
   top: 44.6% !important;
@@ -13996,87 +14100,73 @@ button.eq-num-box {
   box-shadow: 0 2.5px 0 #b45309 !important;
 }
 
-/* Môn Học Đọc: 5 hàng bài học gọn khít 100% trong lòng bảng gỗ, không tràn, không cuộn */
+/* Môn Học Đọc: Lưới 2 cột cân đối cho Thẻ Chữ, Thơ Ngắn & Thơ Dài, cuộn dọc mượt */
 .reading-wb .lesson-picker-screen {
   display: flex;
   flex-direction: column;
-  gap: 6px;
+  gap: 8px;
   width: 100%;
   height: 100%;
   min-height: 0;
   overflow: hidden;
 }
 
-.reading-wb .wb-lesson-list {
+.reading-wb .wb-lesson-list,
+.reading-wb .wb-lesson-list.flashcard-menu-grid {
   flex: 1;
   min-height: 0;
+  width: 100% !important;
   display: grid !important;
-  grid-template-rows: repeat(5, minmax(0, 1fr));
-  gap: 5px !important;
-  overflow: hidden !important;
-  padding: 1px 2px 3px !important;
-}
-
-.reading-wb .wb-lesson-list.flashcard-menu-grid {
   grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
-  grid-template-rows: repeat(3, minmax(0, 1fr)) !important;
-  gap: 10px 12px !important;
-  padding: 4px 2px 6px !important;
+  grid-template-rows: none !important;
+  grid-auto-rows: minmax(52px, auto) !important;
+  align-content: start !important;
+  gap: 9px 14px !important;
+  overflow-y: auto !important;
+  overflow-x: hidden !important;
+  padding: 4px 6px 10px !important;
 }
 
+.reading-wb .wb-lesson-row,
 .reading-wb .wb-lesson-list.flashcard-menu-grid .wb-lesson-row {
-  padding: 8px 14px !important;
-  border-radius: 18px !important;
-  gap: 10px !important;
-}
-
-.reading-wb .wb-lesson-list.flashcard-menu-grid .wb-row-icon {
-  width: 48px !important;
-  height: 48px !important;
-  border-radius: 14px !important;
-  background: #ffffff !important;
-}
-
-.reading-wb .wb-lesson-list.flashcard-menu-grid .wb-row-icon-img {
-  object-fit: contain !important;
-  transform: scale(1);
-  padding: 3px;
-}
-
-.reading-wb .wb-lesson-row {
-  min-height: 0 !important;
-  height: 100% !important;
-  padding: 4px 10px !important;
-  border-radius: 14px !important;
+  min-height: 52px !important;
+  height: auto !important;
+  width: 100% !important;
+  padding: 7px 14px !important;
+  border-radius: 16px !important;
   display: flex !important;
   align-items: center !important;
-  gap: 8px !important;
+  gap: 10px !important;
   background: linear-gradient(180deg, #ffffff 0%, #fff9f2 100%) !important;
-  border: 2px solid #f3d5b5 !important;
-  box-shadow: 0 3px 0 #e2b887 !important;
+  border: 2px solid var(--cluster-accent, #f3d5b5) !important;
+  box-shadow: 0 3px 0 var(--cluster-accent, #e2b887), 0 4px 8px rgba(15, 23, 42, 0.06) !important;
 }
 
-.reading-wb .wb-row-icon {
-  width: 34px !important;
-  height: 34px !important;
-  border-radius: 10px !important;
+.reading-wb .wb-row-icon,
+.reading-wb .wb-lesson-list.flashcard-menu-grid .wb-row-icon {
+  width: 42px !important;
+  height: 42px !important;
+  border-radius: 12px !important;
   overflow: hidden !important;
   flex-shrink: 0 !important;
-  border: 2px solid #ffffff !important;
-  background: #fff5f8 !important;
+  border: 2px solid #fde68a !important;
+  background: #ffffff !important;
   box-shadow:
-    0 3px 0 rgba(180, 83, 9, 0.22),
-    0 4px 8px rgba(15, 23, 42, 0.14) !important;
+    0 2px 0 rgba(180, 83, 9, 0.16),
+    0 3px 6px rgba(15, 23, 42, 0.1) !important;
   display: flex !important;
   align-items: center !important;
   justify-content: center !important;
+  font-size: 23px !important;
 }
 
-.reading-wb .wb-row-icon-img {
+.reading-wb .wb-row-icon-img,
+.reading-wb .wb-lesson-list.flashcard-menu-grid .wb-row-icon-img {
   width: 100% !important;
   height: 100% !important;
-  object-fit: cover !important;
-  transform: scale(1.08);
+  object-fit: contain !important;
+  transform: scale(1) !important;
+  padding: 2px !important;
 }
 
 .reading-wb .wb-row-badge {
@@ -14458,8 +14548,8 @@ button.eq-num-box {
 }
 
 .fullscreen-decorated-board .plate-slice-item-img {
-  width: 48px;
-  height: 48px;
+  width: 58px;
+  height: 58px;
 }
 
 .fullscreen-decorated-board .table-formula-row {
@@ -14828,7 +14918,7 @@ button.eq-num-box {
   user-select: none;
 }
 
-/* Tọa độ ráp 3 nhà Khu 4 - Âm Nhạc (khớp chuẩn Ba Không Gian Âm Nhạc Kỳ Diệu.png) */
+/* Tọa độ ráp 3 nhà Khu 4 - Âm Nhạc (khớp chuẩn Ba Không Gian Âm Nhạc Kỳ Diệu.webp) */
 .music-hub-stage .hub-3d-house-btn.house-left {
   left: 0.2%;
   width: 33.2%;
@@ -14851,7 +14941,7 @@ button.eq-num-box {
   height: 82.5%;
 }
 
-/* Tọa độ ráp 3 nhà Khu 6 - Giải Trí (khớp chuẩn Công viên cổ tích pastel đáng yêu.png) */
+/* Tọa độ ráp 3 nhà Khu 6 - Giải Trí (khớp chuẩn Công viên cổ tích pastel đáng yêu.webp) */
 .ent-hub-stage .hub-3d-house-btn.house-left {
   left: 0.3%;
   width: 34.0%;
@@ -15860,6 +15950,4976 @@ button.eq-num-box {
   line-height: 1.15;
 }
 
+/* ============================================================================
+   BẢNG HỌC CSS PASTEL KAWAII TOÀN MÀN HÌNH (LOAD 0MS - KHÔNG CẦN ẢNH NỀN 2MB)
+   Tối ưu UX trên điện thoại: rộng rãi hơn 20%, dịu mắt, giữ trọn nét dễ thương
+   ============================================================================ */
+
+.classroom-stage-screen.css-pastel-stage {
+  background-image: none !important;
+  background:
+    radial-gradient(circle at 14% 18%, rgba(255, 255, 255, 0.75) 0%, transparent 32%),
+    radial-gradient(circle at 86% 82%, rgba(255, 255, 255, 0.7) 0%, transparent 34%),
+    linear-gradient(135deg, #ffeef6 0%, #fff7fa 48%, #f0f9ff 100%) !important;
+}
+
+.classroom-stage-screen.css-pastel-stage.kawaii-board-v1 {
+  background:
+    radial-gradient(circle at 15% 20%, rgba(255, 255, 255, 0.8) 0%, transparent 35%),
+    linear-gradient(135deg, #fffbeb 0%, #fef3c7 50%, #fff1f2 100%) !important;
+}
+
+.classroom-stage-screen.css-pastel-stage.kawaii-board-v2 {
+  background:
+    radial-gradient(circle at 15% 20%, rgba(255, 255, 255, 0.8) 0%, transparent 35%),
+    linear-gradient(135deg, #ffe4ef 0%, #fff1f7 52%, #fdf2f8 100%) !important;
+}
+
+.classroom-stage-screen.css-pastel-stage.kawaii-board-v3 {
+  background:
+    radial-gradient(circle at 15% 20%, rgba(255, 255, 255, 0.8) 0%, transparent 35%),
+    linear-gradient(135deg, #dcfce7 0%, #f0fdf4 52%, #ecfeff 100%) !important;
+}
+
+.classroom-stage-screen.css-pastel-stage.kawaii-board-v4 {
+  background:
+    radial-gradient(circle at 15% 20%, rgba(255, 255, 255, 0.8) 0%, transparent 35%),
+    linear-gradient(135deg, #f3e8ff 0%, #faf5ff 52%, #fdf4ff 100%) !important;
+}
+
+.whiteboard-frame-zone.fullscreen-decorated-board.css-pastel-board-frame {
+  left: 2.2% !important;
+  width: 95.6% !important;
+  top: 10.6% !important;
+  height: 86.8% !important;
+  right: auto !important;
+  bottom: auto !important;
+  padding: 10px 16px !important;
+  border-radius: 28px !important;
+  background:
+    radial-gradient(#fce7f3 1.25px, transparent 1.25px),
+    linear-gradient(180deg, #ffffff 0%, #fffbfd 100%) !important;
+  background-size: 24px 24px, 100% 100% !important;
+  border: 4px solid #fbcfe8 !important;
+  box-shadow:
+    0 10px 28px rgba(236, 72, 153, 0.12),
+    0 4px 0 #f9a8d4,
+    inset 0 0 0 3px #ffffff !important;
+}
+
+.whiteboard-frame-zone.fullscreen-decorated-board.css-pastel-board-frame.kawaii-board-v1 {
+  background:
+    radial-gradient(#fef3c7 1.3px, transparent 1.3px),
+    linear-gradient(180deg, #ffffff 0%, #fffef7 100%) !important;
+  background-size: 24px 24px, 100% 100% !important;
+  border-color: #fde68a !important;
+  box-shadow:
+    0 10px 28px rgba(245, 158, 11, 0.12),
+    0 4px 0 #fcd34d,
+    inset 0 0 0 3px #ffffff !important;
+}
+
+.whiteboard-frame-zone.fullscreen-decorated-board.css-pastel-board-frame.kawaii-board-v3 {
+  background:
+    radial-gradient(#d1fae5 1.3px, transparent 1.3px),
+    linear-gradient(180deg, #ffffff 0%, #f8fffb 100%) !important;
+  background-size: 24px 24px, 100% 100% !important;
+  border-color: #a7f3d0 !important;
+  box-shadow:
+    0 10px 28px rgba(16, 185, 129, 0.11),
+    0 4px 0 #6ee7b7,
+    inset 0 0 0 3px #ffffff !important;
+}
+
+.whiteboard-frame-zone.fullscreen-decorated-board.css-pastel-board-frame.kawaii-board-v4 {
+  background:
+    radial-gradient(#ede9fe 1.3px, transparent 1.3px),
+    linear-gradient(180deg, #ffffff 0%, #fcfaff 100%) !important;
+  background-size: 24px 24px, 100% 100% !important;
+  border-color: #ddd6fe !important;
+  box-shadow:
+    0 10px 28px rgba(139, 92, 246, 0.12),
+    0 4px 0 #c4b5fd,
+    inset 0 0 0 3px #ffffff !important;
+}
+
+/* Khi đang ở Sảnh 3 Ngôi Nhà Âm Nhạc, mở full-bleed toàn màn hình không viền */
+.whiteboard-frame-zone.css-pastel-board-frame:has(.music-hub-stage) {
+  left: 0 !important;
+  top: 0 !important;
+  width: 100% !important;
+  height: 100% !important;
+  padding: 0 !important;
+  border: none !important;
+  border-radius: 0 !important;
+  background: transparent !important;
+  box-shadow: none !important;
+}
+
+.hud-subject-badge {
+  background: linear-gradient(180deg, #ffffff 0%, #fff5f9 100%);
+  border: 2px solid #fbcfe8;
+  color: #be185d;
+  pointer-events: none;
+  box-shadow: 0 3px 0 rgba(244, 114, 182, 0.25);
+}
+
+@media (max-width: 960px), (max-height: 540px) {
+  .whiteboard-frame-zone.fullscreen-decorated-board.css-pastel-board-frame {
+    left: 1.4% !important;
+    width: 97.2% !important;
+    top: 10.2% !important;
+    height: 88.2% !important;
+    padding: 6px 10px !important;
+    border-radius: 20px !important;
+    border-width: 3px !important;
+  }
+
+  .hud-in-active-lesson {
+    padding: 4px 10px !important;
+  }
+}
+
+/* ============================================================================
+   1 BẢNG LỚN THOÁNG ĐÃNG + PHÂN KHU NGẦM BẰNG NỀN PHỚT PASTEL (SOFT TONAL ZONES)
+   - Bỏ hoàn toàn viền cứng (Bento-in-Bento) trong Đọc, Toán, Tiếng Anh
+   - Bảng Đọc: Chữ liền mạch như trang sách, dòng đang đọc tô sáng như bút dạ quang
+   - Bảng Toán & Tiếng Anh: 2 vùng màu pastel dịu không viền, đồ vật 3D thoáng rộng
+   ============================================================================ */
+
+/* --- A. BẢNG HỌC ĐỌC (OPEN BOOK CANVAS & SOFT HIGHLIGHTER) --- */
+.reading-wb .wb-poem-box.colorful-poem-box,
+.fullscreen-decorated-board .wb-poem-box.colorful-poem-box {
+  background: rgba(255, 252, 247, 0.65) !important;
+  border: none !important;
+  box-shadow: none !important;
+  border-radius: 22px !important;
+  padding: 12px 24px !important;
+  gap: 8px !important;
+  align-items: center !important;
+}
+
+.reading-wb .colorful-line-row,
+.fullscreen-decorated-board .colorful-line-row {
+  background: transparent !important;
+  border: none !important;
+  box-shadow: none !important;
+  border-radius: 14px !important;
+  padding: 6px 18px !important;
+  justify-content: center !important;
+  width: auto !important;
+  max-width: 100% !important;
+  transform: none !important;
+}
+
+.reading-wb .colorful-line-row:hover,
+.reading-wb .colorful-line-row.line-glow-active,
+.fullscreen-decorated-board .colorful-line-row.line-glow-active {
+  background: rgba(254, 240, 138, 0.72) !important;
+  border: none !important;
+  box-shadow: none !important;
+  transform: none !important;
+}
+
+.reading-wb .colorful-line-words {
+  justify-content: center !important;
+  gap: 6px !important;
+}
+
+.reading-wb .wb-word.decorated-poem-word,
+.fullscreen-decorated-board .wb-word.decorated-poem-word {
+  background: transparent !important;
+  border: none !important;
+  box-shadow: none !important;
+  border-radius: 8px !important;
+  padding: 2px 3px !important;
+  color: #334155 !important;
+  font-weight: 800 !important;
+  text-shadow: none !important;
+}
+
+.reading-wb .wb-word.decorated-poem-word:hover {
+  background: rgba(254, 243, 199, 0.75) !important;
+  color: #be185d !important;
+  transform: translateY(-1px);
+  box-shadow: none !important;
+}
+
+.reading-wb .wb-word.decorated-poem-word.difficult-word-badge,
+.fullscreen-decorated-board .wb-word.decorated-poem-word.difficult-word-badge {
+  background: transparent !important;
+  color: #c2410c !important;
+  border: none !important;
+  border-bottom: 2.5px dotted #f59e0b !important;
+  border-radius: 0 !important;
+}
+
+.reading-wb .wb-word.decorated-poem-word.active,
+.fullscreen-decorated-board .wb-word.decorated-poem-word.active {
+  background: #facc15 !important;
+  color: #831843 !important;
+  border-radius: 8px !important;
+  padding: 2px 6px !important;
+  box-shadow: none !important;
+}
+
+.reading-wb .difficult-words-support-bar {
+  background: transparent !important;
+  border: none !important;
+  box-shadow: none !important;
+  padding: 2px 8px !important;
+  min-height: 28px;
+  justify-content: center;
+}
+
+.reading-wb .difficult-words-pills-group {
+  justify-content: center;
+}
+
+.reading-wb .difficult-word-chip {
+  background: rgba(254, 243, 199, 0.7) !important;
+  border: none !important;
+  box-shadow: none !important;
+  color: #b45309 !important;
+}
+
+.reading-wb .difficult-word-tip-box {
+  background: rgba(254, 243, 199, 0.65) !important;
+  border: none !important;
+  border-radius: 999px !important;
+  padding: 4px 14px !important;
+  text-align: center !important;
+}
+
+.reading-wb .wb-quiz-box {
+  background: transparent !important;
+  border: none !important;
+  box-shadow: none !important;
+}
+
+/* --- B. BẢNG HỌC TOÁN (2 VÙNG NỀN PASTEL DỊU KHÔNG VIỀN) --- */
+.math-wb .bakery-big-equation-card {
+  background: rgba(253, 242, 248, 0.72) !important;
+  border: none !important;
+  box-shadow: none !important;
+  border-radius: 22px !important;
+}
+
+.math-wb .equation-card-subtitle {
+  background: transparent !important;
+  border: none !important;
+  box-shadow: none !important;
+  color: #9d174d !important;
+  padding: 2px 6px !important;
+}
+
+.math-wb .customer-basket-panel,
+.math-wb .bakery-shelf-panel,
+.math-wb .pizza-plate-card,
+.math-wb .tables-visualizer-panel,
+.math-wb .market-items-showcase,
+.math-wb .market-cashier-panel {
+  background: rgba(255, 251, 235, 0.76) !important;
+  border: none !important;
+  box-shadow: none !important;
+  border-radius: 22px !important;
+}
+
+.math-wb .customer-basket-panel.basket-match-ready,
+.math-wb .pizza-plate-card.plate-match-ok {
+  background: rgba(220, 252, 231, 0.72) !important;
+  border: none !important;
+  box-shadow: none !important;
+}
+
+.math-wb .basket-panel-header,
+.math-wb .shelf-panel-header {
+  background: transparent !important;
+  border: none !important;
+  box-shadow: none !important;
+  padding: 2px 4px !important;
+}
+
+/* Bỏ khung hộp bao quanh từng chiếc bánh 3D trong rổ đếm */
+.math-wb .basket-pastry-item,
+.fullscreen-decorated-board .basket-pastry-item {
+  background: transparent !important;
+  border: none !important;
+  box-shadow: none !important;
+  padding: 2px !important;
+}
+
+.math-wb .basket-pastry-item.item-target-slot {
+  background: rgba(255, 255, 255, 0.55) !important;
+  border: 2px dashed rgba(244, 114, 182, 0.5) !important;
+  border-radius: 16px !important;
+}
+
+.math-wb .melody-order-ticket,
+.math-wb .tables-selector-bar {
+  background: rgba(253, 242, 248, 0.7) !important;
+  border: none !important;
+  box-shadow: none !important;
+  border-radius: 16px !important;
+}
+
+.math-wb .numbered-pastries-tray-panel,
+.fullscreen-decorated-board .numbered-pastries-tray-panel.pure-numbers-tray {
+  background: transparent !important;
+  border: none !important;
+  box-shadow: none !important;
+  padding: 2px 0 !important;
+}
+
+.math-wb .cashier-tray-box {
+  background: rgba(255, 255, 255, 0.68) !important;
+  border: 1.5px dashed rgba(203, 213, 225, 0.8) !important;
+}
+
+.math-wb .market-item-price-card,
+.math-wb .visualizer-plate-group {
+  background: rgba(255, 255, 255, 0.72) !important;
+  border: none !important;
+  box-shadow: none !important;
+}
+
+/* --- C. BẢNG TIẾNG ANH (SOFT TONAL ZONES & THẺ ĐỒ VẬT SẠCH GỌN) --- */
+.english-wb .kuromi-order-banner {
+  background: rgba(250, 245, 255, 0.78) !important;
+  border: none !important;
+  box-shadow: none !important;
+  border-radius: 18px !important;
+  padding: 6px 14px !important;
+}
+
+.english-wb .kuromi-avatar-pill {
+  background: transparent !important;
+  border: none !important;
+  padding: 0 !important;
+}
+
+.english-wb .kuromi-avatar-pill img {
+  width: 36px !important;
+  height: 36px !important;
+}
+
+.english-wb .kuromi-shelf-card {
+  border-width: 1.5px !important;
+  box-shadow: 0 4px 12px rgba(15, 23, 42, 0.06) !important;
+}
+
+.english-wb .kuromi-card-label-box {
+  background: transparent !important;
+  border: none !important;
+  padding: 2px 4px !important;
+}
+
+.english-wb .kuromi-shopping-basket-bar {
+  background: rgba(253, 242, 248, 0.68) !important;
+  border: none !important;
+  box-shadow: none !important;
+}
+
+.english-wb .pronoun-column,
+.english-wb .mystery-bag-visual-panel,
+.english-wb .mystery-question-bubble {
+  background: rgba(250, 245, 255, 0.68) !important;
+  border: none !important;
+  box-shadow: none !important;
+  border-radius: 20px !important;
+}
+
+.english-wb .kuromi-speaking-coach-box {
+  flex: 0 1 auto !important;
+  background: rgba(254, 243, 199, 0.78) !important;
+  border: none !important;
+  box-shadow: none !important;
+  border-radius: 999px !important;
+  padding: 6px 14px !important;
+  display: inline-flex !important;
+  align-items: center !important;
+  gap: 6px !important;
+  color: #92400e !important;
+  font-family: inherit;
+  cursor: pointer;
+}
+
+.english-wb .kuromi-speaking-coach-box.spoken-done {
+  background: rgba(220, 252, 231, 0.85) !important;
+  color: #166534 !important;
+}
+
+.english-wb .speaking-coach-badge {
+  background: transparent !important;
+  color: inherit !important;
+  padding: 0 !important;
+  font-size: 12px !important;
+}
+
+.english-wb .speaking-coach-target-en {
+  font-size: clamp(12.5px, 1.2vw, 15px);
+  font-weight: 900;
+}
+
+/* --- D. BẢNG KỸ NĂNG SỐNG (MENU RIÊNG + 1 MẶT BẢNG LỚN + GAME TƯ DUY 2 CHẶNG) --- */
+.lifeskills-open-board {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  width: 100%;
+  height: 100%;
+  min-height: 0;
+  overflow: hidden;
+}
+
+/* 1. Lưới Menu Chọn Món Nấu Ăn / Kỹ Năng Tự Lập */
+.lifeskills-menu-grid {
+  flex: 1;
+  min-height: 0;
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+  gap: 10px;
+  padding: 4px 2px;
+  align-content: center;
+  overflow-y: auto;
+}
+
+.lifeskills-menu-card {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  padding: 12px 10px;
+  border-radius: 22px;
+  background: rgba(255, 251, 245, 0.85);
+  border: 1.5px solid rgba(251, 146, 60, 0.28);
+  box-shadow: 0 4px 12px rgba(15, 23, 42, 0.05);
+  cursor: pointer;
+  font-family: inherit;
+  transition: transform 0.16s ease, background 0.16s ease;
+}
+
+.lifeskills-menu-card.habit-variant {
+  background: rgba(240, 253, 244, 0.85);
+  border-color: rgba(52, 211, 153, 0.32);
+}
+
+.lifeskills-menu-card:hover {
+  transform: translateY(-2px);
+  background: #ffffff;
+}
+
+.lifeskills-menu-card.done {
+  background: rgba(220, 252, 231, 0.88);
+  border-color: #34d399;
+}
+
+.ls-menu-card-visual {
+  width: clamp(58px, 7.5vw, 84px);
+  height: clamp(58px, 7.5vw, 84px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.ls-menu-3d-img {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  filter: drop-shadow(0 5px 10px rgba(15, 23, 42, 0.12));
+}
+
+.ls-menu-card-title {
+  font-size: clamp(13px, 1.3vw, 16px);
+  font-weight: 900;
+  color: #1e293b;
+  text-align: center;
+  line-height: 1.2;
+}
+
+.ls-menu-card-sub {
+  font-size: 11px;
+  font-weight: 800;
+  color: #64748b;
+  text-align: center;
+}
+
+.ls-menu-done-badge {
+  position: absolute;
+  top: 8px;
+  right: 8px;
+  width: 22px;
+  height: 22px;
+  border-radius: 50%;
+  background: #10b981;
+  color: #ffffff;
+  font-size: 12px;
+  font-weight: 900;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+/* 2. Thanh công cụ trên cùng khi đang học */
+.lifeskills-open-board .lifeskills-top-toolbar {
+  background: rgba(255, 251, 235, 0.72) !important;
+  border: none !important;
+  box-shadow: none !important;
+  border-radius: 16px !important;
+  padding: 5px 10px !important;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  flex-wrap: nowrap;
+}
+
+.back-to-menu-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 5px 11px;
+  border-radius: 999px;
+  border: 1.5px solid #cbd5e1;
+  background: #ffffff;
+  color: #334155;
+  font-family: inherit;
+  font-size: 12px;
+  font-weight: 900;
+  cursor: pointer;
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+
+.back-to-menu-pill:hover {
+  border-color: #f472b6;
+  color: #be185d;
+}
+
+.lifeskills-active-title-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: clamp(13px, 1.35vw, 16px);
+  color: #7c2d12;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.lifeskills-open-board .cooking-wizard-tabs {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  flex-shrink: 0;
+}
+
+.lifeskills-open-board .cooking-wizard-tab {
+  padding: 4px 10px !important;
+  border-radius: 999px !important;
+  font-size: 11.5px !important;
+  border-width: 1.5px !important;
+  box-shadow: none !important;
+}
+
+/* 3. Phân khu 1: Lời nhắc mềm + 3 ô tiến độ thu gọn */
+.lifeskills-soft-prompt-bar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  padding: 6px 14px;
+  border-radius: 18px;
+  background: rgba(254, 243, 199, 0.58);
+  flex-shrink: 0;
+}
+
+.ls-prompt-speech-zone {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  background: transparent;
+  border: none;
+  padding: 0;
+  text-align: left;
+  font-family: inherit;
+  cursor: pointer;
+}
+
+.ls-prompt-avatar-img {
+  width: clamp(42px, 5vw, 56px);
+  height: clamp(42px, 5vw, 56px);
+  object-fit: contain;
+  flex-shrink: 0;
+  filter: drop-shadow(0 3px 6px rgba(15, 23, 42, 0.12));
+}
+
+.ls-prompt-text-col {
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.ls-prompt-tag {
+  font-size: 11px;
+  font-weight: 900;
+  color: #b45309;
+  text-transform: uppercase;
+  letter-spacing: 0.02em;
+}
+
+.ls-prompt-main-line {
+  margin: 0;
+  font-size: clamp(12.5px, 1.25vw, 15px);
+  font-weight: 800;
+  color: #1e293b;
+  line-height: 1.3;
+}
+
+.ls-inline-slots-row {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  flex-shrink: 0;
+}
+
+.ls-mini-slot {
+  width: clamp(38px, 4.4vw, 48px);
+  height: clamp(38px, 4.4vw, 48px);
+  border-radius: 14px;
+  background: rgba(255, 255, 255, 0.75);
+  border: 1.5px dashed rgba(245, 158, 11, 0.5);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 12px;
+  font-weight: 900;
+  color: #94a3b8;
+}
+
+.ls-mini-slot.filled {
+  border-style: solid;
+  border-color: #34d399;
+  background: #ffffff;
+}
+
+.ls-mini-slot img {
+  width: 82%;
+  height: 82%;
+  object-fit: contain;
+}
+
+/* 4. Phân khu 2: Sân khấu Tương tác Toàn Bảng (100% Width) */
+.lifeskills-fullboard-stage {
+  flex: 1;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  background: rgba(255, 255, 255, 0.52);
+  border-radius: 22px;
+  padding: 10px 14px;
+  overflow: hidden;
+}
+
+.lifeskills-open-board .cooking-ingredients-grid.fullboard-5-cols {
+  display: grid;
+  grid-template-columns: repeat(5, minmax(0, 1fr)) !important;
+  gap: clamp(8px, 1.2vw, 14px) !important;
+  height: 100%;
+  max-height: 230px;
+  align-items: stretch;
+}
+
+.lifeskills-open-board .ingredient-card-btn {
+  border-radius: 20px !important;
+  border-width: 1.5px !important;
+  box-shadow: 0 4px 12px rgba(15, 23, 42, 0.05) !important;
+  padding: 10px 8px !important;
+  justify-content: center !important;
+  gap: 8px !important;
+}
+
+.lifeskills-open-board .ing-visual-wrap {
+  width: clamp(64px, 8.5vw, 104px) !important;
+  height: clamp(64px, 8.5vw, 104px) !important;
+}
+
+.lifeskills-open-board .ing-name {
+  font-size: clamp(12.5px, 1.25vw, 15px) !important;
+  font-weight: 900 !important;
+  color: #1e293b !important;
+  line-height: 1.22 !important;
+}
+
+.lifeskills-open-board .cooking-prep-cards-grid.fullboard-3-cols {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr)) !important;
+  gap: clamp(10px, 1.5vw, 18px) !important;
+  height: 100%;
+  max-height: 240px;
+  align-items: stretch;
+}
+
+.lifeskills-open-board .prep-card-visual {
+  width: clamp(72px, 9.5vw, 112px) !important;
+  height: clamp(72px, 9.5vw, 112px) !important;
+}
+
+.lifeskills-open-board .fullboard-center-stage {
+  height: 100%;
+  justify-content: center;
+  gap: 14px;
+}
+
+.lifeskills-open-board .cooked-dish-plated-banner {
+  max-width: 680px;
+  margin: 0 auto;
+  padding: 14px 22px !important;
+  border-radius: 24px !important;
+  background: rgba(254, 249, 195, 0.78) !important;
+  border: 2px solid #facc15 !important;
+  box-shadow: none !important;
+  gap: 16px !important;
+}
+
+.lifeskills-open-board .plated-dish-3d-img {
+  width: clamp(86px, 11vw, 130px) !important;
+  height: clamp(86px, 11vw, 130px) !important;
+}
+
+.plated-nam-sticker {
+  width: clamp(70px, 9vw, 105px);
+  height: clamp(70px, 9vw, 105px);
+  object-fit: contain;
+  flex-shrink: 0;
+}
+
+/* 5. Chặng 2 Bé Tự Lập: Sắp xếp Thứ tự Hợp lý (1 -> 2 -> 3) */
+.habit-sequence-stage {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  height: 100%;
+  min-height: 0;
+  justify-content: space-between;
+}
+
+.habit-target-slots-row {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 10px;
+  flex-shrink: 0;
+}
+
+.habit-sequence-slot {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 7px 12px;
+  border-radius: 16px;
+  background: rgba(248, 250, 252, 0.85);
+  border: 1.5px dashed #cbd5e1;
+  min-height: 52px;
+}
+
+.habit-sequence-slot.slot-active-target {
+  background: rgba(254, 249, 195, 0.85);
+  border: 2px dashed #f59e0b;
+}
+
+.habit-sequence-slot.slot-filled {
+  background: rgba(220, 252, 231, 0.88);
+  border: 1.5px solid #10b981;
+}
+
+.habit-slot-badge {
+  padding: 3px 9px;
+  border-radius: 999px;
+  background: #e2e8f0;
+  color: #334155;
+  font-size: 11px;
+  font-weight: 900;
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+
+.habit-sequence-slot.slot-active-target .habit-slot-badge {
+  background: #f59e0b;
+  color: #ffffff;
+}
+
+.habit-sequence-slot.slot-filled .habit-slot-badge {
+  background: #10b981;
+  color: #ffffff;
+}
+
+.habit-slot-content {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  min-width: 0;
+  font-size: 12px;
+  color: #065f46;
+}
+
+.habit-slot-img {
+  width: 32px;
+  height: 32px;
+  object-fit: contain;
+  flex-shrink: 0;
+}
+
+.habit-slot-placeholder {
+  font-size: 11.5px;
+  font-weight: 800;
+  color: #64748b;
+}
+
+.habit-shuffled-cards-grid {
+  flex: 1;
+  min-height: 0;
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 12px;
+  align-items: stretch;
+}
+
+.habit-shuffled-card-btn {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 10px 12px;
+  border-radius: 20px;
+  background: #ffffff;
+  border: 1.5px solid rgba(148, 163, 184, 0.35);
+  box-shadow: 0 4px 12px rgba(15, 23, 42, 0.05);
+  font-family: inherit;
+  cursor: pointer;
+  transition: transform 0.15s ease, border-color 0.15s ease;
+}
+
+.habit-shuffled-card-btn:hover:not(:disabled) {
+  transform: translateY(-2px);
+  border-color: #38bdf8;
+}
+
+.habit-shuffled-card-btn.placed-done {
+  opacity: 0.52;
+  background: #f0fdf4;
+  border-color: #86efac;
+  cursor: default;
+}
+
+.habit-card-img-wrap {
+  width: clamp(54px, 7vw, 82px);
+  height: clamp(54px, 7vw, 82px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.habit-card-3d-img {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  filter: drop-shadow(0 4px 8px rgba(15, 23, 42, 0.1));
+}
+
+.habit-card-desc {
+  margin: 0;
+  font-size: clamp(12px, 1.18vw, 14.5px);
+  font-weight: 800;
+  color: #1e293b;
+  text-align: center;
+  line-height: 1.28;
+}
+
+.habit-card-order-tag {
+  position: absolute;
+  top: 8px;
+  right: 8px;
+  padding: 2px 8px;
+  border-radius: 999px;
+  background: #10b981;
+  color: #ffffff;
+  font-size: 11px;
+  font-weight: 900;
+}
+
+@media (max-width: 768px) {
+  .lifeskills-active-title-pill {
+    display: none;
+  }
+
+  .lifeskills-open-board .cooking-ingredients-grid.fullboard-5-cols {
+    grid-template-columns: repeat(3, minmax(0, 1fr)) !important;
+    max-height: none;
+  }
+}
+
+/* ==========================================================================
+   KHU VUI CHƠI FULL-STAGE (KHÔNG KHUNG VIỀN ĐỌC TRUYỆN) & MÁY GẮP THÚ SANRIO 3D
+   ========================================================================== */
+
+.park-games-fullstage {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  padding: 50px 18px 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  background:
+    radial-gradient(circle at 12% 18%, rgba(251, 207, 232, 0.52) 0%, transparent 42%),
+    radial-gradient(circle at 88% 22%, rgba(186, 230, 253, 0.55) 0%, transparent 45%),
+    linear-gradient(180deg, #fff5f9 0%, #eff6ff 52%, #fdf2f8 100%);
+  box-sizing: border-box;
+  overflow: hidden;
+  z-index: 5;
+}
+
+.inline-coin-3d-icon {
+  width: 22px;
+  height: 22px;
+  object-fit: contain;
+  vertical-align: middle;
+  flex-shrink: 0;
+  filter: drop-shadow(0 2px 4px rgba(180, 83, 9, 0.28));
+}
+
+.park-games-top-strip {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  flex-shrink: 0;
+  padding: 0 4px;
+}
+
+.park-games-tabs-left,
+.park-games-tabs-right,
+.park-games-switcher,
+.park-games-right-actions {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.park-coin-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  background: linear-gradient(135deg, #fffbeb 0%, #fde68a 100%);
+  border: 2.5px solid #f59e0b;
+  color: #92400e;
+  font-size: 14px;
+  font-weight: 900;
+  padding: 5px 15px 5px 11px;
+  border-radius: 999px;
+  box-shadow:
+    inset 0 2px 0 rgba(255, 255, 255, 0.85),
+    0 5px 14px rgba(245, 158, 11, 0.25);
+}
+
+.park-coin-pill strong {
+  font-weight: 900;
+  color: #78350f;
+}
+
+.park-pill-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  border: 2.5px solid #f9a8d4;
+  background: rgba(255, 255, 255, 0.94);
+  color: #9d174d;
+  font-family: inherit;
+  font-size: 13.5px;
+  font-weight: 900;
+  padding: 6px 15px;
+  border-radius: 999px;
+  cursor: pointer;
+  box-shadow: 0 4px 12px rgba(236, 72, 153, 0.14);
+  transition: transform 0.15s ease, box-shadow 0.15s ease;
+}
+
+.park-pill-btn:hover {
+  transform: translateY(-1px) scale(1.02);
+}
+
+.park-pill-btn.active {
+  background: linear-gradient(135deg, #ff6b9d 0%, #ec4899 100%);
+  border-color: #db2777;
+  color: #ffffff;
+  box-shadow: 0 6px 16px rgba(219, 39, 119, 0.32);
+}
+
+.park-pill-btn.tab-blue.active {
+  background: linear-gradient(135deg, #38bdf8 0%, #0284c7 100%);
+  border-color: #0369a1;
+  color: #ffffff;
+  box-shadow: 0 6px 16px rgba(2, 132, 199, 0.28);
+}
+
+.park-pill-btn.shelf {
+  background: linear-gradient(135deg, #fdf2f8 0%, #fbcfe8 100%);
+  border-color: #ec4899;
+  color: #9d174d;
+}
+
+.park-pill-btn.back {
+  border-color: #cbd5e1;
+  color: #334155;
+  background: #ffffff;
+}
+
+.park-pill-btn.reset {
+  border-color: #38bdf8;
+  background: #e0f2fe;
+  color: #0369a1;
+}
+
+.park-memory-Moves-pill {
+  background: #ffffff;
+  border: 2.5px solid #60a5fa;
+  color: #1d4ed8;
+  font-size: 13.5px;
+  font-weight: 900;
+  padding: 5px 14px;
+  border-radius: 999px;
+}
+
+.park-games-stage-body {
+  flex: 1;
+  min-height: 0;
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+}
+
+/* Khu Lật Thẻ Trí Nhớ Pochacco rộng thoáng không khung */
+.park-memory-wide-wrap {
+  width: 100%;
+  max-width: 1180px;
+  height: 100%;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  padding: 4px 12px;
+  box-sizing: border-box;
+}
+
+.park-memory-wide-wrap .pochacco-memory-grid {
+  width: 100%;
+  max-width: 1120px;
+  gap: 16px;
+}
+
+.park-memory-wide-wrap .pochacco-card-btn {
+  min-height: clamp(135px, 24vh, 210px);
+  border-radius: 24px;
+}
+
+/* Máy Gắp Thú Sanrio Full-Stage rộng thoáng */
+.sanrio-claw-fullstage {
+  width: 100%;
+  height: 100%;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  box-sizing: border-box;
+  overflow: hidden;
+}
+
+.sanrio-claw-top-hud {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 8px;
+  flex-shrink: 0;
+  padding: 0 6px;
+}
+
+.sanrio-claw-metrics {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.sanrio-metric-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 5px 14px;
+  border-radius: 999px;
+  background: #ffffff;
+  border: 2.5px solid #f9a8d4;
+  box-shadow: 0 4px 10px rgba(236, 72, 153, 0.14);
+  font-size: 13px;
+}
+
+.sanrio-metric-pill.timer {
+  border-color: #fb7185;
+  background: linear-gradient(135deg, #fff1f2, #ffe4e6);
+}
+
+.sanrio-metric-pill.level {
+  border-color: #c084fc;
+  background: linear-gradient(135deg, #faf5ff, #f3e8ff);
+}
+
+.sanrio-metric-pill.score {
+  border-color: #60a5fa;
+  background: linear-gradient(135deg, #eff6ff, #dbeafe);
+}
+
+.sanrio-metric-pill.coins {
+  border-color: #f59e0b;
+  background: linear-gradient(135deg, #fffbeb, #fef3c7);
+}
+
+.sanrio-metric-pill.coins.shake {
+  animation: clawCoinShake 0.45s ease;
+}
+
+@keyframes clawCoinShake {
+  0%, 100% { transform: translateX(0); }
+  25% { transform: translateX(-6px) rotate(-2deg); }
+  75% { transform: translateX(6px) rotate(2deg); }
+}
+
+.sanrio-metric-label {
+  font-size: 11px;
+  font-weight: 900;
+  letter-spacing: 0.04em;
+  color: #be185d;
+  background: rgba(255, 255, 255, 0.85);
+  padding: 2px 7px;
+  border-radius: 999px;
+}
+
+.sanrio-metric-pill strong {
+  font-size: 15px;
+  font-weight: 900;
+  color: #1e293b;
+}
+
+.sanrio-claw-hud-actions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.sanrio-shelf-jump-btn {
+  border: 2.5px solid #ec4899;
+  background: linear-gradient(135deg, #ff6b9d 0%, #ec4899 100%);
+  color: #ffffff;
+  font-family: inherit;
+  font-size: 13px;
+  font-weight: 900;
+  padding: 6px 15px;
+  border-radius: 999px;
+  cursor: pointer;
+  box-shadow: 0 5px 14px rgba(236, 72, 153, 0.32);
+  transition: transform 0.15s ease;
+}
+
+.sanrio-shelf-jump-btn:hover {
+  transform: translateY(-2px) scale(1.03);
+}
+
+.sanrio-back-btn {
+  border: 2px solid #cbd5e1;
+  background: #ffffff;
+  color: #334155;
+  font-family: inherit;
+  font-size: 12.5px;
+  font-weight: 800;
+  padding: 6px 12px;
+  border-radius: 999px;
+  cursor: pointer;
+}
+
+/* Sân khấu trung tâm chứa Máy Gắp Thú cỡ lớn + cột mục tiêu nổi */
+.sanrio-claw-center-wrap {
+  flex: 1;
+  min-height: 0;
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 14px;
+  overflow: hidden;
+  padding: 2px 4px;
+  box-sizing: border-box;
+}
+
+.sanrio-machine-aspect-box {
+  position: relative;
+  height: 100%;
+  max-height: 100%;
+  width: auto;
+  max-width: calc(100% - 140px);
+  aspect-ratio: 1024 / 591;
+  border-radius: 26px;
+  overflow: hidden;
+  box-shadow:
+    0 18px 40px rgba(236, 72, 153, 0.24),
+    0 0 0 3px #fbcfe8;
+  user-select: none;
+  flex-shrink: 0;
+}
+
+.sanrio-machine-frame-img {
+  width: 100%;
+  height: 100%;
+  object-fit: fill;
+  display: block;
+  pointer-events: none;
+}
+
+/* Lồng kính màu xanh pastel bên trong khung máy */
+.sanrio-glass-viewport {
+  position: absolute;
+  left: 10.6%;
+  right: 10.6%;
+  top: 17.5%;
+  bottom: 20.8%;
+  overflow: hidden;
+  border-radius: 10px;
+  cursor: pointer;
+}
+
+.sanrio-glass-top-badges {
+  position: absolute;
+  top: 6px;
+  left: 10px;
+  right: 10px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  pointer-events: none;
+  z-index: 20;
+}
+
+.sanrio-glass-badge {
+  background: rgba(255, 255, 255, 0.88);
+  border: 1.5px solid #f9a8d4;
+  color: #be185d;
+  font-size: 11px;
+  font-weight: 900;
+  padding: 2px 9px;
+  border-radius: 999px;
+  box-shadow: 0 2px 6px rgba(236, 72, 153, 0.14);
+}
+
+.sanrio-glass-badge.ready {
+  background: #fef9c3;
+  border-color: #f59e0b;
+  color: #b45309;
+}
+
+.sanrio-claw-top-rail {
+  position: absolute;
+  top: 0;
+  left: 4%;
+  right: 4%;
+  height: 6px;
+  background: linear-gradient(90deg, #f9a8d4, #e2e8f0, #f9a8d4);
+  border-radius: 999px;
+  z-index: 6;
+}
+
+.sanrio-claw-assembly {
+  position: absolute;
+  top: 0;
+  height: 100%;
+  width: 100px;
+  transform: translateX(-50%);
+  transition: left 0.24s cubic-bezier(0.25, 0.8, 0.25, 1);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  pointer-events: none;
+  z-index: 18;
+}
+
+.sanrio-claw-carriage {
+  width: 30px;
+  height: 11px;
+  border-radius: 6px;
+  background: linear-gradient(180deg, #f472b6, #db2777);
+  border: 2px solid #ffffff;
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.15);
+}
+
+.sanrio-claw-cable {
+  width: 4px;
+  background: repeating-linear-gradient(
+    180deg,
+    #94a3b8 0px,
+    #94a3b8 5px,
+    #cbd5e1 5px,
+    #cbd5e1 10px
+  );
+  transition: height 0.54s cubic-bezier(0.34, 1.24, 0.64, 1);
+}
+
+.sanrio-claw-head {
+  position: relative;
+  width: 90px;
+  height: 82px;
+  margin-top: -6px;
+}
+
+.sanrio-claw-svg {
+  width: 100%;
+  height: 100%;
+  filter: drop-shadow(0 4px 6px rgba(15, 23, 42, 0.18));
+}
+
+.sanrio-grabbed-plushie-holder {
+  position: absolute;
+  top: 40%;
+  left: 50%;
+  width: 88px;
+  height: 88px;
+  transform: translate(-50%, -12%);
+  animation: clawPlushieSwing 0.7s ease-in-out infinite alternate;
+}
+
+@keyframes clawPlushieSwing {
+  0% { transform: translate(-50%, -12%) rotate(-5deg); }
+  100% { transform: translate(-50%, -12%) rotate(5deg); }
+}
+
+.sanrio-aim-laser {
+  position: absolute;
+  top: 12%;
+  bottom: 8%;
+  width: 3px;
+  transform: translateX(-50%);
+  background: repeating-linear-gradient(
+    180deg,
+    rgba(244, 114, 182, 0.78) 0px,
+    rgba(244, 114, 182, 0.78) 7px,
+    transparent 7px,
+    transparent 14px
+  );
+  pointer-events: none;
+  z-index: 8;
+}
+
+/* Lồng thú bông 3D bên trong tủ kính */
+.sanrio-plushie-pit {
+  position: absolute;
+  inset: 0;
+  z-index: 10;
+}
+
+.sanrio-pit-plushie-btn {
+  position: absolute;
+  border: none;
+  background: transparent;
+  padding: 0;
+  cursor: pointer;
+  transition: transform 0.18s ease, filter 0.18s ease;
+}
+
+.sanrio-pit-plushie-btn.row-back {
+  width: clamp(68px, 10vh, 98px);
+  height: clamp(68px, 10vh, 98px);
+  z-index: 11;
+}
+
+.sanrio-pit-plushie-btn.row-front {
+  width: clamp(78px, 11.8vh, 114px);
+  height: clamp(78px, 11.8vh, 114px);
+  z-index: 14;
+}
+
+.sanrio-pit-plushie-btn:hover {
+  z-index: 16;
+  filter: brightness(1.06) drop-shadow(0 0 10px rgba(244, 114, 182, 0.8));
+}
+
+.sanrio-pit-plushie-btn.aimed-target {
+  z-index: 17;
+  filter: drop-shadow(0 0 12px #ec4899) drop-shadow(0 0 4px #ffffff);
+}
+
+.sanrio-plushie-3d-img {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  pointer-events: none;
+  filter: drop-shadow(0 6px 8px rgba(30, 20, 50, 0.26));
+}
+
+.sanrio-pit-bonus-tag {
+  position: absolute;
+  top: -4px;
+  right: -2px;
+  background: linear-gradient(135deg, #f59e0b, #ea580c);
+  color: #ffffff;
+  font-size: 9.5px;
+  font-weight: 900;
+  padding: 1px 6px;
+  border-radius: 999px;
+  border: 1.5px solid #ffffff;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.2);
+}
+
+.sanrio-pit-new-dot {
+  position: absolute;
+  bottom: 0;
+  left: 50%;
+  transform: translateX(-50%);
+  background: #10b981;
+  color: #ffffff;
+  font-size: 8.5px;
+  font-weight: 900;
+  padding: 1px 5px;
+  border-radius: 999px;
+  border: 1px solid #ffffff;
+}
+
+.sanrio-chute-drop-anim {
+  position: absolute;
+  left: 11%;
+  bottom: 6%;
+  width: 92px;
+  height: 92px;
+  z-index: 20;
+  animation: chuteDropBounce 0.58s cubic-bezier(0.45, 0, 0.55, 1) forwards;
+}
+
+@keyframes chuteDropBounce {
+  0% {
+    transform: translateY(-90px) scale(0.95);
+    opacity: 1;
+  }
+  70% {
+    transform: translateY(8px) scale(1.06);
+    opacity: 1;
+  }
+  100% {
+    transform: translateY(24px) scale(0.75);
+    opacity: 0.2;
+  }
+}
+
+/* Bảng nút bấm tương tác khớp 100% lên khe xu, nút hồng, nút xanh & cần gạt của khung ảnh */
+.sanrio-control-deck-overlay {
+  position: absolute;
+  left: 10%;
+  right: 10%;
+  top: 79.5%;
+  bottom: 2.2%;
+  z-index: 22;
+}
+
+.sanrio-deck-coin-slot-btn {
+  position: absolute;
+  left: 8.5%;
+  top: 14%;
+  width: 23%;
+  height: 68%;
+  border-radius: 14px;
+  border: 2.5px solid #38bdf8;
+  background: rgba(255, 255, 255, 0.9);
+  color: #0369a1;
+  font-family: inherit;
+  font-size: clamp(10px, 1.05vw, 13px);
+  font-weight: 900;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 5px;
+  cursor: pointer;
+  box-shadow: 0 4px 12px rgba(14, 165, 233, 0.28);
+  transition: transform 0.15s ease;
+}
+
+.sanrio-deck-coin-slot-btn.pulse-invite {
+  background: linear-gradient(135deg, #fef08a 0%, #fde047 100%);
+  border-color: #f59e0b;
+  color: #92400e;
+  animation: coinSlotPulse 1.2s ease-in-out infinite alternate;
+}
+
+@keyframes coinSlotPulse {
+  0% { transform: scale(1); box-shadow: 0 0 0 0 rgba(245, 158, 11, 0.5); }
+  100% { transform: scale(1.05); box-shadow: 0 0 0 8px rgba(245, 158, 11, 0); }
+}
+
+.sanrio-deck-pink-btn {
+  position: absolute;
+  left: 47.2%;
+  top: 14%;
+  width: 11%;
+  height: 68%;
+  border-radius: 999px;
+  border: 2.5px solid #db2777;
+  background: linear-gradient(180deg, #ff85b3 0%, #ec4899 100%);
+  color: #ffffff;
+  font-family: inherit;
+  font-size: clamp(9.5px, 1vw, 12.5px);
+  font-weight: 900;
+  cursor: pointer;
+  box-shadow: 0 5px 0 #9d174d, 0 6px 14px rgba(236, 72, 153, 0.4);
+  transition: transform 0.12s ease;
+}
+
+.sanrio-deck-pink-btn.ready-glow {
+  animation: pinkBtnGlow 0.9s ease-in-out infinite alternate;
+}
+
+@keyframes pinkBtnGlow {
+  0% { transform: translateY(0) scale(1); }
+  100% { transform: translateY(-3px) scale(1.06); }
+}
+
+.sanrio-deck-pink-btn:active {
+  transform: translateY(3px);
+}
+
+.sanrio-deck-blue-btn {
+  position: absolute;
+  left: 60.8%;
+  top: 14%;
+  width: 11%;
+  height: 68%;
+  border-radius: 999px;
+  border: 2.5px solid #0284c7;
+  background: linear-gradient(180deg, #7dd3fc 0%, #38bdf8 100%);
+  color: #0c4a6e;
+  font-family: inherit;
+  font-size: clamp(9.5px, 1vw, 12px);
+  font-weight: 900;
+  cursor: pointer;
+  box-shadow: 0 5px 0 #0369a1;
+}
+
+.sanrio-deck-joystick-group {
+  position: absolute;
+  left: 74%;
+  top: 12%;
+  width: 16%;
+  height: 70%;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  pointer-events: none;
+}
+
+.sanrio-joy-arrow {
+  pointer-events: auto;
+  width: 38px;
+  height: 38px;
+  border-radius: 999px;
+  border: 2.5px solid #db2777;
+  background: rgba(255, 255, 255, 0.95);
+  color: #be185d;
+  font-size: 16px;
+  font-weight: 900;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 3px 8px rgba(0, 0, 0, 0.18);
+}
+
+/* Cột 3 bong bóng Thú Thưởng +20 Đ gọn nhẹ bên phải máy */
+.sanrio-floating-targets {
+  width: 124px;
+  flex-shrink: 0;
+  background: rgba(255, 255, 255, 0.94);
+  border: 2.5px solid #f9a8d4;
+  border-radius: 24px;
+  padding: 10px 8px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+  box-shadow: 0 10px 24px rgba(236, 72, 153, 0.14);
+}
+
+.sanrio-floating-score-pill {
+  width: 100%;
+  background: linear-gradient(135deg, #eff6ff 0%, #dbeafe 100%);
+  border: 2px solid #60a5fa;
+  color: #1d4ed8;
+  font-size: 11.5px;
+  font-weight: 900;
+  padding: 4px 6px;
+  border-radius: 999px;
+  text-align: center;
+  box-sizing: border-box;
+}
+
+.sanrio-floating-bubble,
+.sanrio-target-bubble {
+  position: relative;
+  width: 78px;
+  height: 78px;
+  background: radial-gradient(circle at 35% 30%, #ffffff 0%, #fce7f3 75%, #fbcfe8 100%);
+  border: 2.5px solid #f472b6;
+  border-radius: 999px;
+  padding: 6px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: inset 0 2px 6px rgba(255, 255, 255, 0.85), 0 4px 10px rgba(236, 72, 153, 0.16);
+}
+
+.sanrio-floating-bubble img,
+.sanrio-target-bubble img {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  filter: drop-shadow(0 4px 6px rgba(30, 20, 50, 0.22));
+}
+
+.bubble-x2-tag {
+  position: absolute;
+  top: -4px;
+  right: -4px;
+  background: linear-gradient(135deg, #f59e0b, #ea580c);
+  color: #ffffff;
+  font-size: 9.5px;
+  font-weight: 900;
+  padding: 1px 6px;
+  border-radius: 999px;
+  border: 1.5px solid #ffffff;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.2);
+}
+
+.sanrio-floating-action-btn,
+.sanrio-new-doll-btn {
+  width: 100%;
+  font-family: inherit;
+  font-size: 11.5px;
+  font-weight: 900;
+  padding: 6px 8px;
+  border-radius: 999px;
+  cursor: pointer;
+  transition: transform 0.15s ease;
+}
+
+.sanrio-floating-action-btn:hover {
+  transform: translateY(-1px) scale(1.03);
+}
+
+.sanrio-floating-action-btn.blue,
+.sanrio-new-doll-btn {
+  border: 2px solid #38bdf8;
+  background: linear-gradient(135deg, #e0f2fe 0%, #bae6fd 100%);
+  color: #0369a1;
+}
+
+.sanrio-floating-action-btn.pink {
+  border: 2px solid #ec4899;
+  background: linear-gradient(135deg, #fdf2f8 0%, #fbcfe8 100%);
+  color: #9d174d;
+}
+
+/* Modal chúc mừng khi gắp trúng bạn thú 3D */
+.sanrio-catch-modal-backdrop {
+  position: fixed;
+  inset: 0;
+  background: rgba(15, 23, 42, 0.58);
+  backdrop-filter: blur(4px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1200;
+  padding: 16px;
+}
+
+.sanrio-catch-modal-card {
+  width: 100%;
+  max-width: 440px;
+  background: linear-gradient(180deg, #ffffff 0%, #fff1f2 100%);
+  border: 4px solid #f472b6;
+  border-radius: 28px;
+  padding: 18px 20px;
+  text-align: center;
+  box-shadow: 0 22px 48px rgba(0, 0, 0, 0.32);
+  animation: clawCatchPop 0.35s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+@keyframes clawCatchPop {
+  0% { transform: scale(0.75); opacity: 0; }
+  100% { transform: scale(1); opacity: 1; }
+}
+
+.sanrio-catch-badge-row {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-bottom: 10px;
+}
+
+.sanrio-catch-series-pill,
+.sanrio-catch-new-pill,
+.sanrio-catch-count-pill,
+.sanrio-catch-bonus-pill {
+  font-size: 11px;
+  font-weight: 900;
+  padding: 3px 10px;
+  border-radius: 999px;
+}
+
+.sanrio-catch-series-pill {
+  background: #fce7f3;
+  color: #9d174d;
+}
+
+.sanrio-catch-new-pill {
+  background: #dcfce7;
+  color: #15803d;
+}
+
+.sanrio-catch-count-pill {
+  background: #e0f2fe;
+  color: #0369a1;
+}
+
+.sanrio-catch-bonus-pill {
+  background: #fef3c7;
+  color: #b45309;
+}
+
+.sanrio-catch-showcase {
+  position: relative;
+  width: 165px;
+  height: 165px;
+  margin: 0 auto 10px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.sanrio-catch-glow-ring {
+  position: absolute;
+  inset: 0;
+  border-radius: 999px;
+  background: radial-gradient(circle, rgba(244, 114, 182, 0.32) 0%, transparent 72%);
+  animation: coinSlotPulse 1.1s ease-in-out infinite alternate;
+}
+
+.sanrio-catch-big-img {
+  position: relative;
+  width: 150px;
+  height: 150px;
+  object-fit: contain;
+  filter: drop-shadow(0 12px 18px rgba(30, 20, 50, 0.3));
+}
+
+.sanrio-catch-modal-card h3 {
+  margin: 0 0 6px;
+  font-size: 19px;
+  color: #be185d;
+}
+
+.sanrio-catch-modal-card p {
+  margin: 0 0 14px;
+  font-size: 13.5px;
+  color: #334155;
+  line-height: 1.4;
+}
+
+.sanrio-catch-modal-actions {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.sanrio-catch-btn {
+  width: 100%;
+  border: none;
+  font-family: inherit;
+  font-size: 14px;
+  font-weight: 900;
+  padding: 10px 16px;
+  border-radius: 999px;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+}
+
+.sanrio-catch-btn.shelf {
+  background: linear-gradient(135deg, #ff6b9d 0%, #db2777 100%);
+  color: #ffffff;
+  box-shadow: 0 6px 16px rgba(219, 39, 119, 0.35);
+}
+
+.sanrio-catch-btn.again {
+  background: linear-gradient(135deg, #fffbeb 0%, #fde68a 100%);
+  color: #92400e;
+  border: 2.5px solid #f59e0b;
+}
+
+@media (max-width: 900px) {
+  .sanrio-floating-targets {
+    display: none;
+  }
+  .sanrio-machine-aspect-box {
+    max-width: 100%;
+  }
+}
 
 
 
+
+
+
+
+
+
+
+/* ============================================================================
+   NÂNG CẤP ĐỒNG BỘ BỘ NÚT ẤN TOÀN APP THEO PHONG CÁCH "SOFT 3D CANDY PILL"
+   (Giữ nguyên bảng màu ngữ cảnh từng môn, nâng cấp độ bóng sứ & viền sáng)
+   ============================================================================ */
+.chunky-btn,
+.park-pill-btn,
+.hud-pill,
+.math-primary-cta-btn {
+  position: relative;
+  border-radius: 999px;
+  letter-spacing: 0.01em;
+  transition:
+    transform 0.16s cubic-bezier(0.34, 1.56, 0.64, 1),
+    box-shadow 0.16s ease,
+    filter 0.16s ease;
+}
+
+.chunky-btn::after,
+.math-primary-cta-btn::after {
+  content: "";
+  position: absolute;
+  top: 2px;
+  left: 12%;
+  right: 12%;
+  height: 36%;
+  border-radius: 999px;
+  background: linear-gradient(
+    180deg,
+    rgba(255, 255, 255, 0.45) 0%,
+    rgba(255, 255, 255, 0) 100%
+  );
+  pointer-events: none;
+}
+
+.chunky-blue {
+  background: linear-gradient(180deg, #6EC3FA 0%, #3E92E8 100%);
+  border-color: #B8E2FF;
+  box-shadow:
+    inset 0 2px 1px rgba(255, 255, 255, 0.65),
+    0 4px 0 #2870C4,
+    0 8px 18px rgba(62, 146, 232, 0.32);
+}
+
+.chunky-pink {
+  background: linear-gradient(180deg, #FF94B8 0%, #EC5387 100%);
+  border-color: #FFD0E0;
+  box-shadow:
+    inset 0 2px 1px rgba(255, 255, 255, 0.65),
+    0 4px 0 #C43568,
+    0 8px 18px rgba(236, 83, 135, 0.32);
+}
+
+.chunky-green {
+  background: linear-gradient(180deg, #5CE098 0%, #24B46E 100%);
+  border-color: #BDF5D5;
+  box-shadow:
+    inset 0 2px 1px rgba(255, 255, 255, 0.65),
+    0 4px 0 #188B52,
+    0 8px 18px rgba(36, 180, 110, 0.30);
+}
+
+.chunky-gold,
+.chunky-orange {
+  background: linear-gradient(180deg, #FFD25A 0%, #F59F18 100%);
+  border-color: #FFF0B8;
+  box-shadow:
+    inset 0 2px 1px rgba(255, 255, 255, 0.72),
+    0 4px 0 #C97A08,
+    0 8px 18px rgba(245, 159, 24, 0.32);
+}
+
+/* Nâng cấp ô chọn đáp án trong các bài học sang kiểu Squircle Sứ + Hào quang vàng sao */
+.numbered-pastry-choice-btn,
+.choice-card-btn {
+  border-radius: 20px !important;
+  box-shadow:
+    inset 0 2px 0 rgba(255, 255, 255, 0.9),
+    0 6px 16px rgba(30, 58, 95, 0.10);
+  transition:
+    transform 0.16s cubic-bezier(0.34, 1.56, 0.64, 1),
+    box-shadow 0.16s ease,
+    border-color 0.16s ease;
+}
+
+.numbered-pastry-choice-btn.selected,
+.choice-card-btn.selected {
+  border-color: #FFD147 !important;
+  box-shadow:
+    0 0 0 4px rgba(255, 209, 71, 0.38),
+    0 10px 24px rgba(255, 193, 37, 0.28) !important;
+}
+
+/* ============================================================================
+   KHÁM PHÁ 6 PHÒNG NGỦ BÍ MẬT SANRIO (CHUẨN NGÔN NGỮ THIẾT KẾ BẢN DEMO)
+   ============================================================================ */
+.sanrio-bedroom-stage {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  min-height: 440px;
+  background: transparent;
+  user-select: none;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.bedroom-outside-toolbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  padding: 2px 4px;
+  flex-shrink: 0;
+  z-index: 15;
+}
+
+.bedroom-outside-toolbar .bedroom-switcher-bar {
+  max-width: 72vw;
+  background: rgba(255, 255, 255, 0.92);
+  padding: 3px 5px;
+  box-shadow: 0 4px 12px rgba(20, 42, 74, 0.08);
+}
+
+.bedroom-toolbar-pill-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 5px 12px;
+  border-radius: 999px;
+  border: 2px solid #FFFFFF;
+  background: rgba(255, 255, 255, 0.96);
+  color: var(--room-title-color, #1F3B5C);
+  font-family: inherit;
+  font-size: 12px;
+  font-weight: 900;
+  cursor: pointer;
+  box-shadow: 0 4px 12px rgba(20, 42, 74, 0.12);
+  white-space: nowrap;
+  transition: transform 0.15s ease;
+}
+
+.bedroom-toolbar-pill-btn:hover {
+  transform: translateY(-1px) scale(1.03);
+}
+
+.bedroom-porcelain-circle-btn.toolbar-mini-circle {
+  width: 34px;
+  height: 34px;
+  box-shadow: 0 4px 12px rgba(20, 42, 74, 0.12);
+}
+
+.bedroom-outside-toolbar .bedroom-star-counter-pill {
+  padding: 4px 13px 4px 9px;
+  font-size: 14.5px;
+  box-shadow: 0 4px 12px rgba(20, 42, 74, 0.12);
+}
+
+.sanrio-bedroom-viewport {
+  position: relative;
+  flex: 1;
+  min-height: 0;
+  border-radius: 24px;
+  overflow: hidden;
+  background: #DCEEFF;
+  box-shadow:
+    0 16px 38px rgba(24, 48, 82, 0.22),
+    0 0 0 3px rgba(255, 255, 255, 0.94);
+  z-index: 1;
+}
+
+.sanrio-bedroom-canvas {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  transition:
+    transform 0.68s cubic-bezier(0.22, 1, 0.36, 1),
+    transform-origin 0.68s cubic-bezier(0.22, 1, 0.36, 1);
+  will-change: transform;
+}
+
+.sanrio-bedroom-bg-img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+  pointer-events: none;
+}
+
+.bedroom-stage-vignette {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(
+    90deg,
+    rgba(15, 28, 48, 0.06) 0%,
+    rgba(15, 28, 48, 0.22) 48%,
+    rgba(15, 28, 48, 0.45) 100%
+  );
+  pointer-events: none;
+  z-index: 2;
+  animation: bedroomFadeIn 0.3s ease;
+}
+
+@keyframes bedroomFadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+/* Điểm chạm Ngôi Sao Phát Sáng trên đồ vật trong phòng */
+.bedroom-hotspot-btn {
+  position: absolute;
+  transform: translate(-50%, -50%);
+  border: none;
+  background: transparent;
+  padding: 0;
+  cursor: pointer;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2px;
+  z-index: 8;
+  transition: transform 0.22s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+.bedroom-hotspot-btn:hover {
+  transform: translate(-50%, -54%) scale(1.12);
+  z-index: 12;
+}
+
+.bedroom-hotspot-star-svg {
+  width: clamp(58px, 6.8vw, 78px);
+  height: clamp(58px, 6.8vw, 78px);
+  filter: drop-shadow(0 0 12px rgba(255, 215, 64, 0.92));
+  animation: bedroomStarPulse 1.8s ease-in-out infinite alternate;
+}
+
+@keyframes bedroomStarPulse {
+  0% {
+    transform: scale(0.94) rotate(-4deg);
+    filter: drop-shadow(0 0 8px rgba(255, 215, 64, 0.75));
+  }
+  100% {
+    transform: scale(1.08) rotate(4deg);
+    filter: drop-shadow(0 0 18px rgba(255, 224, 102, 1));
+  }
+}
+
+.bedroom-hotspot-label-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 4px 11px;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.94);
+  border: 2px solid var(--room-card-border, #D6ECFF);
+  color: var(--room-title-color, #1F3B5C);
+  font-size: 12px;
+  font-weight: 900;
+  box-shadow: 0 6px 16px rgba(15, 32, 58, 0.22);
+  white-space: nowrap;
+}
+
+.bedroom-hotspot-btn.is-done .bedroom-hotspot-label-pill {
+  background: linear-gradient(180deg, #FFFDF5 0%, #FFF3C4 100%);
+  border-color: #FFD147;
+}
+
+.hotspot-done-check {
+  width: 18px;
+  height: 18px;
+  border-radius: 999px;
+  background: #22C55E;
+  color: #FFFFFF;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
+/* Thanh HUD trên cùng (Nút tròn trắng sứ + Bóng thoại dẫn đường + Chọn phòng + Đếm sao) */
+.bedroom-top-hud {
+  position: relative;
+  z-index: 15;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  padding: 12px 16px;
+  pointer-events: none;
+}
+
+.bedroom-hud-left,
+.bedroom-hud-right,
+.bedroom-switcher-bar {
+  pointer-events: auto;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+/* Nút tròn trắng sứ (Quay lại / Làm mới) như góc trái trên bản Demo */
+.bedroom-porcelain-circle-btn {
+  width: 44px;
+  height: 44px;
+  border-radius: 999px;
+  border: 2.5px solid #FFFFFF;
+  background: rgba(255, 255, 255, 0.95);
+  color: var(--room-title-color, #1F3B5C);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  box-shadow:
+    inset 0 2px 1px #FFFFFF,
+    0 6px 16px rgba(20, 42, 74, 0.18);
+  transition: transform 0.16s cubic-bezier(0.34, 1.56, 0.64, 1);
+  flex-shrink: 0;
+}
+
+.bedroom-porcelain-circle-btn:hover {
+  transform: translateY(-2px) scale(1.06);
+}
+
+.bedroom-porcelain-circle-btn:active {
+  transform: translateY(1px) scale(0.97);
+}
+
+/* Bóng thoại dẫn đường tối mờ kèm Avatar nhân vật (như hình 1 Demo) */
+.bedroom-guide-speech-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  padding: 5px 14px 5px 6px;
+  border-radius: 999px;
+  border: 1.5px solid rgba(255, 255, 255, 0.42);
+  backdrop-filter: blur(12px);
+  color: #FFFFFF;
+  cursor: pointer;
+  box-shadow: 0 10px 24px rgba(15, 23, 42, 0.26);
+  max-width: 390px;
+  text-align: left;
+  transition: transform 0.16s ease;
+}
+
+.bedroom-guide-speech-pill:hover {
+  transform: translateY(-1px) scale(1.01);
+}
+
+.guide-pill-avatar-wrap {
+  width: 36px;
+  height: 36px;
+  border-radius: 999px;
+  background: #FFFFFF;
+  border: 2px solid #FFFFFF;
+  overflow: hidden;
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 3px 8px rgba(0, 0, 0, 0.16);
+}
+
+.guide-pill-avatar-img {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+}
+
+.guide-pill-text {
+  font-size: 12.5px;
+  font-weight: 800;
+  line-height: 1.28;
+  color: #FFFFFF;
+}
+
+.guide-pill-speaker {
+  flex-shrink: 0;
+  opacity: 0.9;
+}
+
+/* Dải chọn nhanh 6 Phòng Ngủ Sanrio */
+.bedroom-switcher-bar {
+  background: rgba(255, 255, 255, 0.86);
+  backdrop-filter: blur(10px);
+  border: 2px solid rgba(255, 255, 255, 0.95);
+  padding: 4px 6px;
+  border-radius: 999px;
+  box-shadow: 0 8px 22px rgba(20, 42, 74, 0.15);
+  overflow-x: auto;
+  max-width: 54vw;
+}
+
+.bedroom-room-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 4px 11px 4px 5px;
+  border-radius: 999px;
+  border: 1.5px solid transparent;
+  background: rgba(255, 255, 255, 0.75);
+  color: #334155;
+  font-family: inherit;
+  font-size: 12px;
+  font-weight: 900;
+  cursor: pointer;
+  white-space: nowrap;
+  transition: transform 0.15s ease, box-shadow 0.15s ease;
+}
+
+.bedroom-room-chip:hover {
+  transform: translateY(-1px);
+}
+
+.room-chip-avatar {
+  width: 24px;
+  height: 24px;
+  border-radius: 999px;
+  object-fit: contain;
+  background: #FFFFFF;
+}
+
+.room-chip-star-tag {
+  background: rgba(255, 255, 255, 0.92);
+  color: #D97706;
+  font-size: 10.5px;
+  font-weight: 900;
+  padding: 1px 6px;
+  border-radius: 999px;
+}
+
+/* Huy hiệu đếm Sao góc phải trên (Chuẩn mẫu Demo: ⭐ 0/3) */
+.bedroom-star-counter-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  padding: 6px 16px 6px 11px;
+  border-radius: 999px;
+  border: 2.5px solid #FFFFFF;
+  background: rgba(255, 255, 255, 0.96);
+  color: var(--room-title-color, #1F3B5C);
+  font-family: inherit;
+  font-size: 17px;
+  font-weight: 900;
+  cursor: pointer;
+  box-shadow:
+    inset 0 2px 1px #FFFFFF,
+    0 8px 20px rgba(20, 42, 74, 0.18);
+  transition: transform 0.16s ease;
+}
+
+.bedroom-star-counter-pill.ready-chest {
+  background: linear-gradient(180deg, #FFFDF2 0%, #FFE89E 100%);
+  border-color: #FFD147;
+  animation: coinSlotPulse 1.2s ease-in-out infinite alternate;
+}
+
+.star-counter-numbers {
+  letter-spacing: 0.03em;
+}
+
+/* Nút "Bản đồ" góc phải dưới (Chuẩn hình 1 Demo) */
+.bedroom-bottom-dock {
+  position: absolute;
+  right: 18px;
+  bottom: 16px;
+  z-index: 15;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.bedroom-map-dock-btn {
+  width: 68px;
+  height: 68px;
+  border-radius: 22px;
+  border: 2.5px solid #FFFFFF;
+  background: rgba(255, 255, 255, 0.96);
+  color: var(--room-title-color, #1F3B5C);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+  cursor: pointer;
+  box-shadow:
+    inset 0 2px 1px #FFFFFF,
+    0 10px 26px rgba(20, 42, 74, 0.22);
+  transition: transform 0.18s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+.bedroom-map-dock-btn:hover {
+  transform: translateY(-3px) scale(1.05);
+}
+
+.map-dock-icon-badge {
+  width: 34px;
+  height: 34px;
+  border-radius: 12px;
+  background: linear-gradient(135deg, #6EE7B7 0%, #3B82F6 100%);
+  color: #FFFFFF;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 4px 10px rgba(59, 130, 246, 0.28);
+}
+
+.map-dock-label {
+  font-size: 11.5px;
+  font-weight: 900;
+}
+
+/* ============================================================================
+   MÀN HÌNH CẬN CẢNH GIẢI ĐỐ (BÓNG CÂU HỎI CÙNG NHÂN VẬT + THẺ TRẮNG SỨ)
+   ============================================================================ */
+.bedroom-interaction-overlay {
+  position: absolute;
+  inset: 0;
+  z-index: 14;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 18px;
+  padding: 12px 24px 18px;
+}
+
+.bedroom-zoom-Pinpoint {
+  flex: 1;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-end;
+  align-items: flex-start;
+  padding-bottom: 8px;
+  pointer-events: none;
+}
+
+.zoom-spot-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 7px 16px;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.92);
+  backdrop-filter: blur(8px);
+  border: 2px solid #FFFFFF;
+  color: var(--room-title-color, #1F3B5C);
+  font-size: 13px;
+  font-weight: 900;
+  box-shadow: 0 8px 22px rgba(15, 28, 48, 0.22);
+}
+
+.zoom-skill-pill {
+  background: var(--room-soft-tint, #EBF5FF);
+  color: var(--room-primary, #4A9FF5);
+  padding: 2px 10px;
+  border-radius: 999px;
+  font-size: 11.5px;
+}
+
+/* Khối phải: Bóng thoại nhân vật + Thẻ câu hỏi trắng sứ */
+.bedroom-question-panel {
+  width: min(510px, 54%);
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  animation: bedroomSlideUp 0.34s cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+@keyframes bedroomSlideUp {
+  from {
+    opacity: 0;
+    transform: translateY(18px) scale(0.96);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+/* Hàng Nhân vật nổi 3D + Bóng câu hỏi trắng kem có đuôi thoại (Chuẩn Demo) */
+.bedroom-mascot-speech-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding-left: 4px;
+}
+
+.bedroom-mascot-float-wrap {
+  width: 92px;
+  height: 92px;
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  filter: drop-shadow(0 10px 18px rgba(15, 28, 48, 0.28));
+  animation: mascotGentleBob 2.4s ease-in-out infinite alternate;
+}
+
+@keyframes mascotGentleBob {
+  0% { transform: translateY(2px) rotate(-2deg); }
+  100% { transform: translateY(-5px) rotate(2deg); }
+}
+
+.bedroom-mascot-float-img {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+}
+
+.bedroom-speech-bubble-card {
+  position: relative;
+  flex: 1;
+  background: rgba(255, 255, 255, 0.97);
+  border: 2.5px solid #FFFFFF;
+  border-radius: 24px;
+  padding: 12px 16px;
+  text-align: left;
+  cursor: pointer;
+  box-shadow:
+    inset 0 2px 0 #FFFFFF,
+    0 12px 28px rgba(20, 42, 74, 0.22);
+  transition: transform 0.15s ease;
+}
+
+.bedroom-speech-bubble-card:hover {
+  transform: translateY(-2px);
+}
+
+/* Chiếc đuôi nhỏ của bóng thoại trỏ về phía nhân vật */
+.bedroom-speech-bubble-card::before {
+  content: "";
+  position: absolute;
+  left: -10px;
+  top: 50%;
+  width: 18px;
+  height: 18px;
+  background: rgba(255, 255, 255, 0.97);
+  border-radius: 4px;
+  transform: translateY(-50%) rotate(45deg);
+}
+
+.speech-bubble-text {
+  position: relative;
+  margin: 0 0 5px;
+  font-size: 14.5px;
+  font-weight: 800;
+  line-height: 1.35;
+  color: var(--room-title-color, #1F3B5C);
+}
+
+.speech-bubble-audio-tag {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  font-size: 11.5px;
+  font-weight: 900;
+  color: var(--room-primary, #4A9FF5);
+}
+
+/* Thẻ câu hỏi Trắng Sứ Mềm (Soft Porcelain Card) */
+.bedroom-porcelain-question-card {
+  background: var(--room-card-bg, rgba(252, 254, 255, 0.96));
+  backdrop-filter: blur(16px);
+  border: 3px solid #FFFFFF;
+  border-radius: 30px;
+  padding: 18px 20px 16px;
+  text-align: center;
+  box-shadow:
+    inset 0 2px 2px #FFFFFF,
+    0 20px 44px rgba(18, 38, 68, 0.26);
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.porcelain-question-title {
+  margin: 0;
+  font-size: 17px;
+  font-weight: 900;
+  color: var(--room-title-color, #1F3B5C);
+  line-height: 1.3;
+}
+
+.porcelain-formula-pill {
+  align-self: center;
+  padding: 4px 16px;
+  border-radius: 999px;
+  background: var(--room-soft-tint, #EBF5FF);
+  border: 2px solid var(--room-card-border, #D6ECFF);
+  color: var(--room-primary, #4A9FF5);
+  font-size: 15px;
+  font-weight: 900;
+}
+
+/* Lưới đáp án bên trong thẻ */
+.porcelain-options-grid {
+  display: grid;
+  gap: 12px;
+}
+
+.porcelain-options-grid.style-book,
+.porcelain-options-grid.style-word,
+.porcelain-options-grid.style-shape {
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+
+.porcelain-options-grid.style-number {
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+}
+
+.porcelain-option-tile {
+  position: relative;
+  border: 3px solid #E6EEF8;
+  background: linear-gradient(180deg, #FFFFFF 0%, #F4F8FD 100%);
+  border-radius: 22px;
+  padding: 12px 10px;
+  cursor: pointer;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  font-family: inherit;
+  box-shadow:
+    inset 0 2px 0 #FFFFFF,
+    0 6px 14px rgba(25, 48, 80, 0.08);
+  transition:
+    transform 0.18s cubic-bezier(0.34, 1.56, 0.64, 1),
+    box-shadow 0.18s ease,
+    border-color 0.18s ease;
+}
+
+.porcelain-option-tile:hover {
+  transform: translateY(-3px);
+}
+
+/* Khi chọn đáp án: Phát sáng viền vàng ánh sao (Golden Halo) chuẩn Demo */
+.porcelain-option-tile.is-selected {
+  background: var(--room-sel-bg, linear-gradient(180deg, #FFFDF5 0%, #FFF5D6 100%));
+  border-color: var(--room-sel-border, #FFD147);
+  box-shadow: var(
+    --room-sel-glow,
+    0 0 0 4px rgba(255, 209, 71, 0.38),
+    0 12px 26px rgba(255, 193, 37, 0.32)
+  );
+  transform: translateY(-4px) scale(1.03);
+}
+
+.porcelain-option-tile.is-wrong-shake {
+  border-color: #FB7185;
+  animation: clawCoinShake 0.42s ease;
+}
+
+/* Kiểu 1: Cuốn sách 3D (Sách Thỏ Hồng, Sách Ngôi Sao Xanh, Sách Cỏ 4 Lá như hình 2 Demo) */
+.demo-book-cover {
+  position: relative;
+  width: 74px;
+  height: 92px;
+  border-radius: 8px 14px 14px 8px;
+  border: 2.5px solid #64B5F6;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow:
+    inset -4px 0 0 rgba(255, 255, 255, 0.45),
+    0 8px 16px rgba(20, 42, 74, 0.16);
+}
+
+.demo-book-spine {
+  position: absolute;
+  left: 7px;
+  top: 4px;
+  bottom: 4px;
+  width: 3px;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.55);
+}
+
+.demo-book-emblem {
+  font-size: 34px;
+  filter: drop-shadow(0 3px 5px rgba(0, 0, 0, 0.16));
+}
+
+.demo-book-caption {
+  font-size: 12px;
+  font-weight: 900;
+  color: var(--room-title-color, #1F3B5C);
+}
+
+/* Kiểu 2: Ô số Toán học (3, 4, 5, 6 như hình 4 Demo) */
+.demo-number-box {
+  position: relative;
+  width: 100%;
+  min-height: 68px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.demo-number-digit {
+  font-size: 32px;
+  font-weight: 900;
+  color: var(--room-title-color, #1F3B5C);
+}
+
+.demo-number-confetti {
+  position: absolute;
+  width: 6px;
+  height: 6px;
+  border-radius: 999px;
+  background: #93C5FD;
+  opacity: 0.7;
+}
+
+.demo-number-confetti.c1 {
+  top: 6px;
+  left: 10px;
+}
+
+.demo-number-confetti.c2 {
+  bottom: 8px;
+  right: 10px;
+  background: #FCD34D;
+}
+
+/* Kiểu 3 & 4: Thẻ Học đọc / Đánh vần & Hình khối */
+.demo-rich-option-content {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+}
+
+.demo-rich-icon {
+  font-size: 30px;
+  line-height: 1.1;
+}
+
+.demo-rich-label {
+  font-size: 14px;
+  font-weight: 900;
+  color: var(--room-title-color, #1F3B5C);
+}
+
+.demo-rich-sub {
+  font-size: 11px;
+  font-weight: 800;
+  color: var(--room-sub-color, #4A6B8C);
+  line-height: 1.25;
+}
+
+/* Nút bấm chính "Chọn" / "Tiếp tục" / "Nhận thưởng" chuẩn Candy Glossy 3D Pill */
+.porcelain-card-footer {
+  display: flex;
+  justify-content: center;
+  margin-top: 2px;
+}
+
+.bedroom-candy-cta-btn {
+  position: relative;
+  min-width: 190px;
+  padding: 11px 32px;
+  border-radius: 999px;
+  border: 2.5px solid var(--room-btn-border, #A6DCFF);
+  background: var(--room-btn-grad, linear-gradient(180deg, #74C6FF 0%, #4495E8 100%));
+  color: #FFFFFF;
+  font-family: inherit;
+  font-size: 17px;
+  font-weight: 900;
+  cursor: pointer;
+  box-shadow:
+    inset 0 2px 2px rgba(255, 255, 255, 0.72),
+    var(--room-btn-shadow, 0 6px 0 #2D74C4, 0 12px 24px rgba(68, 149, 232, 0.38));
+  text-shadow: 0 1px 2px rgba(15, 32, 68, 0.28);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  transition:
+    transform 0.16s cubic-bezier(0.34, 1.56, 0.64, 1),
+    filter 0.16s ease,
+    opacity 0.16s ease;
+}
+
+.bedroom-candy-cta-btn::after {
+  content: "";
+  position: absolute;
+  top: 3px;
+  left: 14%;
+  right: 14%;
+  height: 36%;
+  border-radius: 999px;
+  background: linear-gradient(
+    180deg,
+    rgba(255, 255, 255, 0.52) 0%,
+    rgba(255, 255, 255, 0) 100%
+  );
+  pointer-events: none;
+}
+
+.bedroom-candy-cta-btn:hover:not(:disabled) {
+  transform: translateY(-2px) scale(1.04);
+  filter: brightness(1.04);
+}
+
+.bedroom-candy-cta-btn:active:not(:disabled) {
+  transform: translateY(3px);
+}
+
+.bedroom-candy-cta-btn:disabled {
+  opacity: 0.48;
+  cursor: not-allowed;
+  filter: grayscale(0.25);
+}
+
+.bedroom-candy-cta-btn.large-continue-btn {
+  min-width: 220px;
+  font-size: 18px;
+  padding: 13px 38px;
+}
+
+/* ============================================================================
+   MÀN HÌNH 3: POPUP KHEN THƯỞNG "+1 ⭐" & MÀN HÌNH 6: MỞ RƯƠNG NGÔI SAO
+   ============================================================================ */
+.bedroom-center-modal-backdrop {
+  position: absolute;
+  inset: 0;
+  z-index: 25;
+  background: rgba(15, 28, 48, 0.42);
+  backdrop-filter: blur(6px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 16px;
+  animation: bedroomFadeIn 0.25s ease;
+}
+
+.bedroom-star-reward-showcase {
+  width: min(420px, 92%);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 14px;
+  animation: clawCatchPop 0.36s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+.star-reward-hero-top {
+  position: relative;
+  width: 220px;
+  height: 150px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: -18px;
+  z-index: 2;
+}
+
+.star-reward-halo-glow {
+  position: absolute;
+  inset: -16px;
+  border-radius: 999px;
+  background: radial-gradient(
+    circle,
+    rgba(255, 224, 102, 0.72) 0%,
+    rgba(255, 212, 59, 0.22) 48%,
+    transparent 74%
+  );
+  animation: bedroomStarPulse 1.5s ease-in-out infinite alternate;
+}
+
+.star-reward-giant-star {
+  position: relative;
+  z-index: 2;
+  transform: translateX(-28px) rotate(-10deg);
+  filter: drop-shadow(0 8px 18px rgba(245, 159, 0, 0.55));
+}
+
+.star-reward-mascot-img {
+  position: relative;
+  z-index: 3;
+  width: 128px;
+  height: 128px;
+  object-fit: contain;
+  margin-left: -24px;
+  filter: drop-shadow(0 10px 18px rgba(15, 28, 48, 0.28));
+}
+
+.star-reward-white-card {
+  width: 100%;
+  background: rgba(255, 255, 255, 0.98);
+  border: 3px solid #FFFFFF;
+  border-radius: 32px;
+  padding: 24px 22px 18px;
+  text-align: center;
+  box-shadow: 0 22px 48px rgba(15, 28, 48, 0.28);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+}
+
+.star-reward-title {
+  margin: 0;
+  font-size: 20px;
+  font-weight: 900;
+  color: var(--room-title-color, #1F3B5C);
+}
+
+.star-reward-subtitle {
+  margin: 0;
+  font-size: 13.5px;
+  font-weight: 800;
+  color: var(--room-sub-color, #4A6B8C);
+}
+
+.star-plus-one-pill {
+  margin-top: 4px;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 6px 20px;
+  border-radius: 999px;
+  background: linear-gradient(180deg, #FFFDF2 0%, #FFF0B8 100%);
+  border: 2px solid #FFD147;
+  box-shadow: 0 6px 16px rgba(245, 159, 0, 0.22);
+}
+
+.plus-one-text {
+  font-size: 24px;
+  font-weight: 900;
+  color: var(--room-title-color, #1F3B5C);
+}
+
+/* Màn hình 6: Mở Rương Ngôi Sao (Treasure Chest Victory) */
+.bedroom-chest-victory-card {
+  width: min(460px, 94%);
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0.96) 0%, #F0F8FF 100%);
+  border: 3.5px solid #FFFFFF;
+  border-radius: 34px;
+  padding: 20px 24px 22px;
+  text-align: center;
+  box-shadow: 0 24px 56px rgba(15, 28, 48, 0.34);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 12px;
+  animation: clawCatchPop 0.38s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+.chest-victory-ribbon {
+  background: linear-gradient(180deg, #FFF9DB 0%, #FFE066 100%);
+  border: 2.5px solid #FFFFFF;
+  color: #5C3D00;
+  font-size: 16px;
+  font-weight: 900;
+  padding: 8px 24px;
+  border-radius: 999px;
+  box-shadow: 0 8px 20px rgba(245, 159, 0, 0.28);
+}
+
+.chest-victory-stage-box {
+  position: relative;
+  width: 240px;
+  height: 195px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: flex-end;
+}
+
+.chest-sunburst-rays {
+  position: absolute;
+  inset: -12px;
+  border-radius: 999px;
+  background: radial-gradient(
+    circle,
+    rgba(255, 230, 128, 0.85) 0%,
+    rgba(255, 212, 59, 0.28) 50%,
+    transparent 74%
+  );
+  animation: bedroomStarPulse 1.6s ease-in-out infinite alternate;
+}
+
+.chest-mascot-pop-img {
+  position: relative;
+  z-index: 3;
+  width: 124px;
+  height: 124px;
+  object-fit: contain;
+  margin-bottom: -22px;
+  filter: drop-shadow(0 10px 18px rgba(15, 28, 48, 0.25));
+}
+
+.chest-stars-cluster {
+  position: relative;
+  z-index: 4;
+  display: flex;
+  align-items: flex-end;
+  gap: 4px;
+  margin-bottom: -14px;
+}
+
+.kawaii-treasure-chest-box {
+  position: relative;
+  z-index: 2;
+  width: 156px;
+  height: 76px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.chest-lid-gold {
+  width: 164px;
+  height: 22px;
+  border-radius: 14px 14px 4px 4px;
+  background: linear-gradient(180deg, #FFE066 0%, #F59F00 100%);
+  border: 2.5px solid #FFFFFF;
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.15);
+}
+
+.chest-body-wood {
+  width: 152px;
+  height: 54px;
+  border-radius: 0 0 18px 18px;
+  background: linear-gradient(180deg, #64B5F6 0%, #3B82F6 100%);
+  border: 3px solid #FFD43B;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 12px 24px rgba(30, 64, 175, 0.28);
+}
+
+.chest-lock-shield {
+  width: 36px;
+  height: 38px;
+  border-radius: 10px 10px 18px 18px;
+  background: linear-gradient(180deg, #FFF3BF 0%, #FCC419 100%);
+  border: 2px solid #FFFFFF;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.chest-victory-desc {
+  margin: 0;
+  font-size: 14px;
+  font-weight: 800;
+  color: var(--room-title-color, #1F3B5C);
+}
+
+/* ============================================================================
+   MÀN HÌNH 7: MODAL "BẢN ĐỒ KHÁM PHÁ" (CHUẨN HÌNH 7 DEMO)
+   ============================================================================ */
+.bedroom-discovery-map-modal {
+  width: min(690px, 95%);
+  background: linear-gradient(135deg, #DCEEFF 0%, #EAF4FF 100%);
+  border: 3.5px solid #FFFFFF;
+  border-radius: 32px;
+  padding: 16px;
+  display: grid;
+  grid-template-columns: 1.35fr 1fr;
+  gap: 16px;
+  box-shadow: 0 24px 56px rgba(15, 28, 48, 0.34);
+  animation: clawCatchPop 0.32s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+.discovery-map-left-card {
+  background: #FFFFFF;
+  border-radius: 24px;
+  padding: 16px 18px;
+  box-shadow: 0 10px 24px rgba(20, 42, 74, 0.08);
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.discovery-map-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.discovery-map-header h4 {
+  margin: 0;
+  font-size: 18px;
+  font-weight: 900;
+  color: var(--room-title-color, #1F3B5C);
+}
+
+.discovery-map-close-btn {
+  width: 32px;
+  height: 32px;
+  border-radius: 999px;
+  border: none;
+  background: #F1F5F9;
+  color: #64748B;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+}
+
+.discovery-map-spots-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 12px;
+}
+
+.discovery-spot-item {
+  border: 2px solid #EFF6FF;
+  background: #F8FAFC;
+  border-radius: 20px;
+  padding: 10px 8px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+  cursor: pointer;
+  font-family: inherit;
+  transition: transform 0.16s ease, border-color 0.16s ease;
+}
+
+.discovery-spot-item:hover {
+  transform: translateY(-2px);
+  border-color: var(--room-primary, #4A9FF5);
+}
+
+.discovery-spot-item.is-done {
+  background: #F0FDF4;
+  border-color: #86EFAC;
+}
+
+.discovery-spot-thumb-circle {
+  position: relative;
+  width: 68px;
+  height: 68px;
+  border-radius: 999px;
+  border: 3px solid #FFFFFF;
+  box-shadow: 0 6px 14px rgba(20, 42, 74, 0.14);
+}
+
+.discovery-spot-thumb-crop {
+  width: 100%;
+  height: 100%;
+  border-radius: 999px;
+  background-size: 320%;
+  background-repeat: no-repeat;
+}
+
+.discovery-spot-check-badge {
+  position: absolute;
+  right: -2px;
+  bottom: -2px;
+  width: 22px;
+  height: 22px;
+  border-radius: 999px;
+  background: #CBD5E1;
+  border: 2px solid #FFFFFF;
+  color: #FFFFFF;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.discovery-spot-check-badge.done {
+  background: #22C55E;
+}
+
+.discovery-spot-name {
+  font-size: 13.5px;
+  font-weight: 900;
+  color: var(--room-title-color, #1F3B5C);
+}
+
+.discovery-spot-status-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 2px 10px;
+  border-radius: 999px;
+  background: #FFFFFF;
+  border: 1.5px solid #E2E8F0;
+  font-size: 12px;
+  font-weight: 900;
+  color: #475569;
+}
+
+.discovery-spot-status-pill.done {
+  border-color: #86EFAC;
+  color: #15803D;
+}
+
+/* Cột phải của Bản đồ khám phá */
+.discovery-map-right-card {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  padding: 8px;
+}
+
+.discovery-map-mascot {
+  width: 96px;
+  height: 96px;
+  object-fit: contain;
+  margin-bottom: -16px;
+  z-index: 2;
+  filter: drop-shadow(0 8px 14px rgba(20, 42, 74, 0.2));
+}
+
+.discovery-map-speech-box {
+  background: rgba(255, 255, 255, 0.92);
+  border: 2.5px solid #FFFFFF;
+  border-radius: 22px;
+  padding: 18px 14px 14px;
+  text-align: center;
+  box-shadow: 0 8px 20px rgba(20, 42, 74, 0.1);
+}
+
+.discovery-map-speech-box p {
+  margin: 0;
+  font-size: 13.5px;
+  font-weight: 800;
+  line-height: 1.4;
+  color: var(--room-title-color, #1F3B5C);
+}
+
+.discovery-map-progress-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.discovery-stars-trio {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.discovery-mini-chest-btn {
+  width: 48px;
+  height: 48px;
+  border-radius: 16px;
+  border: 2.5px solid #FFFFFF;
+  background: linear-gradient(180deg, #FFF9DB 0%, #FFE066 100%);
+  font-size: 24px;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 6px 14px rgba(245, 159, 0, 0.24);
+}
+
+.discovery-mini-chest-btn.unlocked {
+  animation: coinSlotPulse 1.1s ease-in-out infinite alternate;
+}
+
+@media (max-width: 920px) {
+  .bedroom-interaction-overlay {
+    flex-direction: column;
+    justify-content: flex-end;
+    padding: 8px 12px 12px;
+  }
+  .bedroom-zoom-Pinpoint {
+    display: none;
+  }
+  .bedroom-question-panel {
+    width: 100%;
+  }
+  .bedroom-discovery-map-modal {
+    grid-template-columns: 1fr;
+  }
+}
+
+/* ============================================================================
+   NÂNG CẤP V2: NGÔI SAO PHÒNG NGỦ ĐỨNG YÊN 100% (KHÔNG NHẢY, KHÔNG TAG CHỮ)
+   & GIAO DIỆN 5 TRẠM HỌC TẬP ĐỘNG (HÌNH DẠNG 4 SÁCH - TOÁN ĐĨA BÁNH - ĐỌC - ANH - THƠ)
+   ============================================================================ */
+.bedroom-hotspot-btn {
+  position: absolute !important;
+  width: 74px !important;
+  height: 74px !important;
+  transform: translate(-50%, -50%) !important;
+  border: none !important;
+  background: transparent !important;
+  padding: 0 !important;
+  cursor: pointer !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  z-index: 9 !important;
+  opacity: 0.62;
+  transition: opacity 0.2s ease, filter 0.2s ease !important;
+}
+
+/* Khi di chuột đến gần hoặc chạm: Sáng bừng lên tại chỗ, tuyệt đối KHÔNG dịch chuyển translate */
+.bedroom-hotspot-btn:hover,
+.bedroom-hotspot-btn:focus-visible {
+  transform: translate(-50%, -50%) !important;
+  opacity: 1 !important;
+  z-index: 14 !important;
+  filter: drop-shadow(0 0 14px rgba(255, 224, 102, 1))
+    drop-shadow(0 0 26px rgba(255, 184, 0, 0.85));
+}
+
+.bedroom-hotspot-btn:active {
+  transform: translate(-50%, -50%) scale(0.95) !important;
+}
+
+.bedroom-gentle-star-svg {
+  width: 66px;
+  height: 66px;
+  pointer-events: none;
+  filter: drop-shadow(0 0 8px rgba(255, 215, 64, 0.72));
+  transition: filter 0.2s ease;
+}
+
+.bedroom-hotspot-btn:hover .star-outline-path {
+  fill: rgba(255, 236, 153, 0.55);
+  stroke-width: 4;
+}
+
+.bedroom-hotspot-btn.is-done {
+  opacity: 0.82;
+}
+
+.hotspot-mini-done-tick {
+  position: absolute;
+  right: 8px;
+  bottom: 8px;
+  width: 20px;
+  height: 20px;
+  border-radius: 999px;
+  background: #22C55E;
+  border: 2px solid #FFFFFF;
+  color: #FFFFFF;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 3px 8px rgba(0, 0, 0, 0.22);
+  pointer-events: none;
+}
+
+/* Nút đổi câu hỏi khác trên góc trái */
+.zoom-spot-badge {
+  pointer-events: auto;
+}
+
+.zoom-refresh-question-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  border: 1.5px solid var(--room-card-border, #D6ECFF);
+  background: #FFFFFF;
+  color: var(--room-primary, #4A9FF5);
+  font-family: inherit;
+  font-size: 11.5px;
+  font-weight: 900;
+  padding: 3px 10px;
+  border-radius: 999px;
+  cursor: pointer;
+  transition: transform 0.15s ease;
+}
+
+.zoom-refresh-question-btn:hover {
+  transform: scale(1.04);
+}
+
+/* Lưới 4 quyển sách / 4 con số / 4 đáp án chữ / 4 từ Tiếng Anh */
+.porcelain-options-grid.style-book,
+.porcelain-options-grid.style-number,
+.porcelain-options-grid.style-word,
+.porcelain-options-grid.style-english {
+  grid-template-columns: repeat(4, minmax(0, 1fr)) !important;
+  gap: 10px;
+}
+
+.demo-book-cover {
+  width: 66px;
+  height: 84px;
+}
+
+/* TRẠM 2: Khay Đĩa Bánh Toán Tình Huống (Thêm / Ăn bớt / Đếm trực quan) */
+.bedroom-math-tray-showcase {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-wrap: wrap;
+  gap: 10px;
+  padding: 10px 14px;
+  border-radius: 22px;
+  background: var(--room-soft-tint, #EBF5FF);
+  border: 2px dashed var(--room-card-border, #D6ECFF);
+}
+
+.math-plate-group {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex-wrap: wrap;
+  gap: 8px;
+  padding: 8px 14px;
+  border-radius: 999px;
+  background: #FFFFFF;
+  border: 2.5px solid #E2E8F0;
+  box-shadow:
+    inset 0 -3px 0 #F1F5F9,
+    0 6px 14px rgba(15, 28, 48, 0.08);
+}
+
+.math-plate-group.bonus-plate {
+  border-color: #FDE047;
+  background: #FEFCE8;
+}
+
+.math-plate-treat-item {
+  position: relative;
+  font-size: 28px;
+  line-height: 1;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  filter: drop-shadow(0 3px 4px rgba(0, 0, 0, 0.12));
+}
+
+.math-plate-treat-item.is-eaten {
+  opacity: 0.42;
+  filter: grayscale(0.4);
+}
+
+.eaten-cross-tag {
+  position: absolute;
+  bottom: -6px;
+  left: 50%;
+  transform: translateX(-50%);
+  background: #FB7185;
+  color: #FFFFFF;
+  font-size: 8.5px;
+  font-weight: 900;
+  padding: 1px 4px;
+  border-radius: 999px;
+  white-space: nowrap;
+}
+
+.math-tray-operator {
+  font-size: 26px;
+  font-weight: 900;
+  color: var(--room-primary, #4A9FF5);
+}
+
+/* TRẠM 3: Học Đọc Điền Nốt Chữ Khuyết (Icon Mây -> M...) */
+.bedroom-reading-blank-showcase {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 14px;
+  padding: 10px 16px;
+  border-radius: 22px;
+  background: var(--room-soft-tint, #EBF5FF);
+  border: 2px solid var(--room-card-border, #D6ECFF);
+}
+
+.reading-blank-icon-box {
+  width: 64px;
+  height: 64px;
+  border-radius: 20px;
+  background: #FFFFFF;
+  border: 2.5px solid #FFFFFF;
+  box-shadow: 0 6px 14px rgba(20, 42, 74, 0.1);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 38px;
+  flex-shrink: 0;
+}
+
+.reading-blank-word-board {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 3px;
+}
+
+.reading-masked-word {
+  font-size: 28px;
+  font-weight: 900;
+  color: var(--room-title-color, #1F3B5C);
+  letter-spacing: 0.04em;
+}
+
+.reading-filled-preview {
+  color: #D97706;
+  text-decoration: underline wavy #F59E0B;
+}
+
+.reading-phonics-sub {
+  font-size: 12px;
+  font-weight: 800;
+  color: var(--room-sub-color, #4A6B8C);
+}
+
+/* TRẠM 4: Tiếng Anh Đồ Vật Trong Hộp/Phòng */
+.bedroom-english-box-showcase {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 14px;
+  padding: 10px 16px;
+  border-radius: 22px;
+  background: var(--room-soft-tint, #EBF5FF);
+  border: 2px solid var(--room-card-border, #D6ECFF);
+}
+
+.english-pop-icon-circle {
+  width: 64px;
+  height: 64px;
+  border-radius: 999px;
+  background: #FFFFFF;
+  box-shadow: 0 6px 16px rgba(20, 42, 74, 0.12);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 36px;
+}
+
+.english-pop-info {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 5px;
+}
+
+.english-pop-info strong {
+  font-size: 18px;
+  font-weight: 900;
+  color: var(--room-title-color, #1F3B5C);
+}
+
+.english-listen-hint-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 4px 11px;
+  border-radius: 999px;
+  border: 1.5px solid var(--room-card-border, #D6ECFF);
+  background: #FFFFFF;
+  color: var(--room-primary, #4A9FF5);
+  font-family: inherit;
+  font-size: 11.5px;
+  font-weight: 900;
+  cursor: pointer;
+}
+
+/* TRẠM 5: Trang Sách Đọc Thơ & Quote Đáng Yêu Hàng Ngày */
+.bedroom-poem-storybook-view {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.poem-book-top-bar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+}
+
+.poem-daily-badge {
+  background: var(--room-soft-tint, #EBF5FF);
+  color: var(--room-primary, #4A9FF5);
+  font-size: 12px;
+  font-weight: 900;
+  padding: 4px 12px;
+  border-radius: 999px;
+}
+
+.poem-change-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 4px 11px;
+  border-radius: 999px;
+  border: 1.5px solid var(--room-card-border, #D6ECFF);
+  background: #FFFFFF;
+  color: var(--room-title-color, #1F3B5C);
+  font-family: inherit;
+  font-size: 11.5px;
+  font-weight: 900;
+  cursor: pointer;
+}
+
+.poem-open-pages-box {
+  display: grid;
+  grid-template-columns: 0.9fr 1.3fr;
+  gap: 12px;
+  padding: 14px;
+  border-radius: 22px;
+  background: linear-gradient(90deg, #FFFDF9 0%, #FFFFFF 49%, #FFFDF7 100%);
+  border: 2.5px solid #FDE68A;
+  box-shadow: inset 0 0 18px rgba(251, 191, 36, 0.12);
+}
+
+.poem-illustration-side {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  border-right: 2px dashed #FDE68A;
+  padding-right: 10px;
+}
+
+.poem-big-emoji {
+  font-size: 44px;
+  line-height: 1.1;
+  filter: drop-shadow(0 6px 10px rgba(0, 0, 0, 0.12));
+}
+
+.poem-book-title {
+  font-size: 15px;
+  font-weight: 900;
+  color: var(--room-title-color, #1F3B5C);
+}
+
+.poem-listen-pill-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 4px 11px;
+  border-radius: 999px;
+  border: none;
+  background: var(--room-soft-tint, #EBF5FF);
+  color: var(--room-primary, #4A9FF5);
+  font-family: inherit;
+  font-size: 11.5px;
+  font-weight: 900;
+  cursor: pointer;
+}
+
+.poem-verses-side {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: flex-start;
+  gap: 4px;
+  padding-left: 6px;
+  text-align: left;
+}
+
+.poem-verse-line {
+  margin: 0;
+  font-size: 15px;
+  font-weight: 900;
+  color: var(--room-title-color, #1F3B5C);
+  line-height: 1.38;
+}
+
+.poem-quote-footer-box {
+  padding: 8px 14px;
+  border-radius: 16px;
+  background: #FFFBEB;
+  border: 1.5px solid #FDE68A;
+  color: #92400E;
+  font-size: 12px;
+  font-weight: 800;
+  line-height: 1.35;
+  text-align: left;
+}
+
+.plus-one-progress {
+  font-size: 13px;
+  font-weight: 800;
+  color: #B45309;
+}
+
+.chest-unlocked-sticker-pill {
+  padding: 6px 16px;
+  border-radius: 999px;
+  background: linear-gradient(180deg, #FFFDF2 0%, #FEF08A 100%);
+  border: 2px solid #F59E0B;
+  color: #92400E;
+  font-size: 13.5px;
+  font-weight: 800;
+}
+
+.discovery-map-spots-grid.five-spots {
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+
+/* =====================================================================
+   HÌNH CẮT 3D & PHẦN THƯỞNG KÉP MAP ĐẶC BIỆT ĐÊM HỘI HALLOWEEN
+   ===================================================================== */
+.math-plate-treat-img {
+  width: 38px;
+  height: 38px;
+  object-fit: contain;
+  filter: drop-shadow(0 3px 5px rgba(0, 0, 0, 0.18));
+}
+
+.reading-blank-cutout-img {
+  width: 58px;
+  height: 58px;
+  object-fit: contain;
+  filter: drop-shadow(0 4px 8px rgba(124, 58, 237, 0.22));
+}
+
+.english-pop-cutout-img {
+  width: 56px;
+  height: 56px;
+  object-fit: contain;
+  filter: drop-shadow(0 4px 8px rgba(124, 58, 237, 0.22));
+}
+
+.demo-rich-option-cutout {
+  width: 44px;
+  height: 44px;
+  object-fit: contain;
+  margin-bottom: 2px;
+  filter: drop-shadow(0 3px 6px rgba(0, 0, 0, 0.16));
+}
+
+.poem-cutout-img {
+  width: 78px;
+  height: 78px;
+  object-fit: contain;
+  filter: drop-shadow(0 5px 10px rgba(124, 58, 237, 0.26));
+}
+
+.halloween-double-reward-showcase {
+  position: relative;
+  z-index: 3;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 16px;
+  margin-bottom: 6px;
+}
+
+.halloween-reward-card {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 5px;
+  padding: 10px 14px;
+  border-radius: 20px;
+  background: linear-gradient(180deg, #FFFFFF 0%, #FFF7ED 100%);
+  border: 2.5px solid #FB923C;
+  box-shadow: 0 8px 20px rgba(124, 58, 237, 0.24);
+  animation: kawaiiFloatBob 2.4s ease-in-out infinite;
+}
+
+.halloween-reward-img {
+  width: 84px;
+  height: 84px;
+  object-fit: contain;
+  filter: drop-shadow(0 5px 10px rgba(0, 0, 0, 0.18));
+}
+
+.halloween-reward-badge {
+  font-size: 11.5px;
+  font-weight: 900;
+  color: #5B21B6;
+  background: #F3E8FF;
+  border: 1.5px solid #C084FC;
+  padding: 2px 9px;
+  border-radius: 999px;
+  white-space: nowrap;
+}
+
+.halloween-victory-basket-img {
+  position: relative;
+  z-index: 2;
+  width: 92px;
+  height: 92px;
+  object-fit: contain;
+  margin-top: -10px;
+  filter: drop-shadow(0 8px 16px rgba(234, 88, 12, 0.35));
+}
+
+
+/* ============================================================================
+   THANH CHUYỂN CHẾ ĐỘ MỸ THUẬT (TÔ TRANH KAWAII | TRỘN MÀU SÁNG TẠO)
+   ============================================================================ */
+.art-studio-mode-switcher {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  padding: 2px 8px 4px;
+  flex-shrink: 0;
+}
+
+.art-mode-tab-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 5px 16px;
+  border-radius: 999px;
+  border: 2px solid #e2d5f3;
+  background: #ffffff;
+  color: #6b538c;
+  font-family: inherit;
+  font-size: 13px;
+  font-weight: 900;
+  cursor: pointer;
+  box-shadow: 0 3px 0 #d5c4ec;
+  transition: transform 0.15s ease, box-shadow 0.15s ease, background 0.15s ease;
+}
+
+.art-mode-tab-btn:hover {
+  transform: translateY(-1px);
+}
+
+.art-mode-tab-btn.active {
+  background: linear-gradient(180deg, #ff85a8 0%, #ff5c8a 100%);
+  border-color: #ffffff;
+  color: #ffffff;
+  box-shadow:
+    0 3px 0 #d63865,
+    0 5px 12px rgba(255, 92, 138, 0.3);
+}
+
+.art-mode-tab-btn.mix-mode.active {
+  background: linear-gradient(180deg, #6ab2ff 0%, #448ef6 100%);
+  border-color: #ffffff;
+  color: #ffffff;
+  box-shadow:
+    0 3px 0 #2667c9,
+    0 5px 12px rgba(68, 142, 246, 0.32);
+}
+
+.art-mode-emoji {
+  font-size: 15px;
+  line-height: 1;
+}
+
+.art-mode-new-badge {
+  background: #fff3b0;
+  color: #b45309;
+  font-size: 10px;
+  font-weight: 900;
+  padding: 1px 6px;
+  border-radius: 999px;
+  border: 1.5px solid #ffd166;
+}
+
+/* ============================================================================
+   PHÒNG THÍ NGHIỆM TRỘN MÀU SÁNG TẠO PASTEL (KHÓA CỨNG KHUNG 100%, KHÔNG NHẢY)
+   ============================================================================ */
+.pastel-mix-studio-wrap {
+  width: 100%;
+  max-width: 100%;
+  flex: 1;
+  min-height: 0;
+  min-width: 0;
+  box-sizing: border-box;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  padding: 6px 8px;
+  background: linear-gradient(180deg, #fff9fc 0%, #f7faff 55%, #fffdf5 100%);
+  border-radius: 22px;
+  border: 2px solid #f8d8e8;
+  overflow: hidden;
+}
+
+/* Header Banner gọn gàng với Hello Kitty & Nhóm Bạn Sanrio */
+.pastel-mix-hero-header {
+  width: 100%;
+  box-sizing: border-box;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  padding: 3px 12px;
+  background: linear-gradient(90deg, #fff0f6 0%, #ffffff 50%, #eef6ff 100%);
+  border-radius: 16px;
+  border: 1.5px solid #fbd5e5;
+  flex-shrink: 0;
+}
+
+.pastel-mix-hero-mascot-left {
+  display: flex;
+  align-items: center;
+}
+
+.pastel-mix-hero-char {
+  width: 38px;
+  height: 38px;
+  object-fit: contain;
+  filter: drop-shadow(0 2px 4px rgba(236, 72, 153, 0.2));
+}
+
+.pastel-mix-hero-ribbon {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  background: linear-gradient(180deg, #ffe3ee 0%, #ffd2e4 100%);
+  border: 2px solid #ffffff;
+  box-shadow: 0 3px 8px rgba(244, 114, 182, 0.18);
+  padding: 3px 18px;
+  border-radius: 999px;
+}
+
+.ribbon-sparkle {
+  color: #fbbf24;
+  font-size: 14px;
+}
+
+.ribbon-text-box {
+  text-align: center;
+  display: flex;
+  align-items: baseline;
+  gap: 8px;
+}
+
+.pastel-mix-main-title {
+  margin: 0;
+  font-size: 16px;
+  font-weight: 900;
+  color: #be3468;
+  line-height: 1.1;
+}
+
+.pastel-mix-sub-title {
+  margin: 0;
+  font-size: 11px;
+  font-weight: 800;
+  color: #9d4edd;
+}
+
+.pastel-mix-hero-mascots-right {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+}
+
+.pastel-mix-hero-mascots-right img {
+  width: 34px;
+  height: 34px;
+  object-fit: contain;
+  filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.1));
+}
+
+/* Lưới 3 cột khóa cứng minmax(0, ...) chống phình ngang tuyệt đối */
+.pastel-mix-three-cols {
+  width: 100%;
+  max-width: 100%;
+  flex: 1;
+  min-height: 0;
+  min-width: 0;
+  display: grid;
+  grid-template-columns: minmax(0, 0.92fr) minmax(0, 1.36fr) minmax(0, 1.04fr);
+  gap: 8px;
+  align-items: stretch;
+  overflow: hidden;
+}
+
+.pastel-mix-card {
+  min-width: 0;
+  max-width: 100%;
+  box-sizing: border-box;
+  background: #ffffff;
+  border-radius: 20px;
+  border: 2px solid #e6ecf8;
+  box-shadow: 0 4px 12px rgba(148, 163, 184, 0.1);
+  padding: 8px;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+/* ----------------------------------------------------------------------------
+   CỘT 1 (TRÁI): KHAY 9 MÀU GỐC (JELLY BLOBS 3D)
+   ---------------------------------------------------------------------------- */
+.col-base-colors {
+  background: linear-gradient(180deg, #f3f7ff 0%, #f9fbff 100%);
+  border-color: #d8e5ff;
+  justify-content: space-between;
+  gap: 6px;
+}
+
+.pastel-section-header {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  padding: 0 2px;
+  flex-shrink: 0;
+}
+
+.section-icon-circle {
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  background: #ffe0ec;
+  border: 2px solid #ffb3d1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 14px;
+  flex-shrink: 0;
+}
+
+.pastel-section-header h3 {
+  margin: 0;
+  font-size: 14px;
+  font-weight: 900;
+  color: #4a3563;
+  line-height: 1.1;
+}
+
+.pastel-section-header small {
+  font-size: 10.5px;
+  font-weight: 700;
+  color: #7c6994;
+}
+
+.base-colors-3x3-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  grid-template-rows: repeat(3, minmax(0, 1fr));
+  gap: 6px;
+  flex: 1;
+  min-height: 0;
+}
+
+.base-jelly-card {
+  position: relative;
+  min-width: 0;
+  min-height: 0;
+  background: #ffffff;
+  border: 2px solid #e9effd;
+  border-radius: 16px;
+  padding: 4px 3px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 3px;
+  cursor: pointer;
+  font-family: inherit;
+  box-shadow: 0 2px 6px rgba(100, 116, 139, 0.07);
+  transition: transform 0.14s ease, border-color 0.14s ease;
+}
+
+.base-jelly-card:hover {
+  border-color: #93c5fd;
+}
+
+.base-jelly-card:active {
+  transform: scale(0.95);
+}
+
+.base-jelly-card.is-picked {
+  border-color: #60a5fa;
+  background: #f0f7ff;
+  box-shadow: inset 0 0 0 1.5px rgba(96, 165, 250, 0.35);
+}
+
+.picked-drop-badge {
+  position: absolute;
+  top: 2px;
+  right: 2px;
+  background: #3b82f6;
+  color: #ffffff;
+  font-size: 9px;
+  font-weight: 900;
+  padding: 1px 5px;
+  border-radius: 999px;
+  z-index: 3;
+}
+
+/* Tạo hình giọt màu thạch bóng 3D (Jelly Paint Orb) */
+.jelly-paint-orb {
+  position: relative;
+  border-radius: 47% 53% 45% 55% / 53% 46% 54% 47%;
+  border: 2px solid rgba(255, 255, 255, 0.85);
+  flex-shrink: 0;
+  transition:
+    transform 0.22s cubic-bezier(0.34, 1.56, 0.64, 1),
+    background-color 0.28s ease,
+    box-shadow 0.28s ease;
+}
+
+.jelly-paint-orb.base-orb {
+  width: 42px;
+  height: 38px;
+}
+
+.jelly-shine-large {
+  position: absolute;
+  top: 15%;
+  left: 17%;
+  width: 28%;
+  height: 16%;
+  background: rgba(255, 255, 255, 0.72);
+  border-radius: 999px;
+  transform: rotate(-28deg);
+  pointer-events: none;
+}
+
+.jelly-shine-dot {
+  position: absolute;
+  top: 34%;
+  left: 14%;
+  width: 9%;
+  height: 9%;
+  background: rgba(255, 255, 255, 0.65);
+  border-radius: 50%;
+  pointer-events: none;
+}
+
+.base-color-label {
+  font-size: 11px;
+  font-weight: 900;
+  color: #3b2d52;
+  line-height: 1.05;
+  white-space: nowrap;
+}
+
+/* Mascot Cinnamoroll góc trái dưới */
+.cinna-helper-footer {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  background: #ffffff;
+  border: 1.5px solid #dbeafe;
+  border-radius: 14px;
+  padding: 4px 7px;
+  cursor: pointer;
+  font-family: inherit;
+  text-align: left;
+  flex-shrink: 0;
+}
+
+.cinna-helper-img {
+  width: 36px;
+  height: 36px;
+  object-fit: contain;
+  flex-shrink: 0;
+}
+
+.cinna-speech-bubble {
+  font-size: 10.5px;
+  font-weight: 800;
+  color: #475569;
+  line-height: 1.2;
+}
+
+/* ----------------------------------------------------------------------------
+   CỘT 2 (GIỮA): KHAY TRỘN MÀU + BẢNG MÀU KẾT QUẢ + LỊCH SỬ (KHÓA CỨNG ĐỘ RỘNG)
+   ---------------------------------------------------------------------------- */
+.pastel-mix-center-col {
+  min-width: 0;
+  max-width: 100%;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  overflow: hidden;
+}
+
+.tray-selection-card {
+  flex-shrink: 0;
+  padding: 7px 9px;
+}
+
+.pastel-pill-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 6px;
+  padding: 4px 12px;
+  border-radius: 999px;
+  font-size: 12.5px;
+  font-weight: 900;
+  color: #ffffff;
+  margin-bottom: 5px;
+  min-height: 26px;
+  box-sizing: border-box;
+  flex-shrink: 0;
+}
+
+.pastel-pill-header.blue {
+  background: linear-gradient(90deg, #5698f5 0%, #7cb5ff 100%);
+}
+
+.pastel-pill-header.sky {
+  background: linear-gradient(90deg, #65a7f7 0%, #8bc6fc 100%);
+}
+
+.tray-total-drops-tag {
+  background: rgba(255, 255, 255, 0.25);
+  padding: 1px 7px;
+  border-radius: 999px;
+  font-size: 10.5px;
+}
+
+/* Khay gỗ kem Pastel đựng 3 giọt màu trộn (Cố định chiều cao) */
+.wooden-pastel-palette-tray {
+  background: linear-gradient(180deg, #ffefd8 0%, #fce3c2 100%);
+  border: 2.5px solid #f3cfa4;
+  box-shadow: inset 0 -4px 0 #eab985;
+  border-radius: 22px;
+  padding: 7px 10px;
+  height: 122px;
+  box-sizing: border-box;
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 8px;
+  align-items: center;
+}
+
+.palette-slot-empty {
+  height: 100px;
+  border: 2px dashed #e2b887;
+  background: rgba(255, 255, 255, 0.25);
+  border-radius: 16px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 3px;
+  color: #b07d4b;
+  font-family: inherit;
+  font-weight: 800;
+  font-size: 10.5px;
+  cursor: pointer;
+}
+
+.palette-slot-empty.slot-focused {
+  border-style: solid;
+  border-color: #f43f5e;
+  background: rgba(255, 255, 255, 0.7);
+  box-shadow: 0 0 0 2px rgba(244, 63, 94, 0.22);
+}
+
+.empty-blob-outline {
+  width: 34px;
+  height: 34px;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.5);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 18px;
+  font-weight: 900;
+}
+
+.palette-slot-item {
+  position: relative;
+  min-width: 0;
+  height: 104px;
+  padding: 2px 4px;
+  border-radius: 16px;
+  border: 2px solid transparent;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 3px;
+  cursor: pointer;
+  transition: background 0.14s ease, border-color 0.14s ease;
+}
+
+.palette-slot-item:hover {
+  background: rgba(255, 255, 255, 0.42);
+}
+
+.palette-slot-item.slot-focused {
+  background: rgba(255, 255, 255, 0.72);
+  border-color: #f43f5e;
+  box-shadow: 0 0 0 2px rgba(244, 63, 94, 0.2);
+}
+
+.slot-order-tag {
+  position: absolute;
+  top: 3px;
+  left: 5px;
+  font-size: 9px;
+  font-weight: 900;
+  color: #9a5b25;
+  background: rgba(255, 255, 255, 0.8);
+  padding: 0 5px;
+  border-radius: 999px;
+  pointer-events: none;
+}
+
+.slot-remove-x-btn {
+  position: absolute;
+  top: 2px;
+  right: 4px;
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  border: 1.5px solid #ffffff;
+  background: #f43f5e;
+  color: #ffffff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0;
+  cursor: pointer;
+  z-index: 4;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.18);
+}
+
+.slot-remove-x-btn:hover {
+  background: #e11d48;
+}
+
+.palette-blob-stage {
+  height: 48px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.jelly-paint-orb.tray-blob {
+  width: 46px;
+  height: 40px;
+}
+
+.slot-drop-Count-pill {
+  background: rgba(255, 255, 255, 0.92);
+  border-radius: 999px;
+  padding: 1px 8px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 1px;
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.05);
+}
+
+.drop-dots-row {
+  display: flex;
+  align-items: center;
+  gap: 2px;
+  height: 7px;
+}
+
+.mini-drop-dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+}
+
+.slot-drop-Count-pill strong {
+  font-size: 10.5px;
+  font-weight: 900;
+  color: #334155;
+  white-space: nowrap;
+}
+
+.slot-drop-Count-pill small {
+  font-size: 9.5px;
+  color: #64748b;
+}
+
+.slot-plus-minus-row {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.round-step-btn {
+  width: 23px;
+  height: 23px;
+  border-radius: 50%;
+  border: 1.5px solid #ffffff;
+  color: #ffffff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+}
+
+.round-step-btn:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+}
+
+/* Khung Giữa: Bảng Màu Pha Kết Quả */
+.result-showcase-card {
+  flex: 1;
+  min-height: 0;
+  padding: 7px 9px;
+  justify-content: space-between;
+}
+
+.solved-inline-tag {
+  background: #fef08a;
+  color: #92400e;
+  font-size: 10.5px;
+  padding: 1px 8px;
+  border-radius: 999px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 62%;
+}
+
+.result-stage-body {
+  flex: 1;
+  min-height: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 14px;
+  padding: 4px 8px;
+  background: #f8fbff;
+  border: 2px solid #e2eeff;
+  border-radius: 18px;
+  overflow: hidden;
+}
+
+.result-giant-blob-zone {
+  position: relative;
+  width: 108px;
+  height: 86px;
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.sparkle-deco {
+  position: absolute;
+  color: #fbbf24;
+  font-size: 16px;
+  pointer-events: none;
+}
+
+.sparkle-deco.s1 {
+  top: 0;
+  left: -2px;
+}
+
+.sparkle-deco.s2 {
+  bottom: 2px;
+  right: -2px;
+}
+
+.jelly-paint-orb.giant-result-blob {
+  width: 96px;
+  height: 78px;
+  cursor: pointer;
+}
+
+.jelly-paint-orb.giant-result-blob.swirling-mix {
+  animation: jellySwirlMix 0.42s ease-in-out;
+}
+
+@keyframes jellySwirlMix {
+  0% {
+    transform: scale(1) rotate(0deg);
+  }
+  45% {
+    transform: scale(0.82) rotate(180deg);
+  }
+  80% {
+    transform: scale(1.06) rotate(350deg);
+  }
+  100% {
+    transform: scale(1) rotate(360deg);
+  }
+}
+
+.result-callout-bubble {
+  background: #ffffff;
+  border: 2px solid #dbeafe;
+  border-radius: 16px;
+  padding: 6px 10px;
+  box-shadow: 0 3px 10px rgba(59, 130, 246, 0.07);
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  min-width: 145px;
+  max-width: 215px;
+}
+
+.result-color-title-row {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 5px;
+}
+
+.result-badge-emoji {
+  font-size: 16px;
+}
+
+.result-color-name {
+  font-size: 14.5px;
+  font-weight: 900;
+  color: #1e3a8a;
+  white-space: nowrap;
+}
+
+.result-speak-mini-btn {
+  width: 22px;
+  height: 22px;
+  border-radius: 50%;
+  border: 1.5px solid #bfdbfe;
+  background: #eff6ff;
+  color: #2563eb;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  flex-shrink: 0;
+}
+
+.result-formula-mini-row {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+}
+
+.formula-mini-group {
+  display: flex;
+  align-items: center;
+  gap: 3px;
+}
+
+.formula-plus {
+  font-size: 11px;
+  font-weight: 900;
+  color: #94a3b8;
+}
+
+.formula-mini-item {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  line-height: 1.05;
+}
+
+.formula-mini-dot {
+  width: 14px;
+  height: 14px;
+  border-radius: 50%;
+  border: 1.5px solid #ffffff;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.12);
+}
+
+.formula-mini-item small {
+  font-size: 9.5px;
+  font-weight: 800;
+  color: #334155;
+  margin-top: 1px;
+  white-space: nowrap;
+}
+
+.formula-pct-sub {
+  font-size: 8.5px;
+  font-weight: 700;
+  color: #64748b;
+}
+
+/* Hàng nút [Trộn màu] và [Xóa] */
+.result-action-buttons-row {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  margin-top: 5px;
+  flex-shrink: 0;
+}
+
+.pastel-mix-main-cta {
+  flex: 1;
+  max-width: 200px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 7px;
+  padding: 7px 18px;
+  border-radius: 999px;
+  border: 2px solid #ffffff;
+  background: linear-gradient(180deg, #ff85a8 0%, #f45b84 100%);
+  color: #ffffff;
+  font-family: inherit;
+  font-size: 14px;
+  font-weight: 900;
+  cursor: pointer;
+  box-shadow:
+    0 3px 0 #d63865,
+    0 5px 12px rgba(244, 91, 132, 0.3);
+  transition: filter 0.14s ease, box-shadow 0.14s ease;
+}
+
+.pastel-mix-main-cta:hover {
+  filter: brightness(1.04);
+}
+
+.pastel-mix-main-cta.pulse-attention {
+  box-shadow:
+    0 3px 0 #d63865,
+    0 0 0 4px rgba(255, 133, 168, 0.32);
+}
+
+.spin-fast {
+  animation: spin360 0.45s linear infinite;
+}
+
+@keyframes spin360 {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+.pastel-mix-clear-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 7px 12px;
+  border-radius: 999px;
+  border: 2px solid #cbd5e1;
+  background: #f8fafc;
+  color: #475569;
+  font-family: inherit;
+  font-size: 12.5px;
+  font-weight: 800;
+  cursor: pointer;
+}
+
+/* Khung Dưới: Các màu đã pha (Khóa cứng độ rộng 100% không làm phình cột giữa) */
+.history-strip-card {
+  width: 100%;
+  max-width: 100%;
+  min-width: 0;
+  flex-shrink: 0;
+  padding: 5px 8px;
+  gap: 4px;
+  overflow: hidden;
+}
+
+.history-strip-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  font-size: 11.5px;
+  font-weight: 900;
+  color: #475569;
+}
+
+.mix-finish-star-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  background: linear-gradient(180deg, #ffd43b 0%, #f59f00 100%);
+  color: #7c2d12;
+  border: 1.5px solid #ffffff;
+  border-radius: 999px;
+  padding: 2px 9px;
+  font-family: inherit;
+  font-size: 10.5px;
+  font-weight: 900;
+  cursor: pointer;
+  box-shadow: 0 2px 0 #d97706;
+}
+
+.history-items-scroll {
+  width: 100%;
+  max-width: 100%;
+  min-width: 0;
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  overflow-x: auto;
+  overflow-y: hidden;
+  padding-bottom: 2px;
+  scrollbar-width: thin;
+}
+
+.history-recipe-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  background: #f8fafc;
+  border: 1.5px dashed #cbd5e1;
+  border-radius: 999px;
+  padding: 2px 8px;
+  cursor: pointer;
+  font-family: inherit;
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+
+.history-ing-dots {
+  display: flex;
+  align-items: center;
+  gap: 2px;
+}
+
+.history-dot-wrap {
+  display: inline-flex;
+  align-items: center;
+  gap: 2px;
+}
+
+.h-dot {
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+  border: 1.5px solid #ffffff;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.14);
+}
+
+.h-dot.result {
+  width: 15px;
+  height: 15px;
+}
+
+.history-arrow {
+  font-size: 9.5px;
+  color: #94a3b8;
+}
+
+.history-result-name {
+  font-size: 10.5px;
+  font-weight: 800;
+  color: #334155;
+}
+
+/* ----------------------------------------------------------------------------
+   CỘT 3 (PHẢI): ĐỐ VUI SANRIO + GỢI Ý MÀU ĐẶC BIỆT (ÍT CHỮ, BẰNG HÌNH)
+   ---------------------------------------------------------------------------- */
+.col-recipes-guide {
+  background: linear-gradient(180deg, #fffdf2 0%, #fff6f8 100%);
+  border-color: #fde68a;
+  justify-content: space-between;
+  gap: 6px;
+}
+
+.sanrio-challenge-box {
+  background: #fffbeb;
+  border: 2px solid #fde047;
+  border-radius: 16px;
+  padding: 5px 8px;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  flex-shrink: 0;
+}
+
+.challenge-top-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.challenge-badge-tag {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 11px;
+  font-weight: 900;
+  color: #b45309;
+}
+
+.challenge-next-btn {
+  background: #ffffff;
+  border: 1.5px solid #fcd34d;
+  border-radius: 999px;
+  padding: 1px 7px;
+  font-family: inherit;
+  font-size: 10px;
+  font-weight: 800;
+  color: #92400e;
+  cursor: pointer;
+}
+
+.challenge-mascot-card {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  background: #ffffff;
+  border-radius: 12px;
+  padding: 4px 7px;
+  cursor: pointer;
+  border: 1.5px solid #fef08a;
+}
+
+.challenge-mascot-img {
+  width: 38px;
+  height: 38px;
+  object-fit: contain;
+  flex-shrink: 0;
+}
+
+.challenge-prompt-content {
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  text-align: left;
+}
+
+.challenge-short-text {
+  margin: 0;
+  font-size: 11px;
+  font-weight: 800;
+  color: #475569;
+  line-height: 1.2;
+}
+
+.challenge-target-preview {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  font-size: 11.5px;
+  color: #1e293b;
+}
+
+.challenge-target-blob {
+  width: 16px;
+  height: 16px;
+  border-radius: 50%;
+  border: 1.5px solid #ffffff;
+}
+
+.challenge-speaker-icon {
+  color: #f59e0b;
+}
+
+/* Danh sách Gợi ý màu đặc biệt bằng hình */
+.special-recipes-box {
+  background: #ffeef4;
+  border: 2px solid #fbcfe8;
+  border-radius: 16px;
+  padding: 6px 7px;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  flex: 1;
+  min-height: 0;
+  overflow: hidden;
+}
+
+.special-recipes-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  font-size: 11.5px;
+  font-weight: 900;
+  color: #be185d;
+  flex-shrink: 0;
+}
+
+.special-recipes-header small {
+  font-size: 9.5px;
+  font-weight: 700;
+  color: #db2777;
+}
+
+.special-recipes-list {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  flex: 1;
+  min-height: 0;
+  overflow-y: auto;
+  padding-right: 2px;
+}
+
+.special-recipe-row-card {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 4px;
+  background: #ffffff;
+  border: 1.5px solid #fce7f3;
+  border-radius: 12px;
+  padding: 4px 7px;
+  cursor: pointer;
+  font-family: inherit;
+  flex-shrink: 0;
+  transition: border-color 0.14s ease, background 0.14s ease;
+}
+
+.special-recipe-row-card:hover {
+  border-color: #f472b6;
+  background: #fff5f9;
+}
+
+.special-recipe-row-card.active-challenge {
+  border-color: #fbbf24;
+  background: #fffdf5;
+}
+
+.recipe-ingredients-side {
+  display: flex;
+  align-items: center;
+  gap: 3px;
+}
+
+.recipe-ing-unit {
+  display: flex;
+  align-items: center;
+  gap: 2px;
+}
+
+.recipe-plus-sign {
+  font-size: 10px;
+  font-weight: 900;
+  color: #94a3b8;
+}
+
+.recipe-ing-col {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  line-height: 1.02;
+}
+
+.recipe-mini-jelly {
+  width: 18px;
+  height: 16px;
+  border-radius: 48% 52% 46% 54% / 52% 48% 52% 48%;
+  border: 1.5px solid #ffffff;
+}
+
+.recipe-drop-txt {
+  font-size: 9px;
+  font-weight: 800;
+  color: #334155;
+  margin-top: 1px;
+  white-space: nowrap;
+}
+
+.recipe-pct-tiny {
+  font-size: 8px;
+  font-weight: 700;
+  color: #94a3b8;
+}
+
+.recipe-arrow-icon {
+  font-size: 11px;
+  color: #94a3b8;
+  font-weight: 900;
+}
+
+.recipe-result-side {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  min-width: 66px;
+}
+
+.recipe-result-jelly {
+  position: relative;
+  width: 26px;
+  height: 22px;
+  border-radius: 47% 53% 45% 55% / 53% 46% 54% 47%;
+  border: 1.5px solid #ffffff;
+}
+
+.recipe-solved-star {
+  position: absolute;
+  top: -4px;
+  right: -4px;
+  background: #fbbf24;
+  color: #ffffff;
+  font-size: 8px;
+  width: 13px;
+  height: 13px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: 1px solid #ffffff;
+}
+
+.recipe-target-label {
+  font-size: 10px;
+  font-weight: 900;
+  color: #334155;
+  margin-top: 1px;
+  white-space: nowrap;
+}
+
+/* Góc phải dưới: Hello Kitty khích lệ */
+.kitty-corner-cheer {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 6px;
+  flex-shrink: 0;
+}
+
+.kitty-corner-bubble {
+  background: #ffe4ee;
+  border: 1.5px solid #f9a8d4;
+  border-radius: 12px;
+  padding: 3px 9px;
+  font-size: 10.5px;
+  font-weight: 800;
+  color: #9d174d;
+}
+
+.kitty-corner-img {
+  width: 34px;
+  height: 34px;
+  object-fit: contain;
+}
+
+@media screen and (max-width: 960px) {
+  .pastel-mix-three-cols {
+    grid-template-columns: 1fr;
+  }
+}

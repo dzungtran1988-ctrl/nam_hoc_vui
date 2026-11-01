@@ -12,15 +12,15 @@ export type KittyPoseFrame =
   | "cheer";
 
 const KITTY_FRAMES: { id: KittyPoseFrame; src: string }[] = [
-  { id: "idle", src: "/assets/kitty25d/kitty-idle.png" },
-  { id: "blink-half", src: "/assets/kitty25d/kitty-blink-half.png" },
-  { id: "blink", src: "/assets/kitty25d/kitty-blink.png" },
-  { id: "talk-half", src: "/assets/kitty25d/kitty-talk-half.png" },
-  { id: "talk", src: "/assets/kitty25d/kitty-talk.png" },
-  { id: "talk-blink", src: "/assets/kitty25d/kitty-talk-blink.png" },
-  { id: "wave", src: "/assets/kitty25d/kitty-wave.png" },
-  { id: "wave-smile", src: "/assets/kitty25d/kitty-wave-smile.png" },
-  { id: "cheer", src: "/assets/kitty25d/kitty-cheer.png" },
+  { id: "idle", src: "/assets/kitty25d/kitty-idle.webp" },
+  { id: "blink-half", src: "/assets/kitty25d/kitty-blink-half.webp" },
+  { id: "blink", src: "/assets/kitty25d/kitty-blink.webp" },
+  { id: "talk-half", src: "/assets/kitty25d/kitty-talk-half.webp" },
+  { id: "talk", src: "/assets/kitty25d/kitty-talk.webp" },
+  { id: "talk-blink", src: "/assets/kitty25d/kitty-talk-blink.webp" },
+  { id: "wave", src: "/assets/kitty25d/kitty-wave.webp" },
+  { id: "wave-smile", src: "/assets/kitty25d/kitty-wave-smile.webp" },
+  { id: "cheer", src: "/assets/kitty25d/kitty-cheer.webp" },
 ];
 
 export type KittyActionMode = "auto" | "wave" | "cheer" | "wink" | "talk";

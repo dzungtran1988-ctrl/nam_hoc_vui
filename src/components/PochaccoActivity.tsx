@@ -39,6 +39,8 @@ import {
   type MemoryDifficultyLevel,
 } from "../lib/pochaccoMemoryGame";
 import type { MathItemTheme } from "../data/mathLessons";
+import { NamSoccerPixelGame } from "./NamSoccerPixelGame";
+import { EarthDefenderSpaceGame } from "./EarthDefenderSpaceGame";
 
 const AEROBIC_EXERCISES = [
   {
@@ -47,7 +49,7 @@ const AEROBIC_EXERCISES = [
     spokenText:
       "Động tác một! Nấm đứng dậy giơ cao hai tay lên trời và nhún theo nhịp cùng Pochacco nào! Một, hai, ba, bốn, năm, sáu, bảy, tám!",
     shortHint: "🙌 Giơ cao hai tay lên trời, vươn vai thật khỏe!",
-    imageUrl: "/assets/pochacco/action-hands-up.png",
+    imageUrl: "/assets/pochacco/action-hands-up.webp",
   },
   {
     id: "hips-shake",
@@ -55,7 +57,7 @@ const AEROBIC_EXERCISES = [
     spokenText:
       "Động tác hai! Nấm chống hai tay lên hông và lắc hông qua trái, qua phải thật vui nhé! Một, hai, ba, bốn, năm, sáu, bảy, tám!",
     shortHint: "💃 Chống hai tay lên hông, lắc lư trái phải!",
-    imageUrl: "/assets/pochacco/action-hands-on-hips.png",
+    imageUrl: "/assets/pochacco/action-hands-on-hips.webp",
   },
   {
     id: "squat-jump",
@@ -63,7 +65,7 @@ const AEROBIC_EXERCISES = [
     spokenText:
       "Động tác ba! Nấm khuỵu gối nhún xuống rồi bật thẳng người lên thật khỏe nào! Một, hai, ba, bốn, năm, sáu, bảy, tám!",
     shortHint: "🦵 Nhún đầu gối xuống rồi đứng thẳng dậy!",
-    imageUrl: "/assets/pochacco/action-squat-down.png",
+    imageUrl: "/assets/pochacco/action-squat-down.webp",
   },
   {
     id: "clap-cheer",
@@ -71,7 +73,7 @@ const AEROBIC_EXERCISES = [
     spokenText:
       "Động tác bốn! Nấm vỗ hai tay thật to và xoay người ăn mừng cùng Pochacco nào! Một, hai, ba, bốn, năm, sáu, bảy, tám!",
     shortHint: "👏 Vỗ tay thật kêu và cười thật tươi!",
-    imageUrl: "/assets/pochacco/action-clap-two.png",
+    imageUrl: "/assets/pochacco/action-clap-two.webp",
   },
 ];
 
@@ -79,6 +81,7 @@ const POCHACCO_QUICK_ROUNDS = 4;
 
 const MEMORY_THEME_PILLS: Array<{ id: MathItemTheme; label: string }> = [
   { id: "all", label: "✨ Đủ loại" },
+  { id: "toys", label: "🧸 Đồ chơi" },
   { id: "fruits", label: "🍓 Trái cây" },
   { id: "school", label: "🎒 Học tập" },
   { id: "vehicles", label: "🚗 Xe cộ" },
@@ -101,7 +104,13 @@ function safeLoadStats(): PochaccoStoredStats {
 }
 
 export interface PochaccoActivityProps extends ActivityProps {
-  initialViewMode?: "menu" | "aerobic" | "game" | "memory";
+  initialViewMode?:
+    | "menu"
+    | "aerobic"
+    | "game"
+    | "memory"
+    | "soccer"
+    | "space-defender";
   onBackToHub?: () => void;
 }
 
@@ -114,8 +123,12 @@ export function PochaccoActivity({
   onBackToHub,
 }: PochaccoActivityProps) {
   const [viewMode, setViewMode] = useState<
-    "menu" | "aerobic" | "game" | "memory"
+    "menu" | "aerobic" | "game" | "memory" | "soccer" | "space-defender"
   >(initialViewMode);
+  const [soccerCompletedResult, setSoccerCompletedResult] = useState<{
+    goals: number;
+    total: number;
+  } | null>(null);
   const [gameState, setGameState] = useState<PochaccoGameState>(() =>
     createPochaccoSession(
       generatePochaccoDeck(POCHACCO_ACTION_BANK, POCHACCO_QUICK_ROUNDS),
@@ -556,21 +569,64 @@ export function PochaccoActivity({
     setGameState((prev) => retryCurrentRound(prev));
   };
 
+  const handleStartSoccer = () => {
+    speech.stop();
+    savedCompletionRef.current = false;
+    setSoccerCompletedResult(null);
+    setViewMode("soccer");
+    onReaction?.(
+      "happy",
+      "⚽ Cầu thủ Nhí Nấm chọn góc sút và trả lời câu đố để ghi bàn nhé!",
+    );
+  };
+
+  const handleFinishSoccerMatch = (goals: number, total: number) => {
+    setSoccerCompletedResult({ goals, total });
+    if (!savedCompletionRef.current) {
+      savedCompletionRef.current = true;
+      try {
+        const syntheticCompleted: PochaccoGameState = {
+          ...gameState,
+          status: "completed",
+          score: Math.max(4, goals * 2),
+        };
+        const updated = recordCompletedPochaccoGame(
+          window.localStorage,
+          syntheticCompleted,
+        );
+        setStats(updated);
+      } catch {
+        // Ignore storage error
+      }
+      if (soundEnabled) {
+        playRewardTone();
+      }
+      onReaction?.(
+        "happy",
+        `🏆 Vua Phá Lưới Nhí Nấm: Ghi ${goals}/${total} bàn thắng!`,
+      );
+    }
+  };
+
   const handleClaimTreasureReward = () => {
     speech.stop();
     onComplete({
       attempts:
         viewMode === "aerobic"
           ? AEROBIC_EXERCISES.length
-          : viewMode === "memory"
-            ? Math.max(1, memoryMoves)
-            : Math.max(1, gameState.attempts),
+          : viewMode === "soccer"
+            ? (soccerCompletedResult?.total ?? 5)
+            : viewMode === "memory"
+              ? Math.max(1, memoryMoves)
+              : Math.max(1, gameState.attempts),
       answers: [
         viewMode === "aerobic"
           ? `Thể Dục Nhịp Điệu: ${AEROBIC_EXERCISES.length} động tác`
-          : viewMode === "memory"
-            ? `Lật Thẻ Đồ Vật: ${memoryConfig.pairCount} cặp (${memoryMoves} lượt)`
-            : `Pochacco Bảo: ${gameState.score}/${gameState.totalRounds} sao`,
+          : viewMode === "soccer"
+            ? `Đá Bóng Vào Gôn: ${soccerCompletedResult?.goals ?? 5}/${soccerCompletedResult?.total ?? 5} bàn thắng`
+            : viewMode === "memory"
+              ? `Lật Thẻ Đồ Vật: ${memoryConfig.pairCount} cặp (${memoryMoves} lượt)`
+              : `Pochacco Bảo: ${gameState.score}/${gameState.totalRounds} sao`,
       ],
     });
   };
@@ -634,7 +690,7 @@ export function PochaccoActivity({
               onClick={handleStartAerobic}
             >
               <img
-                src="/assets/pochacco/action-hands-up.png"
+                src="/assets/pochacco/action-hands-up.webp"
                 alt="Thể Dục Nhịp Điệu"
                 className="wb-row-thumb-img"
               />
@@ -657,6 +713,53 @@ export function PochaccoActivity({
               />
               <span className="wb-row-badge">Bài 2</span>
               <strong className="wb-row-title">Pochacco Bảo!</strong>
+              <span className="wb-row-go">▶</span>
+            </button>
+
+            {/* Hoạt động 3: Siêu Cầu Thủ Nhí Nấm (Đá Bóng Trắc Nghiệm Pixel) */}
+            <button
+              type="button"
+              className="wb-lesson-row pochacco-entry-row"
+              style={{ "--cluster-accent": "#10b981" } as React.CSSProperties}
+              onClick={handleStartSoccer}
+            >
+              <img
+                src="/assets/pochacco/sticker-soccer.webp"
+                alt="Siêu Cầu Thủ Nhí Nấm"
+                className="wb-row-thumb-img"
+              />
+              <span className="wb-row-badge">Bài 3</span>
+              <strong className="wb-row-title">
+                Siêu Cầu Thủ Nhí Nấm (Đá Bóng ⚽)
+              </strong>
+              <span className="wb-row-go">▶</span>
+            </button>
+
+            {/* Hoạt động 4: Biệt Đội Phi Thuyền Ngân Hà Bảo Vệ Trái Đất */}
+            <button
+              type="button"
+              className="wb-lesson-row pochacco-entry-row"
+              style={{ "--cluster-accent": "#7950f2" } as React.CSSProperties}
+              onClick={() => {
+                speech.stop();
+                setViewMode("space-defender");
+                if (soundEnabled) {
+                  speech.speak(
+                    "Phi thuyền ánh sao đã sẵn sàng! Nấm kéo ngón tay điều khiển phi thuyền bắn thiên thạch bảo vệ Trái Đất nhé!",
+                    "vi-VN"
+                  );
+                }
+              }}
+            >
+              <img
+                src="/assets/char-nam.webp"
+                alt="Phi Thuyền Bảo Vệ Trái Đất"
+                className="wb-row-thumb-img"
+              />
+              <span className="wb-row-badge">Bài 4</span>
+              <strong className="wb-row-title">
+                Phi Thuyền Bảo Vệ Trái Đất (🚀 60FPS)
+              </strong>
               <span className="wb-row-go">▶</span>
             </button>
           </div>
@@ -1251,6 +1354,84 @@ export function PochaccoActivity({
             </button>
           </div>
         </div>
+      )}
+
+      {/* =====================================================================
+          5. TRÒ CHƠI 3: SIÊU CẦU THỦ NHÍ NẤM (CHIBI PIXEL ĐÁ BÓNG ĐỐ VUI)
+         ===================================================================== */}
+      {viewMode === "soccer" && !soccerCompletedResult && (
+        <NamSoccerPixelGame
+          soundEnabled={soundEnabled}
+          onSpeak={(txt) => speech.speak(txt, "vi-VN-North")}
+          onReaction={onReaction}
+          onExit={handleExitToMenu}
+          onFinishMatch={handleFinishSoccerMatch}
+        />
+      )}
+
+      {viewMode === "soccer" && soccerCompletedResult && (
+        <div className="pochacco-complete-card">
+          <div className="pochacco-sticker-showcase">
+            <div className="pochacco-sticker-badge">
+              <img
+                src="/assets/pochacco/sticker-soccer.webp"
+                alt="Pochacco Cầu Thủ"
+                className="sticker-reward-img"
+              />
+              <span className="sticker-star-crown">⚽</span>
+            </div>
+            <div className="pochacco-complete-info">
+              <span className="sticker-award-tag">
+                <Award size={14} /> VUA PHÁ LƯỚI NHÍ NẤM!
+              </span>
+              <h3>
+                Ghi được {soccerCompletedResult.goals}/
+                {soccerCompletedResult.total} bàn thắng!
+              </h3>
+              <p>
+                Cầu thủ Nhí Nấm vừa trả lời đúng câu đố đa lĩnh vực vừa sút bóng
+                cực siêu cùng Thủ môn Pochacco!
+              </p>
+            </div>
+          </div>
+
+          <div className="pochacco-complete-actions">
+            <button
+              type="button"
+              className="chunky-btn chunky-blue btn-sm"
+              onClick={handleStartSoccer}
+            >
+              <RotateCcw size={15} /> Đá hiệp mới (5 quả)
+            </button>
+            <button
+              type="button"
+              className="chunky-btn chunky-green btn-sm"
+              onClick={handleClaimTreasureReward}
+            >
+              <Sparkles size={15} /> Nhận Sao & Sticker Lên Bảng Cúp!
+            </button>
+            <button
+              type="button"
+              className="chunky-btn chunky-pink btn-sm"
+              onClick={handleExitToMenu}
+            >
+              <ArrowLeft size={15} /> Về Menu
+            </button>
+          </div>
+        </div>
+      )}
+      {viewMode === "space-defender" && (
+        <EarthDefenderSpaceGame
+          soundEnabled={soundEnabled}
+          onBack={handleExitToMenu}
+          onReaction={onReaction}
+          onEarnReward={(_coins, summaryText) => {
+            onComplete({
+              attempts: 1,
+              answers: [summaryText],
+            });
+          }}
+        />
       )}
     </div>
   );

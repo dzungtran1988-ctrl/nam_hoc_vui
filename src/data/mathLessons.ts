@@ -10,6 +10,10 @@ import {
   type SharedAssetMetadata,
   type SharedAssetQueryFilter,
 } from "./sharedAssetCatalog.ts";
+import {
+  drawNonRepeatingItems,
+  drawSingleNonRepeatingItem,
+} from "../lib/nonRepeatingDeck.ts";
 
 export {
   SHARED_ASSET_CATALOG,
@@ -46,57 +50,63 @@ export const MATH_ITEM_THEMES: Array<{
 }> = [
   {
     id: "all",
-    label: "Tất cả (115 món)",
+    label: "Tất cả (131 món)",
     icon: "✨",
-    sampleImg: "/assets/items/fruits/fruit_01.png",
+    sampleImg: "/assets/items/fruits/fruit_01.webp",
+  },
+  {
+    id: "toys",
+    label: "Đồ chơi 3D (16)",
+    icon: "🧸",
+    sampleImg: "/assets/items/toys/toy_01.webp",
   },
   {
     id: "fruits",
     label: "Trái cây (15)",
     icon: "🍓",
-    sampleImg: "/assets/items/fruits/fruit_02.png",
+    sampleImg: "/assets/items/fruits/fruit_02.webp",
   },
   {
     id: "sweets",
     label: "Bánh & Kem (31)",
     icon: "🍰",
-    sampleImg: "/assets/items/sweets/sweet_01.png",
+    sampleImg: "/assets/items/sweets/sweet_01.webp",
   },
   {
     id: "lifeskills",
     label: "Bếp & Món ăn (24)",
     icon: "🍳",
-    sampleImg: "/assets/items/lifeskills/lifeskills_07.png",
+    sampleImg: "/assets/items/lifeskills/lifeskills_07.webp",
   },
   {
     id: "school",
     label: "Học tập (15)",
     icon: "🎒",
-    sampleImg: "/assets/items/school/school_01.png",
+    sampleImg: "/assets/items/school/school_01.webp",
   },
   {
     id: "home",
     label: "Gia đình (15)",
     icon: "🏠",
-    sampleImg: "/assets/items/home/home_02.png",
+    sampleImg: "/assets/items/home/home_02.webp",
   },
   {
     id: "vehicles",
     label: "Xe cộ (15)",
     icon: "🚗",
-    sampleImg: "/assets/items/vehicles/vehicle_01.png",
+    sampleImg: "/assets/items/vehicles/vehicle_01.webp",
   },
 ];
 
 export const KAWAII_ITEM_IMAGES = {
-  pizzaSlice: "/assets/math/items/pizza-slice.png",
-  pizzaWhole: "/assets/math/items/pizza-whole.png",
-  pinkPlate: "/assets/math/items/pink-plate.png",
-  pizzaBox: "/assets/math/items/pizza-box.png",
-  goldCoin: "/assets/math/items/gold-coin.png",
-  mysteryGift: "/assets/math/items/mystery-gift.png",
-  bakeryBasket: "/assets/math/items/bakery-basket.png",
-  cashRegister: "/assets/math/items/cash-register.png",
+  pizzaSlice: "/assets/math/items/pizza-slice.webp",
+  pizzaWhole: "/assets/math/items/pizza-whole.webp",
+  pinkPlate: "/assets/math/items/pink-plate.webp",
+  pizzaBox: "/assets/math/items/pizza-box.webp",
+  goldCoin: "/assets/math/items/gold-coin.webp",
+  mysteryGift: "/assets/math/items/mystery-gift.webp",
+  bakeryBasket: "/assets/math/items/bakery-basket.webp",
+  cashRegister: "/assets/math/items/cash-register.webp",
 } as const;
 
 /**
@@ -129,9 +139,9 @@ export const MATH_MINI_GAMES: MathMiniGameMeta[] = [
     title: "Tiệm Tạp Hóa Đếm & Tính",
     subtitle: "Đếm số lượng, cộng và trừ",
     badge: "Bài 1",
-    cardImage: "/assets/canva/card-math-1.png",
-    heroImage: "/assets/canva/thumb-math-1.png",
-    secondaryImage: "/assets/items/fruits/fruit_01.png",
+    cardImage: "/assets/canva/card-math-1.webp",
+    heroImage: "/assets/canva/thumb-math-1.webp",
+    secondaryImage: "/assets/items/fruits/fruit_01.webp",
     accentColor: "#EC4899",
     skillIds: ["counting-within-12", "addition-subtraction-bakery"],
   },
@@ -140,8 +150,8 @@ export const MATH_MINI_GAMES: MathMiniGameMeta[] = [
     title: "Bàn Tiệc So Sánh (< > =)",
     subtitle: "So sánh lớn hơn, bé hơn, bằng nhau",
     badge: "Bài 2",
-    cardImage: "/assets/canva/card-math-2.png",
-    heroImage: "/assets/canva/thumb-math-2.png",
+    cardImage: "/assets/canva/card-math-2.webp",
+    heroImage: "/assets/canva/thumb-math-2.webp",
     secondaryImage: KAWAII_ITEM_IMAGES.pizzaWhole,
     accentColor: "#10B981",
     skillIds: ["comparison-operators", "equal-sharing-division"],
@@ -151,8 +161,8 @@ export const MATH_MINI_GAMES: MathMiniGameMeta[] = [
     title: "Siêu Thị Xu Vàng",
     subtitle: "Cộng tiền mua hàng, tính tiền thừa",
     badge: "Bài 3",
-    cardImage: "/assets/canva/card-math-3.png",
-    heroImage: "/assets/canva/thumb-math-3.png",
+    cardImage: "/assets/canva/card-math-3.webp",
+    heroImage: "/assets/canva/thumb-math-3.webp",
     secondaryImage: KAWAII_ITEM_IMAGES.goldCoin,
     accentColor: "#F59E0B",
     skillIds: ["money-addition-subtraction", "word-problems-within-12"],
@@ -162,8 +172,8 @@ export const MATH_MINI_GAMES: MathMiniGameMeta[] = [
     title: "Bảng Tính & Hộp Quà",
     subtitle: "Bảng cộng, trừ, nhân, chia 1 đến 9",
     badge: "Bài 4",
-    cardImage: "/assets/canva/card-math-4.png",
-    heroImage: "/assets/canva/thumb-math-4.png",
+    cardImage: "/assets/canva/card-math-4.webp",
+    heroImage: "/assets/canva/thumb-math-4.webp",
     secondaryImage: KAWAII_ITEM_IMAGES.mysteryGift,
     accentColor: "#8B5CF6",
     skillIds: ["arithmetic-tables-1-to-9", "mental-math-fluency"],
@@ -174,7 +184,6 @@ export const MATH_MINI_GAMES: MathMiniGameMeta[] = [
 // BỘ XÁO TRỘN THÔNG MINH & CHỐNG TRÙNG 2 BÀI GẦN NHẤT (ANTI-REPEAT SHUFFLER)
 // ============================================================================
 const recentMathTemplates = new Map<string, string[]>();
-const recentMathItemIds: string[] = [];
 
 function shuffleMathArray<T>(arr: T[]): T[] {
   const copy = [...arr];
@@ -186,22 +195,12 @@ function shuffleMathArray<T>(arr: T[]): T[] {
 }
 
 function pickRandomDistinctItems(count: number): KawaiiPastryAsset[] {
-  const freshPool = shuffleMathArray(
-    KAWAII_PASTRY_CATALOG.filter((item) => !recentMathItemIds.includes(item.id)),
+  return drawNonRepeatingItems(
+    "math:kawaii-items:v2",
+    KAWAII_PASTRY_CATALOG,
+    count,
+    (item) => item.id,
   );
-  const fallbackPool = shuffleMathArray(
-    KAWAII_PASTRY_CATALOG.filter((item) => recentMathItemIds.includes(item.id)),
-  );
-  const combined = [...freshPool, ...fallbackPool];
-  const chosen = combined.slice(0, count);
-
-  for (const ch of chosen.slice(0, 6)) {
-    recentMathItemIds.unshift(ch.id);
-  }
-  if (recentMathItemIds.length > 24) {
-    recentMathItemIds.length = 24;
-  }
-  return chosen;
 }
 
 function pickNonRepeatingTemplates<T extends { key: string }>(
@@ -209,18 +208,18 @@ function pickNonRepeatingTemplates<T extends { key: string }>(
   pool: T[],
   count: number,
 ): T[] {
-  const recentKeys = recentMathTemplates.get(historyGroup) || [];
-  const fresh = shuffleMathArray(pool.filter((t) => !recentKeys.includes(t.key)));
-  const fallback = shuffleMathArray(pool.filter((t) => recentKeys.includes(t.key)));
-  const combined = [...fresh, ...fallback];
-  const chosen = combined.slice(0, count);
-
-  const updatedHistory = [
-    ...chosen.slice(0, 3).map((x) => x.key),
-    ...recentKeys,
-  ].slice(0, Math.min(8, Math.max(2, pool.length - 3)));
-  recentMathTemplates.set(historyGroup, updatedHistory);
-
+  const prev = recentMathTemplates.get(historyGroup) || [];
+  const chosen = drawNonRepeatingItems(
+    `math:tpl:${historyGroup}:v2`,
+    pool,
+    count,
+    (t) => t.key,
+    prev,
+  );
+  recentMathTemplates.set(
+    historyGroup,
+    chosen.map((x) => x.key),
+  );
   return chosen;
 }
 
@@ -244,58 +243,79 @@ export interface BakeryOrderRound {
   orderTitle: string;
 }
 
-const BAKERY_L1_LIBRARY = [
-  { key: "l1-2-5", init: 2, target: 5, pIdx: 0 },
-  { key: "l1-5-3", init: 5, target: 3, pIdx: 16 },
-  { key: "l1-3-6", init: 3, target: 6, pIdx: 31 },
-  { key: "l1-6-4", init: 6, target: 4, pIdx: 46 },
-  { key: "l1-1-5", init: 1, target: 5, pIdx: 61 },
-  { key: "l1-4-7", init: 4, target: 7, pIdx: 5 },
-  { key: "l1-7-4", init: 7, target: 4, pIdx: 20 },
-  { key: "l1-2-6", init: 2, target: 6, pIdx: 35 },
-  { key: "l1-8-5", init: 8, target: 5, pIdx: 50 },
-  { key: "l1-3-8", init: 3, target: 8, pIdx: 65 },
-  { key: "l1-6-2", init: 6, target: 2, pIdx: 10 },
-  { key: "l1-5-9", init: 5, target: 9, pIdx: 25 },
-  { key: "l1-9-6", init: 9, target: 6, pIdx: 40 },
-  { key: "l1-1-4", init: 1, target: 4, pIdx: 55 },
-  { key: "l1-7-3", init: 7, target: 3, pIdx: 70 },
-  { key: "l1-4-8", init: 4, target: 8, pIdx: 12 },
-];
+const BAKERY_L1_LIBRARY = (() => {
+  const list: Array<{ key: string; init: number; target: number; pIdx: number }> = [];
+  let pCursor = 0;
+  // Tất cả các cặp phép cộng & trừ trong phạm vi 1..10 (72 mẫu câu khác nhau)
+  for (let init = 1; init <= 9; init++) {
+    for (let target = 1; target <= 10; target++) {
+      if (init === target) continue;
+      const diff = Math.abs(target - init);
+      if (diff >= 1 && diff <= 8) {
+        list.push({
+          key: `l1-${init}-${target}`,
+          init,
+          target,
+          pIdx: (pCursor * 7) % 90,
+        });
+        pCursor++;
+      }
+    }
+  }
+  return list;
+})();
 
-const BAKERY_L2_LIBRARY = [
-  { key: "l2-3-5", init: 3, target: 5, pIdx: 1 },
-  { key: "l2-10-4", init: 10, target: 4, pIdx: 17 },
-  { key: "l2-5-10", init: 5, target: 10, pIdx: 33 },
-  { key: "l2-9-3", init: 9, target: 3, pIdx: 48 },
-  { key: "l2-4-9", init: 4, target: 9, pIdx: 63 },
-  { key: "l2-2-7", init: 2, target: 7, pIdx: 6 },
-  { key: "l2-8-3", init: 8, target: 3, pIdx: 22 },
-  { key: "l2-6-10", init: 6, target: 10, pIdx: 38 },
-  { key: "l2-7-2", init: 7, target: 2, pIdx: 52 },
-  { key: "l2-1-6", init: 1, target: 6, pIdx: 68 },
-  { key: "l2-9-5", init: 9, target: 5, pIdx: 11 },
-  { key: "l2-3-8", init: 3, target: 8, pIdx: 27 },
-  { key: "l2-10-7", init: 10, target: 7, pIdx: 42 },
-  { key: "l2-4-8", init: 4, target: 8, pIdx: 57 },
-  { key: "l2-8-4", init: 8, target: 4, pIdx: 72 },
-  { key: "l2-2-9", init: 2, target: 9, pIdx: 14 },
-];
+const BAKERY_L2_LIBRARY = (() => {
+  const list: Array<{ key: string; init: number; target: number; pIdx: number }> = [];
+  let pCursor = 3;
+  // Tất cả các bài toán tìm thành phần chưa biết x ± ? = y trong phạm vi 1..10 (72 mẫu câu)
+  for (let init = 1; init <= 10; init++) {
+    for (let target = 1; target <= 10; target++) {
+      if (init === target) continue;
+      const diff = Math.abs(target - init);
+      if (diff >= 1 && diff <= 8) {
+        list.push({
+          key: `l2-${init}-${target}`,
+          init,
+          target,
+          pIdx: (pCursor * 11) % 90,
+        });
+        pCursor++;
+      }
+    }
+  }
+  return list;
+})();
 
-const BAKERY_L3_LIBRARY = [
-  { key: "l3-4-3", initA: 2, targetA: 4, initB: 5, targetB: 3, pA: 0, pB: 15 },
-  { key: "l3-3-5", initA: 5, targetA: 3, initB: 2, targetB: 5, pA: 30, pB: 45 },
-  { key: "l3-5-4", initA: 3, targetA: 5, initB: 6, targetB: 4, pA: 60, pB: 2 },
-  { key: "l3-6-4", initA: 4, targetA: 6, initB: 6, targetB: 4, pA: 18, pB: 34 },
-  { key: "l3-2-4", initA: 4, targetA: 2, initB: 1, targetB: 4, pA: 49, pB: 64 },
-  { key: "l3-3-3", initA: 1, targetA: 3, initB: 5, targetB: 3, pA: 7, pB: 23 },
-  { key: "l3-5-2", initA: 2, targetA: 5, initB: 4, targetB: 2, pA: 39, pB: 53 },
-  { key: "l3-4-5", initA: 6, targetA: 4, initB: 2, targetB: 5, pA: 69, pB: 9 },
-  { key: "l3-3-6", initA: 5, targetA: 3, initB: 3, targetB: 6, pA: 26, pB: 41 },
-  { key: "l3-5-5", initA: 2, targetA: 5, initB: 3, targetB: 5, pA: 56, pB: 71 },
-  { key: "l3-2-6", initA: 4, targetA: 2, initB: 3, targetB: 6, pA: 13, pB: 29 },
-  { key: "l3-4-4", initA: 1, targetA: 4, initB: 6, targetB: 4, pA: 44, pB: 59 },
-];
+const BAKERY_L3_LIBRARY = (() => {
+  const list: Array<{
+    key: string;
+    initA: number;
+    targetA: number;
+    initB: number;
+    targetB: number;
+    pA: number;
+    pB: number;
+  }> = [];
+  let pCursor = 0;
+  // Kho 36 mẫu tách-gộp số ? + ? = Tổng (Tổng từ 3 đến 10 với nhiều cặp món 3D khác nhau)
+  for (let total = 3; total <= 10; total++) {
+    for (let a = 1; a < total; a++) {
+      const b = total - a;
+      list.push({
+        key: `l3-${total}-${a}-${b}`,
+        initA: 0,
+        targetA: a,
+        initB: 0,
+        targetB: b,
+        pA: (pCursor * 5) % 90,
+        pB: (pCursor * 5 + 17) % 90,
+      });
+      pCursor++;
+    }
+  }
+  return list;
+})();
 
 export function generateBakeryOrders(
   level: MathDifficultyLevel,
@@ -303,17 +323,13 @@ export function generateBakeryOrders(
   theme: MathItemTheme = "all",
 ): BakeryOrderRound[] {
   const pool = getCatalogByTheme(theme);
-  const useRandomShuffle = seedOffset > 0;
-  const randomItems = useRandomShuffle ? pickRandomDistinctItems(14) : [];
+  const randomItems = pickRandomDistinctItems(16);
 
   if (level === 1) {
-    const templates = useRandomShuffle
-      ? pickNonRepeatingTemplates("bakery-l1", BAKERY_L1_LIBRARY, 6)
-      : BAKERY_L1_LIBRARY.slice(0, 5);
+    const templates = pickNonRepeatingTemplates("bakery-l1", BAKERY_L1_LIBRARY, 6);
     return templates.map((t, i) => {
-      const pastry = useRandomShuffle
-        ? randomItems[i % randomItems.length]
-        : pool[(t.pIdx + i) % pool.length];
+      const pastry =
+        randomItems[i % randomItems.length] || pool[(t.pIdx + i) % pool.length];
       const isAdd = t.target >= t.init;
       const opSymbol = isAdd ? "+" : "−";
       const diff = Math.abs(t.target - t.init);
@@ -333,13 +349,10 @@ export function generateBakeryOrders(
   }
 
   if (level === 2) {
-    const templates = useRandomShuffle
-      ? pickNonRepeatingTemplates("bakery-l2", BAKERY_L2_LIBRARY, 6)
-      : BAKERY_L2_LIBRARY.slice(0, 5);
+    const templates = pickNonRepeatingTemplates("bakery-l2", BAKERY_L2_LIBRARY, 6);
     return templates.map((t, i) => {
-      const pastry = useRandomShuffle
-        ? randomItems[i % randomItems.length]
-        : pool[(t.pIdx + i) % pool.length];
+      const pastry =
+        randomItems[i % randomItems.length] || pool[(t.pIdx + i) % pool.length];
       const isAdd = t.target >= t.init;
       const opSymbol = isAdd ? "+" : "−";
       const diff = Math.abs(t.target - t.init);
@@ -358,16 +371,13 @@ export function generateBakeryOrders(
     });
   }
 
-  const dualTemplates = useRandomShuffle
-    ? pickNonRepeatingTemplates("bakery-l3", BAKERY_L3_LIBRARY, 6)
-    : BAKERY_L3_LIBRARY.slice(0, 5);
+  const dualTemplates = pickNonRepeatingTemplates("bakery-l3", BAKERY_L3_LIBRARY, 6);
   return dualTemplates.map((t, i) => {
-    const pastryA = useRandomShuffle
-      ? randomItems[(i * 2) % randomItems.length]
-      : pool[(t.pA + i) % pool.length];
-    let pastryB = useRandomShuffle
-      ? randomItems[(i * 2 + 1) % randomItems.length]
-      : pool[(t.pB + i + 3) % pool.length];
+    const pastryA =
+      randomItems[(i * 2) % randomItems.length] || pool[(t.pA + i) % pool.length];
+    let pastryB =
+      randomItems[(i * 2 + 1) % randomItems.length] ||
+      pool[(t.pB + i + 3) % pool.length];
     if (pastryB.id === pastryA.id) {
       pastryB =
         pool.find((item) => item.id !== pastryA.id) ||
@@ -458,7 +468,7 @@ export const PIZZA_ROUNDS_BY_LEVEL: Record<MathDifficultyLevel, PizzaRound[]> = 
       itemName: "miếng Pizza",
       itemImageUrl: KAWAII_ITEM_IMAGES.pizzaSlice,
       rightItemName: "Bánh Donut Cốm Hồng",
-      rightItemImageUrl: "/assets/items/sweets/sweet_02.png",
+      rightItemImageUrl: "/assets/items/sweets/sweet_02.webp",
       prompt: "Đĩa Trái có 5 miếng Pizza, Đĩa Phải có 3 Bánh Donut. Nấm chọn dấu <, = hay > điền vào giữa nhé!",
       formulaText: "5 > 3 (5 lớn hơn 3)",
     },
@@ -475,9 +485,9 @@ export const PIZZA_ROUNDS_BY_LEVEL: Record<MathDifficultyLevel, PizzaRound[]> = 
       containerCount: 2,
       slicesPerContainer: 3,
       itemName: "Quả Dâu Tây Đỏ",
-      itemImageUrl: "/assets/items/fruits/fruit_01.png",
+      itemImageUrl: "/assets/items/fruits/fruit_01.webp",
       rightItemName: "Quả Táo Đỏ",
-      rightItemImageUrl: "/assets/items/fruits/fruit_02.png",
+      rightItemImageUrl: "/assets/items/fruits/fruit_02.webp",
       prompt: "Đĩa Trái có 2 Quả Dâu Tây, Đĩa Phải có 6 Quả Táo Đỏ. Đĩa Trái như thế nào so với Đĩa Phải?",
       formulaText: "2 < 6 (2 bé hơn 6)",
     },
@@ -494,9 +504,9 @@ export const PIZZA_ROUNDS_BY_LEVEL: Record<MathDifficultyLevel, PizzaRound[]> = 
       containerCount: 2,
       slicesPerContainer: 4,
       itemName: "Bánh Cupcake Cherry",
-      itemImageUrl: "/assets/items/sweets/sweet_01.png",
+      itemImageUrl: "/assets/items/sweets/sweet_01.webp",
       rightItemName: "Bánh Macaron Kem Hồng",
-      rightItemImageUrl: "/assets/items/sweets/sweet_06.png",
+      rightItemImageUrl: "/assets/items/sweets/sweet_06.webp",
       prompt: "Đĩa Trái có 4 Bánh Cupcake, Đĩa Phải cũng có 4 Bánh Macaron. Nấm chọn dấu nào nhỉ?",
       formulaText: "4 = 4 (4 bằng 4)",
     },
@@ -513,9 +523,9 @@ export const PIZZA_ROUNDS_BY_LEVEL: Record<MathDifficultyLevel, PizzaRound[]> = 
       containerCount: 2,
       slicesPerContainer: 5,
       itemName: "Quả Cam Tươi",
-      itemImageUrl: "/assets/items/fruits/fruit_04.png",
+      itemImageUrl: "/assets/items/fruits/fruit_04.webp",
       rightItemName: "Quả Đào Hồng",
-      rightItemImageUrl: "/assets/items/fruits/fruit_08.png",
+      rightItemImageUrl: "/assets/items/fruits/fruit_08.webp",
       prompt: "Đĩa Trái có 7 Quả Cam, Đĩa Phải có 4 Quả Đào. Bên nào nhiều hơn nhỉ?",
       formulaText: "7 > 4 (7 lớn hơn 4)",
     },
@@ -532,9 +542,9 @@ export const PIZZA_ROUNDS_BY_LEVEL: Record<MathDifficultyLevel, PizzaRound[]> = 
       containerCount: 3,
       slicesPerContainer: 2,
       itemName: "Kem Ốc Quế Hai Tầng",
-      itemImageUrl: "/assets/items/sweets/sweet_09.png",
+      itemImageUrl: "/assets/items/sweets/sweet_09.webp",
       rightItemName: "Kẹo Mút Xoáy Nơ Hồng",
-      rightItemImageUrl: "/assets/items/sweets/sweet_03.png",
+      rightItemImageUrl: "/assets/items/sweets/sweet_03.webp",
       prompt: "Đĩa Trái có 3 cây Kem, Đĩa Phải có 5 cây Kẹo Mút. Nấm điền dấu <, = hay > nhé!",
       formulaText: "3 < 5 (3 bé hơn 5)",
     },
@@ -591,9 +601,9 @@ export const PIZZA_ROUNDS_BY_LEVEL: Record<MathDifficultyLevel, PizzaRound[]> = 
       containerCount: 3,
       slicesPerContainer: 3,
       itemName: "Quả Dâu Tây Đỏ",
-      itemImageUrl: "/assets/items/fruits/fruit_01.png",
+      itemImageUrl: "/assets/items/fruits/fruit_01.webp",
       rightItemName: "Bánh Cupcake Cherry",
-      rightItemImageUrl: "/assets/items/sweets/sweet_01.png",
+      rightItemImageUrl: "/assets/items/sweets/sweet_01.webp",
       prompt: "Ở giữa là dấu BÉ HƠN (<). Đĩa Trái có 3 món, Nấm thêm vào Đĩa Phải sao cho NHIỀU HƠN 3 món (3 < ?) nhé!",
       formulaText: "3 < 4 (hoặc 3 < 5, Đĩa Phải nhiều hơn 3)",
     },
@@ -610,9 +620,9 @@ export const PIZZA_ROUNDS_BY_LEVEL: Record<MathDifficultyLevel, PizzaRound[]> = 
       containerCount: 4,
       slicesPerContainer: 2,
       itemName: "Bánh Donut Cốm Hồng",
-      itemImageUrl: "/assets/items/sweets/sweet_02.png",
+      itemImageUrl: "/assets/items/sweets/sweet_02.webp",
       rightItemName: "Quả Táo Đỏ",
-      rightItemImageUrl: "/assets/items/fruits/fruit_02.png",
+      rightItemImageUrl: "/assets/items/fruits/fruit_02.webp",
       prompt: "Ở giữa là dấu LỚN HƠN (>). Đĩa Trái có 5 món, Nấm bớt ở Đĩa Phải để ÍT HƠN 5 món (5 > ?) nhé!",
       formulaText: "5 > 3 (Đĩa Phải ít hơn 5)",
     },
@@ -629,9 +639,9 @@ export const PIZZA_ROUNDS_BY_LEVEL: Record<MathDifficultyLevel, PizzaRound[]> = 
       containerCount: 3,
       slicesPerContainer: 4,
       itemName: "Quả Đào Hồng",
-      itemImageUrl: "/assets/items/fruits/fruit_08.png",
+      itemImageUrl: "/assets/items/fruits/fruit_08.webp",
       rightItemName: "Quả Đào Hồng",
-      rightItemImageUrl: "/assets/items/fruits/fruit_08.png",
+      rightItemImageUrl: "/assets/items/fruits/fruit_08.webp",
       prompt: "Ở giữa là dấu BẰNG (=). Đĩa Trái có 5 Quả Đào, Nấm thêm vào Đĩa Phải cho bằng 5 (5 = 5) nhé!",
       formulaText: "5 = 5 (Hai đĩa bằng nhau)",
     },
@@ -648,9 +658,9 @@ export const PIZZA_ROUNDS_BY_LEVEL: Record<MathDifficultyLevel, PizzaRound[]> = 
       containerCount: 4,
       slicesPerContainer: 3,
       itemName: "Ô Tô Đỏ Nhỏ Xinh",
-      itemImageUrl: "/assets/items/vehicles/vehicle_01.png",
+      itemImageUrl: "/assets/items/vehicles/vehicle_01.webp",
       rightItemName: "Máy Bay Trắng Xanh",
-      rightItemImageUrl: "/assets/items/vehicles/vehicle_06.png",
+      rightItemImageUrl: "/assets/items/vehicles/vehicle_06.webp",
       prompt: "Ở giữa là dấu BÉ HƠN (<). Đĩa Trái có 4 chiếc xe, Nấm thêm vào Đĩa Phải để nhiều hơn 4 chiếc (4 < ?) nhé!",
       formulaText: "4 < 5 (Đĩa Phải nhiều hơn 4)",
     },
@@ -667,9 +677,9 @@ export const PIZZA_ROUNDS_BY_LEVEL: Record<MathDifficultyLevel, PizzaRound[]> = 
       containerCount: 2,
       slicesPerContainer: 5,
       itemName: "Cặp Sách Hồng Hoa Cúc",
-      itemImageUrl: "/assets/items/school/school_01.png",
+      itemImageUrl: "/assets/items/school/school_01.webp",
       rightItemName: "Hộp Bút Sáp Cầu Vồng",
-      rightItemImageUrl: "/assets/items/school/school_08.png",
+      rightItemImageUrl: "/assets/items/school/school_08.webp",
       prompt: "Ở giữa là dấu LỚN HƠN (>). Đĩa Trái có 6 món, Nấm bớt ở Đĩa Phải để ít hơn 6 món (6 > ?) nhé!",
       formulaText: "6 > 4 (Đĩa Phải ít hơn 6)",
     },
@@ -691,7 +701,7 @@ export const PIZZA_ROUNDS_BY_LEVEL: Record<MathDifficultyLevel, PizzaRound[]> = 
       itemName: "miếng Pizza",
       itemImageUrl: KAWAII_ITEM_IMAGES.pizzaSlice,
       rightItemName: "Bánh Kem Dâu Tây",
-      rightItemImageUrl: "/assets/items/sweets/sweet_07.png",
+      rightItemImageUrl: "/assets/items/sweets/sweet_07.webp",
       prompt: "So sánh phép tính: Đĩa Trái có 2 + 3 món, Đĩa Phải có 4 món. Nấm chọn dấu <, = hay > nhé!",
       formulaText: "2 + 3 = 5, mà 5 > 4",
     },
@@ -709,9 +719,9 @@ export const PIZZA_ROUNDS_BY_LEVEL: Record<MathDifficultyLevel, PizzaRound[]> = 
       containerCount: 2,
       slicesPerContainer: 4,
       itemName: "Quả Dâu Tây Đỏ",
-      itemImageUrl: "/assets/items/fruits/fruit_01.png",
+      itemImageUrl: "/assets/items/fruits/fruit_01.webp",
       rightItemName: "Quả Cam Tươi",
-      rightItemImageUrl: "/assets/items/fruits/fruit_04.png",
+      rightItemImageUrl: "/assets/items/fruits/fruit_04.webp",
       prompt: "So sánh phép tính: Đĩa Trái có 4 + 2 quả, Đĩa Phải có 6 quả. Nấm điền dấu nào?",
       formulaText: "4 + 2 = 6, vậy 4 + 2 = 6",
     },
@@ -729,9 +739,9 @@ export const PIZZA_ROUNDS_BY_LEVEL: Record<MathDifficultyLevel, PizzaRound[]> = 
       containerCount: 3,
       slicesPerContainer: 3,
       itemName: "Bánh Macaron Kem Hồng",
-      itemImageUrl: "/assets/items/sweets/sweet_06.png",
+      itemImageUrl: "/assets/items/sweets/sweet_06.webp",
       rightItemName: "Ly Trà Sữa Trân Châu",
-      rightItemImageUrl: "/assets/items/sweets/sweet_11.png",
+      rightItemImageUrl: "/assets/items/sweets/sweet_11.webp",
       prompt: "So sánh phép tính: Đĩa Trái có 6 − 3 món, Đĩa Phải có 5 món. Nấm chọn dấu <, = hay > nhé!",
       formulaText: "6 − 3 = 3, mà 3 < 5",
     },
@@ -749,9 +759,9 @@ export const PIZZA_ROUNDS_BY_LEVEL: Record<MathDifficultyLevel, PizzaRound[]> = 
       containerCount: 4,
       slicesPerContainer: 3,
       itemName: "Tên Lửa Bay Vào Vũ Trụ",
-      itemImageUrl: "/assets/items/vehicles/vehicle_10.png",
+      itemImageUrl: "/assets/items/vehicles/vehicle_10.webp",
       rightItemName: "Tàu Ngầm Vàng Thám Hiểm",
-      rightItemImageUrl: "/assets/items/vehicles/vehicle_09.png",
+      rightItemImageUrl: "/assets/items/vehicles/vehicle_09.webp",
       prompt: "So sánh phép tính: Đĩa Trái có 3 + 4 chiếc, Đĩa Phải có 5 chiếc. Bên nào lớn hơn nhỉ?",
       formulaText: "3 + 4 = 7, mà 7 > 5",
     },
@@ -769,9 +779,9 @@ export const PIZZA_ROUNDS_BY_LEVEL: Record<MathDifficultyLevel, PizzaRound[]> = 
       containerCount: 4,
       slicesPerContainer: 2,
       itemName: "Bút Chì Vàng Chăm Chỉ",
-      itemImageUrl: "/assets/items/school/school_04.png",
+      itemImageUrl: "/assets/items/school/school_04.webp",
       rightItemName: "Quyển Sổ Lò Xo Tím",
-      rightItemImageUrl: "/assets/items/school/school_02.png",
+      rightItemImageUrl: "/assets/items/school/school_02.webp",
       prompt: "So sánh phép tính: Đĩa Trái có 7 − 3 món, Đĩa Phải có 4 món. Nấm chọn dấu nào?",
       formulaText: "7 − 3 = 4, vậy 7 − 3 = 4",
     },
@@ -789,24 +799,182 @@ export const PIZZA_ROUNDS_BY_LEVEL: Record<MathDifficultyLevel, PizzaRound[]> = 
       containerCount: 2,
       slicesPerContainer: 5,
       itemName: "Tách Trà Hồng Chấm Bi",
-      itemImageUrl: "/assets/items/home/home_02.png",
+      itemImageUrl: "/assets/items/home/home_02.webp",
       rightItemName: "Đồng Hồ Báo Thức Hồng",
-      rightItemImageUrl: "/assets/items/home/home_05.png",
+      rightItemImageUrl: "/assets/items/home/home_05.webp",
       prompt: "So sánh phép tính: Đĩa Trái có 2 + 3 món, Đĩa Phải có 7 món. Nấm điền dấu <, = hay > nhé!",
       formulaText: "2 + 3 = 5, mà 5 < 7",
     },
   ],
 };
 
+const PIZZA_PROCEDURAL_POOLS: Record<
+  MathDifficultyLevel,
+  Array<PizzaRound & { key: string }>
+> = (() => {
+  const lv1: Array<PizzaRound & { key: string }> = [];
+  // Cấp 1 (choose-sign): 64 mẫu câu so sánh 2 đĩa (leftCount, rightCount trong phạm vi 1..8)
+  for (let l = 1; l <= 8; l++) {
+    for (let r = 1; r <= 8; r++) {
+      const sign: ComparisonSign = l < r ? "<" : l > r ? ">" : "=";
+      lv1.push({
+        key: `pz-l1-${l}-${r}`,
+        id: `pz-l1-${l}-${r}`,
+        level: 1,
+        mode: "divide",
+        comparisonMode: "choose-sign",
+        leftCount: l,
+        rightCount: r,
+        initialRightCount: r,
+        expectedSign: sign,
+        totalSlices: l + r,
+        containerCount: 2,
+        slicesPerContainer: Math.max(1, Math.round((l + r) / 2)),
+        prompt: "",
+        formulaText: "",
+      });
+    }
+  }
+
+  const lv2: Array<PizzaRound & { key: string }> = [];
+  // Cấp 2 (balance-plate): 48 mẫu câu cân bằng đĩa phải theo dấu (=, <, >)
+  for (let l = 2; l <= 7; l++) {
+    for (const diff of [-2, -1, 1, 2]) {
+      const initR = l + diff;
+      if (initR >= 1 && initR <= 8) {
+        lv2.push({
+          key: `pz-l2-eq-${l}-init${initR}`,
+          id: `pz-l2-eq-${l}-init${initR}`,
+          level: 2,
+          mode: "divide",
+          comparisonMode: "balance-plate",
+          leftCount: l,
+          rightCount: l,
+          initialRightCount: initR,
+          expectedSign: "=",
+          totalSlices: l * 2,
+          containerCount: 2,
+          slicesPerContainer: l,
+          prompt: "",
+          formulaText: "",
+        });
+      }
+    }
+    for (const initR of [Math.max(1, l - 2), Math.max(1, l - 1), l]) {
+      const targetR = Math.min(8, l + 2);
+      lv2.push({
+        key: `pz-l2-lt-${l}-init${initR}`,
+        id: `pz-l2-lt-${l}-init${initR}`,
+        level: 2,
+        mode: "divide",
+        comparisonMode: "balance-plate",
+        leftCount: l,
+        rightCount: targetR,
+        initialRightCount: initR,
+        expectedSign: "<",
+        totalSlices: l + targetR,
+        containerCount: 2,
+        slicesPerContainer: l,
+        prompt: "",
+        formulaText: "",
+      });
+    }
+    for (const initR of [l, Math.min(8, l + 1), Math.min(8, l + 2)]) {
+      const targetR = Math.max(1, l - 2);
+      lv2.push({
+        key: `pz-l2-gt-${l}-init${initR}`,
+        id: `pz-l2-gt-${l}-init${initR}`,
+        level: 2,
+        mode: "divide",
+        comparisonMode: "balance-plate",
+        leftCount: l,
+        rightCount: targetR,
+        initialRightCount: initR,
+        expectedSign: ">",
+        totalSlices: l + targetR,
+        containerCount: 2,
+        slicesPerContainer: l,
+        prompt: "",
+        formulaText: "",
+      });
+    }
+  }
+
+  const lv3: Array<PizzaRound & { key: string }> = [];
+  // Cấp 3 (expression-compare): 60+ mẫu so sánh phép tính (a ± b) với số bên phải
+  for (let a = 1; a <= 6; a++) {
+    for (let b = 1; b <= 4; b++) {
+      const sum = a + b;
+      if (sum <= 9) {
+        for (const delta of [-2, 0, 2]) {
+          const r = sum + delta;
+          if (r >= 2 && r <= 9) {
+            const sign: ComparisonSign = sum < r ? "<" : sum > r ? ">" : "=";
+            lv3.push({
+              key: `pz-l3-add-${a}-${b}-vs-${r}`,
+              id: `pz-l3-add-${a}-${b}-vs-${r}`,
+              level: 3,
+              mode: "multiply",
+              comparisonMode: "expression-compare",
+              leftCount: sum,
+              rightCount: r,
+              initialRightCount: r,
+              expectedSign: sign,
+              leftExprParts: { a, op: "+", b, label: `${a} + ${b}` },
+              totalSlices: sum + r,
+              containerCount: 2,
+              slicesPerContainer: sum,
+              prompt: "",
+              formulaText: "",
+            });
+          }
+        }
+      }
+    }
+  }
+  for (let a = 4; a <= 9; a++) {
+    for (let b = 1; b <= 4; b++) {
+      const diff = a - b;
+      if (diff >= 2) {
+        for (const delta of [-1, 0, 2]) {
+          const r = diff + delta;
+          if (r >= 1 && r <= 8) {
+            const sign: ComparisonSign = diff < r ? "<" : diff > r ? ">" : "=";
+            lv3.push({
+              key: `pz-l3-sub-${a}-${b}-vs-${r}`,
+              id: `pz-l3-sub-${a}-${b}-vs-${r}`,
+              level: 3,
+              mode: "multiply",
+              comparisonMode: "expression-compare",
+              leftCount: diff,
+              rightCount: r,
+              initialRightCount: r,
+              expectedSign: sign,
+              leftExprParts: { a, op: "−", b, label: `${a} − ${b}` },
+              totalSlices: diff + r,
+              containerCount: 2,
+              slicesPerContainer: diff,
+              prompt: "",
+              formulaText: "",
+            });
+          }
+        }
+      }
+    }
+  }
+
+  return { 1: lv1, 2: lv2, 3: lv3 };
+})();
+
 export function generatePizzaRounds(
   level: MathDifficultyLevel,
   seedOffset = 0,
 ): PizzaRound[] {
-  const baseList = PIZZA_ROUNDS_BY_LEVEL[level].map((r) => ({ ...r, key: r.id }));
-  if (seedOffset === 0) {
-    return PIZZA_ROUNDS_BY_LEVEL[level];
-  }
-  const chosen = pickNonRepeatingTemplates(`pizza-l${level}`, baseList, 5);
+  const baseList = [
+    ...PIZZA_ROUNDS_BY_LEVEL[level].map((r) => ({ ...r, key: r.id })),
+    ...PIZZA_PROCEDURAL_POOLS[level],
+  ];
+  const chosen = pickNonRepeatingTemplates(`pizza-l${level}`, baseList, 6);
   const shuffledItems = shuffleMathArray(COMPARISON_ITEMS_POOL);
 
   return chosen.map((r, idx) => {
@@ -963,17 +1131,42 @@ export function buildArithmeticTable(
 
 export function generateHiddenTableIndices(
   level: MathDifficultyLevel,
-  seedOffset = 0,
+  _seedOffset = 0,
 ): number[] {
-  if (level === 1) return [];
-  if (seedOffset === 0) {
-    return level === 2 ? [2, 4, 6, 8] : [1, 2, 3, 4, 5, 6, 7, 8, 9];
-  }
   const allIndices = [1, 2, 3, 4, 5, 6, 7, 8, 9];
-  const count = level === 2 ? 4 : 7;
+  // Mọi mức độ đều cần mở tối thiểu 5 hộp quà bí ẩn (Cấp 1: 5 hộp, Cấp 2: 7 hộp, Cấp 3: 9 hộp)
+  const count = level === 1 ? 5 : level === 2 ? 7 : 9;
   return shuffleMathArray(allIndices)
     .slice(0, count)
     .sort((a, b) => a - b);
+}
+
+const ALL_TABLE_CONFIGS: Array<{
+  key: string;
+  op: TableOperation;
+  baseNum: number;
+}> = (() => {
+  const ops: TableOperation[] = ["add", "sub", "mul", "div"];
+  const list: Array<{ key: string; op: TableOperation; baseNum: number }> = [];
+  for (const op of ops) {
+    for (let baseNum = 1; baseNum <= 9; baseNum++) {
+      list.push({ key: `${op}-${baseNum}`, op, baseNum });
+    }
+  }
+  return list;
+})();
+
+export function drawRandomArithmeticTableConfig(excludeKey?: string): {
+  op: TableOperation;
+  baseNum: number;
+} {
+  const chosen = drawSingleNonRepeatingItem(
+    "math:arithmetic-table-config:v2",
+    ALL_TABLE_CONFIGS,
+    (c) => c.key,
+    excludeKey,
+  );
+  return { op: chosen.op, baseNum: chosen.baseNum };
 }
 
 // ============================================================================
@@ -990,45 +1183,90 @@ export interface CoinMarketRound {
   formulaText: string;
 }
 
-const COIN_L1_LIBRARY = [
-  { key: "c1-2-2", prices: [2, 2] },
-  { key: "c1-3-2", prices: [3, 2] },
-  { key: "c1-4-2", prices: [4, 2] },
-  { key: "c1-2-1", prices: [2, 1] },
-  { key: "c1-3-1", prices: [3, 1] },
-  { key: "c1-3-3", prices: [3, 3] },
-  { key: "c1-4-1", prices: [4, 1] },
-  { key: "c1-5-1", prices: [5, 1] },
-  { key: "c1-5-2", prices: [5, 2] },
-  { key: "c1-4-3", prices: [4, 3] },
-];
+const COIN_L1_LIBRARY = (() => {
+  const list: Array<{ key: string; prices: number[] }> = [];
+  for (let p1 = 1; p1 <= 6; p1++) {
+    for (let p2 = 1; p2 <= 5; p2++) {
+      const sum = p1 + p2;
+      if (sum >= 2 && sum <= 9) {
+        list.push({ key: `c1-${p1}-${p2}`, prices: [p1, p2] });
+      }
+    }
+  }
+  return list;
+})();
 
-const COIN_L2_LIBRARY = [
-  { key: "c2-5-3", prices: [5, 3] },
-  { key: "c2-5-4", prices: [5, 4] },
-  { key: "c2-4-3-3", prices: [4, 3, 3] },
-  { key: "c2-6-3", prices: [6, 3] },
-  { key: "c2-5-5", prices: [5, 5] },
-  { key: "c2-6-4", prices: [6, 4] },
-  { key: "c2-4-4-2", prices: [4, 4, 2] },
-  { key: "c2-5-3-2", prices: [5, 3, 2] },
-  { key: "c2-6-5", prices: [6, 5] },
-  { key: "c2-7-3", prices: [7, 3] },
-];
+const COIN_L2_LIBRARY = (() => {
+  const list: Array<{ key: string; prices: number[] }> = [
+    { key: "c2-5-3", prices: [5, 3] },
+    { key: "c2-5-4", prices: [5, 4] },
+    { key: "c2-4-3-3", prices: [4, 3, 3] },
+    { key: "c2-6-3", prices: [6, 3] },
+    { key: "c2-5-5", prices: [5, 5] },
+    { key: "c2-6-4", prices: [6, 4] },
+    { key: "c2-4-4-2", prices: [4, 4, 2] },
+    { key: "c2-5-3-2", prices: [5, 3, 2] },
+    { key: "c2-6-5", prices: [6, 5] },
+    { key: "c2-7-3", prices: [7, 3] },
+    { key: "c2-3-3-2", prices: [3, 3, 2] },
+    { key: "c2-3-4-2", prices: [3, 4, 2] },
+    { key: "c2-5-2-2", prices: [5, 2, 2] },
+    { key: "c2-4-3-2", prices: [4, 3, 2] },
+    { key: "c2-5-4-2", prices: [5, 4, 2] },
+    { key: "c2-6-2-2", prices: [6, 2, 2] },
+    { key: "c2-4-4-3", prices: [4, 4, 3] },
+    { key: "c2-5-3-3", prices: [5, 3, 3] },
+    { key: "c2-6-3-2", prices: [6, 3, 2] },
+    { key: "c2-7-2-2", prices: [7, 2, 2] },
+    { key: "c2-4-2-3", prices: [4, 2, 3] },
+    { key: "c2-3-5-2", prices: [3, 5, 2] },
+    { key: "c2-7-4", prices: [7, 4] },
+    { key: "c2-8-3", prices: [8, 3] },
+    { key: "c2-6-6", prices: [6, 6] },
+    { key: "c2-7-5", prices: [7, 5] },
+    { key: "c2-8-4", prices: [8, 4] },
+    { key: "c2-5-4-3", prices: [5, 4, 3] },
+  ];
+  return list;
+})();
 
 const COIN_L3_LIBRARY = [
+  { key: "c3-8-5", paid: 8, prices: [5] },
+  { key: "c3-8-3", paid: 8, prices: [3] },
+  { key: "c3-8-2-3", paid: 8, prices: [2, 3] },
+  { key: "c3-9-4", paid: 9, prices: [4] },
+  { key: "c3-9-6", paid: 9, prices: [6] },
+  { key: "c3-9-3-2", paid: 9, prices: [3, 2] },
   { key: "c3-10-6", paid: 10, prices: [6] },
   { key: "c3-10-7", paid: 10, prices: [7] },
-  { key: "c3-12-4-4", paid: 12, prices: [4, 4] },
   { key: "c3-10-5", paid: 10, prices: [5] },
   { key: "c3-10-8", paid: 10, prices: [8] },
   { key: "c3-10-4", paid: 10, prices: [4] },
   { key: "c3-10-3", paid: 10, prices: [3] },
+  { key: "c3-10-2", paid: 10, prices: [2] },
+  { key: "c3-10-3-3", paid: 10, prices: [3, 3] },
+  { key: "c3-10-4-3", paid: 10, prices: [4, 3] },
+  { key: "c3-10-5-2", paid: 10, prices: [5, 2] },
+  { key: "c3-10-4-2", paid: 10, prices: [4, 2] },
+  { key: "c3-12-4-4", paid: 12, prices: [4, 4] },
   { key: "c3-12-7", paid: 12, prices: [7] },
   { key: "c3-12-9", paid: 12, prices: [9] },
+  { key: "c3-12-8", paid: 12, prices: [8] },
+  { key: "c3-12-6", paid: 12, prices: [6] },
+  { key: "c3-12-5", paid: 12, prices: [5] },
   { key: "c3-12-5-4", paid: 12, prices: [5, 4] },
+  { key: "c3-12-6-3", paid: 12, prices: [6, 3] },
+  { key: "c3-12-5-3", paid: 12, prices: [5, 3] },
+  { key: "c3-12-4-3", paid: 12, prices: [4, 3] },
+  { key: "c3-14-9", paid: 14, prices: [9] },
+  { key: "c3-14-8", paid: 14, prices: [8] },
+  { key: "c3-14-5-4", paid: 14, prices: [5, 4] },
   { key: "c3-15-10", paid: 15, prices: [10] },
   { key: "c3-15-9", paid: 15, prices: [9] },
+  { key: "c3-15-8", paid: 15, prices: [8] },
+  { key: "c3-15-7", paid: 15, prices: [7] },
+  { key: "c3-15-6-4", paid: 15, prices: [6, 4] },
+  { key: "c3-15-5-4", paid: 15, prices: [5, 4] },
 ];
 
 export function generateCoinMarketRounds(
@@ -1037,22 +1275,18 @@ export function generateCoinMarketRounds(
   theme: MathItemTheme = "all",
 ): CoinMarketRound[] {
   const pool = getCatalogByTheme(theme);
-  const useRandomShuffle = seedOffset > 0;
-  const randomItems = useRandomShuffle ? pickRandomDistinctItems(18) : [];
+  const randomItems = pickRandomDistinctItems(18);
   let itemCursor = 0;
   const nextItem = (fallbackIdx: number) => {
-    if (useRandomShuffle) {
-      const it = randomItems[itemCursor % randomItems.length];
-      itemCursor++;
-      return it;
-    }
-    return pool[(fallbackIdx + seedOffset * 2) % pool.length];
+    const it =
+      randomItems[itemCursor % randomItems.length] ||
+      pool[(fallbackIdx + seedOffset * 2) % pool.length];
+    itemCursor++;
+    return it;
   };
 
   if (level === 1) {
-    const templates = useRandomShuffle
-      ? pickNonRepeatingTemplates("coin-l1", COIN_L1_LIBRARY, 5)
-      : COIN_L1_LIBRARY.slice(0, 3);
+    const templates = pickNonRepeatingTemplates("coin-l1", COIN_L1_LIBRARY, 6);
     return templates.map((t, idx) => {
       const items = t.prices.map((p, pIdx) => ({
         pastry: nextItem(idx * 15 + pIdx * 7),
@@ -1072,9 +1306,7 @@ export function generateCoinMarketRounds(
   }
 
   if (level === 2) {
-    const templates = useRandomShuffle
-      ? pickNonRepeatingTemplates("coin-l2", COIN_L2_LIBRARY, 5)
-      : COIN_L2_LIBRARY.slice(0, 3);
+    const templates = pickNonRepeatingTemplates("coin-l2", COIN_L2_LIBRARY, 6);
     return templates.map((t, idx) => {
       const items = t.prices.map((p, pIdx) => ({
         pastry: nextItem(idx * 15 + pIdx * 9 + 3),
@@ -1093,9 +1325,7 @@ export function generateCoinMarketRounds(
     });
   }
 
-  const templates = useRandomShuffle
-    ? pickNonRepeatingTemplates("coin-l3", COIN_L3_LIBRARY, 5)
-    : COIN_L3_LIBRARY.slice(0, 3);
+  const templates = pickNonRepeatingTemplates("coin-l3", COIN_L3_LIBRARY, 6);
   return templates.map((t, idx) => {
     const items = t.prices.map((p, pIdx) => ({
       pastry: nextItem(idx * 15 + pIdx * 11 + 8),

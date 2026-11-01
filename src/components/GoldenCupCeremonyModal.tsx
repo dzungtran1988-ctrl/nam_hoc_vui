@@ -228,7 +228,7 @@ export const GoldenCupCeremonyModal: React.FC<GoldenCupCeremonyModalProps> = ({
               >
                 {namBonus.isHardFoodReward && namBonus.sticker.momRewardVoucher
                   ? namBonus.sticker.momRewardVoucher
-                  : "🔒 Cố lên Nấm ơi! Đạt mốc Cúp Vàng Cấp 2+ (hoặc mỗi 2 Cúp Vàng = 12 bài học) để mở khóa Sticker Hiếm Nấm Ăn Kem & Phiếu Mẹ Mua Đồ Ăn Thật nhé!"}
+                  : "✨ Đã cất vào Kho Sticker Bé Nấm để con bóc dán lên Sân Khấu & Quyển Vở Sticker nhé!"}
               </div>
             </div>
           </div>

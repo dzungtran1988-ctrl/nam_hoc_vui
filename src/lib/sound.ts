@@ -142,6 +142,64 @@ export function playCardPlaceSound(index = 0) {
   }
 }
 
+/** Tiếng "Tinh! ✨" trong trẻo tức thì (0ms) khi bé chọn ĐÚNG thẻ */
+export function playCorrectDingSound() {
+  const ctx = getAudioCtx();
+  if (!ctx) return;
+  try {
+    const now = ctx.currentTime;
+    const notes = [
+      { freq: 880.0, offset: 0, dur: 0.14 },
+      { freq: 1318.5, offset: 0.065, dur: 0.24 },
+    ];
+    notes.forEach(({ freq, offset, dur }) => {
+      const osc = ctx.createOscillator();
+      const gain = ctx.createGain();
+      const st = now + offset;
+      osc.type = "sine";
+      osc.frequency.setValueAtTime(freq, st);
+      gain.gain.setValueAtTime(0.001, st);
+      gain.gain.linearRampToValueAtTime(0.12, st + 0.01);
+      gain.gain.exponentialRampToValueAtTime(0.001, st + dur);
+      osc.connect(gain);
+      gain.connect(ctx.destination);
+      osc.start(st);
+      osc.stop(st + dur + 0.02);
+    });
+  } catch {
+    // Ignore audio errors
+  }
+}
+
+/** Tiếng "Tèng tèng" trầm nhẹ tức thì (0ms) khi bé bấm NHẦM thẻ */
+export function playWrongBuzzSound() {
+  const ctx = getAudioCtx();
+  if (!ctx) return;
+  try {
+    const now = ctx.currentTime;
+    const notes = [
+      { freq: 260, offset: 0, dur: 0.12 },
+      { freq: 195, offset: 0.11, dur: 0.18 },
+    ];
+    notes.forEach(({ freq, offset, dur }) => {
+      const osc = ctx.createOscillator();
+      const gain = ctx.createGain();
+      const st = now + offset;
+      osc.type = "triangle";
+      osc.frequency.setValueAtTime(freq, st);
+      gain.gain.setValueAtTime(0.001, st);
+      gain.gain.linearRampToValueAtTime(0.11, st + 0.012);
+      gain.gain.exponentialRampToValueAtTime(0.001, st + dur);
+      osc.connect(gain);
+      gain.connect(ctx.destination);
+      osc.start(st);
+      osc.stop(st + dur + 0.02);
+    });
+  } catch {
+    // Ignore audio errors
+  }
+}
+
 /** Tiếng chạm đàn hồi "Boing + Sparkle" khi chọt vào nhân vật */
 export function playCharacterTapSound() {
   const ctx = getAudioCtx();

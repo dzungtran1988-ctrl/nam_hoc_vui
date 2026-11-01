@@ -21,10 +21,9901 @@ export interface KaraokeSong {
   duration: number;
   audioUrl: string;
   thumbUrl?: string;
+  highlightMode?: "word" | "line";
   lines: KaraokeLine[];
 }
 
 export const DEFAULT_KARAOKE_SONGS: KaraokeSong[] = [
+  {
+    "id": "karaoke-nhung-ngay-troi-bao-la",
+    "filename": "Những Ngày Trời Bao La.mp3",
+    "title": "Những Ngày Trời Bao La",
+    "artist": "Gia Đình Haha (Jun Phạm, Bùi Công Nam, Rhymastic, Duy Khánh, Ngọc Thanh Tâm)",
+    "duration": 238.18,
+    "audioUrl": "/karaoke/karaoke-nhung-ngay-troi-bao-la.mp3",
+    "thumbUrl": "/karaoke/karaoke-nhung-ngay-troi-bao-la.jpg",
+    "highlightMode": "line",
+    "lines": [
+      {
+        "id": 0,
+        "startTime": 14.5,
+        "endTime": 17.4,
+        "nextLineTime": 17.5,
+        "text": "Let's go! Hôm nay mình lên rừng",
+        "words": [
+          {
+            "word": "Let's",
+            "start": 14.5,
+            "end": 15.08
+          },
+          {
+            "word": "go!",
+            "start": 15.08,
+            "end": 15.43
+          },
+          {
+            "word": "Hôm",
+            "start": 15.43,
+            "end": 15.78
+          },
+          {
+            "word": "nay",
+            "start": 15.78,
+            "end": 16.13
+          },
+          {
+            "word": "mình",
+            "start": 16.13,
+            "end": 16.59
+          },
+          {
+            "word": "lên",
+            "start": 16.59,
+            "end": 16.94
+          },
+          {
+            "word": "rừng",
+            "start": 16.94,
+            "end": 17.4
+          }
+        ]
+      },
+      {
+        "id": 1,
+        "startTime": 17.5,
+        "endTime": 19.8,
+        "nextLineTime": 19.9,
+        "text": "Băng qua nơi kia xa xa góc suối",
+        "words": [
+          {
+            "word": "Băng",
+            "start": 17.5,
+            "end": 17.88
+          },
+          {
+            "word": "qua",
+            "start": 17.88,
+            "end": 18.17
+          },
+          {
+            "word": "nơi",
+            "start": 18.17,
+            "end": 18.46
+          },
+          {
+            "word": "kia",
+            "start": 18.46,
+            "end": 18.75
+          },
+          {
+            "word": "xa",
+            "start": 18.75,
+            "end": 18.94
+          },
+          {
+            "word": "xa",
+            "start": 18.94,
+            "end": 19.13
+          },
+          {
+            "word": "góc",
+            "start": 19.13,
+            "end": 19.42
+          },
+          {
+            "word": "suối",
+            "start": 19.42,
+            "end": 19.8
+          }
+        ]
+      },
+      {
+        "id": 2,
+        "startTime": 19.9,
+        "endTime": 21.7,
+        "nextLineTime": 21.8,
+        "text": "Leo cao tận trên đồi",
+        "words": [
+          {
+            "word": "Leo",
+            "start": 19.9,
+            "end": 20.24
+          },
+          {
+            "word": "cao",
+            "start": 20.24,
+            "end": 20.58
+          },
+          {
+            "word": "tận",
+            "start": 20.58,
+            "end": 20.92
+          },
+          {
+            "word": "trên",
+            "start": 20.92,
+            "end": 21.37
+          },
+          {
+            "word": "đồi",
+            "start": 21.37,
+            "end": 21.71
+          }
+        ]
+      },
+      {
+        "id": 3,
+        "startTime": 21.8,
+        "endTime": 24.0,
+        "nextLineTime": 24.1,
+        "text": "Nhanh em ơi chú Sáu gọi rồi",
+        "words": [
+          {
+            "word": "Nhanh",
+            "start": 21.8,
+            "end": 22.32
+          },
+          {
+            "word": "em",
+            "start": 22.32,
+            "end": 22.53
+          },
+          {
+            "word": "ơi",
+            "start": 22.53,
+            "end": 22.74
+          },
+          {
+            "word": "chú",
+            "start": 22.74,
+            "end": 23.05
+          },
+          {
+            "word": "Sáu",
+            "start": 23.05,
+            "end": 23.36
+          },
+          {
+            "word": "gọi",
+            "start": 23.36,
+            "end": 23.67
+          },
+          {
+            "word": "rồi",
+            "start": 23.67,
+            "end": 23.98
+          }
+        ]
+      },
+      {
+        "id": 4,
+        "startTime": 24.1,
+        "endTime": 26.2,
+        "nextLineTime": 26.3,
+        "text": "Bình thường thì cười cười nói nói",
+        "words": [
+          {
+            "word": "Bình",
+            "start": 24.1,
+            "end": 24.41
+          },
+          {
+            "word": "thường",
+            "start": 24.41,
+            "end": 24.88
+          },
+          {
+            "word": "thì",
+            "start": 24.88,
+            "end": 25.11
+          },
+          {
+            "word": "cười",
+            "start": 25.11,
+            "end": 25.42
+          },
+          {
+            "word": "cười",
+            "start": 25.42,
+            "end": 25.73
+          },
+          {
+            "word": "nói",
+            "start": 25.73,
+            "end": 25.96
+          },
+          {
+            "word": "nói",
+            "start": 25.96,
+            "end": 26.19
+          }
+        ]
+      },
+      {
+        "id": 5,
+        "startTime": 26.3,
+        "endTime": 28.4,
+        "nextLineTime": 28.5,
+        "text": "Nay xem ai nhiều mồ hôi rơi",
+        "words": [
+          {
+            "word": "Nay",
+            "start": 26.3,
+            "end": 26.6
+          },
+          {
+            "word": "xem",
+            "start": 26.6,
+            "end": 26.9
+          },
+          {
+            "word": "ai",
+            "start": 26.9,
+            "end": 27.1
+          },
+          {
+            "word": "nhiều",
+            "start": 27.1,
+            "end": 27.6
+          },
+          {
+            "word": "mồ",
+            "start": 27.6,
+            "end": 27.8
+          },
+          {
+            "word": "hôi",
+            "start": 27.8,
+            "end": 28.1
+          },
+          {
+            "word": "rơi",
+            "start": 28.1,
+            "end": 28.4
+          }
+        ]
+      },
+      {
+        "id": 6,
+        "startTime": 28.5,
+        "endTime": 30.5,
+        "nextLineTime": 30.6,
+        "text": "Nào cùng Gia đình Haha",
+        "words": [
+          {
+            "word": "Nào",
+            "start": 28.5,
+            "end": 28.83
+          },
+          {
+            "word": "cùng",
+            "start": 28.83,
+            "end": 29.27
+          },
+          {
+            "word": "Gia",
+            "start": 29.27,
+            "end": 29.6
+          },
+          {
+            "word": "đình",
+            "start": 29.6,
+            "end": 30.04
+          },
+          {
+            "word": "Haha",
+            "start": 30.04,
+            "end": 30.48
+          }
+        ]
+      },
+      {
+        "id": 7,
+        "startTime": 30.6,
+        "endTime": 32.7,
+        "nextLineTime": 32.8,
+        "text": "Mình làm nông dân nhá!",
+        "words": [
+          {
+            "word": "Mình",
+            "start": 30.6,
+            "end": 31.07
+          },
+          {
+            "word": "làm",
+            "start": 31.07,
+            "end": 31.42
+          },
+          {
+            "word": "nông",
+            "start": 31.42,
+            "end": 31.89
+          },
+          {
+            "word": "dân",
+            "start": 31.89,
+            "end": 32.24
+          },
+          {
+            "word": "nhá!",
+            "start": 32.24,
+            "end": 32.71
+          }
+        ]
+      },
+      {
+        "id": 8,
+        "startTime": 32.8,
+        "endTime": 34.8,
+        "nextLineTime": 34.9,
+        "text": "Ở đây ai cũng quen rồi",
+        "words": [
+          {
+            "word": "Ở",
+            "start": 32.8,
+            "end": 33.02
+          },
+          {
+            "word": "đây",
+            "start": 33.02,
+            "end": 33.35
+          },
+          {
+            "word": "ai",
+            "start": 33.35,
+            "end": 33.57
+          },
+          {
+            "word": "cũng",
+            "start": 33.57,
+            "end": 34.01
+          },
+          {
+            "word": "quen",
+            "start": 34.01,
+            "end": 34.45
+          },
+          {
+            "word": "rồi",
+            "start": 34.45,
+            "end": 34.78
+          }
+        ]
+      },
+      {
+        "id": 9,
+        "startTime": 34.9,
+        "endTime": 37.0,
+        "nextLineTime": 37.1,
+        "text": "Mặt trời mọc là cất bước thôi",
+        "words": [
+          {
+            "word": "Mặt",
+            "start": 34.9,
+            "end": 35.17
+          },
+          {
+            "word": "trời",
+            "start": 35.17,
+            "end": 35.54
+          },
+          {
+            "word": "mọc",
+            "start": 35.54,
+            "end": 35.81
+          },
+          {
+            "word": "là",
+            "start": 35.81,
+            "end": 35.99
+          },
+          {
+            "word": "cất",
+            "start": 35.99,
+            "end": 36.26
+          },
+          {
+            "word": "bước",
+            "start": 36.26,
+            "end": 36.63
+          },
+          {
+            "word": "thôi",
+            "start": 36.63,
+            "end": 37.0
+          }
+        ]
+      },
+      {
+        "id": 10,
+        "startTime": 37.1,
+        "endTime": 39.1,
+        "nextLineTime": 39.2,
+        "text": "Ngân nga vài đôi lời",
+        "words": [
+          {
+            "word": "Ngân",
+            "start": 37.1,
+            "end": 37.6
+          },
+          {
+            "word": "nga",
+            "start": 37.6,
+            "end": 37.98
+          },
+          {
+            "word": "vài",
+            "start": 37.98,
+            "end": 38.35
+          },
+          {
+            "word": "đôi",
+            "start": 38.35,
+            "end": 38.73
+          },
+          {
+            "word": "lời",
+            "start": 38.73,
+            "end": 39.1
+          }
+        ]
+      },
+      {
+        "id": 11,
+        "startTime": 39.2,
+        "endTime": 41.3,
+        "nextLineTime": 41.4,
+        "text": "Bàn chân đi theo những áng mây trôi",
+        "words": [
+          {
+            "word": "Bàn",
+            "start": 39.2,
+            "end": 39.43
+          },
+          {
+            "word": "chân",
+            "start": 39.43,
+            "end": 39.73
+          },
+          {
+            "word": "đi",
+            "start": 39.73,
+            "end": 39.88
+          },
+          {
+            "word": "theo",
+            "start": 39.88,
+            "end": 40.18
+          },
+          {
+            "word": "những",
+            "start": 40.18,
+            "end": 40.55
+          },
+          {
+            "word": "áng",
+            "start": 40.55,
+            "end": 40.77
+          },
+          {
+            "word": "mây",
+            "start": 40.77,
+            "end": 41.0
+          },
+          {
+            "word": "trôi",
+            "start": 41.0,
+            "end": 41.3
+          }
+        ]
+      },
+      {
+        "id": 12,
+        "startTime": 41.4,
+        "endTime": 43.4,
+        "nextLineTime": 43.5,
+        "text": "Vượt đèo vượt đồi vượt sóng lớn",
+        "words": [
+          {
+            "word": "Vượt",
+            "start": 41.4,
+            "end": 41.72
+          },
+          {
+            "word": "đèo",
+            "start": 41.72,
+            "end": 41.96
+          },
+          {
+            "word": "vượt",
+            "start": 41.96,
+            "end": 42.28
+          },
+          {
+            "word": "đồi",
+            "start": 42.28,
+            "end": 42.52
+          },
+          {
+            "word": "vượt",
+            "start": 42.52,
+            "end": 42.84
+          },
+          {
+            "word": "sóng",
+            "start": 42.84,
+            "end": 43.16
+          },
+          {
+            "word": "lớn",
+            "start": 43.16,
+            "end": 43.4
+          }
+        ]
+      },
+      {
+        "id": 13,
+        "startTime": 43.5,
+        "endTime": 47.7,
+        "nextLineTime": 47.8,
+        "text": "Người bình thường mà rất phi thường",
+        "words": [
+          {
+            "word": "Người",
+            "start": 43.5,
+            "end": 44.22
+          },
+          {
+            "word": "bình",
+            "start": 44.22,
+            "end": 44.8
+          },
+          {
+            "word": "thường",
+            "start": 44.8,
+            "end": 45.67
+          },
+          {
+            "word": "mà",
+            "start": 45.67,
+            "end": 45.96
+          },
+          {
+            "word": "rất",
+            "start": 45.96,
+            "end": 46.39
+          },
+          {
+            "word": "phi",
+            "start": 46.39,
+            "end": 46.82
+          },
+          {
+            "word": "thường",
+            "start": 46.82,
+            "end": 47.69
+          }
+        ]
+      },
+      {
+        "id": 14,
+        "startTime": 47.8,
+        "endTime": 49.8,
+        "nextLineTime": 49.9,
+        "text": "Và mình cùng hát, mình cùng ở",
+        "words": [
+          {
+            "word": "Và",
+            "start": 47.8,
+            "end": 47.97
+          },
+          {
+            "word": "mình",
+            "start": 47.97,
+            "end": 48.32
+          },
+          {
+            "word": "cùng",
+            "start": 48.32,
+            "end": 48.67
+          },
+          {
+            "word": "hát,",
+            "start": 48.67,
+            "end": 48.93
+          },
+          {
+            "word": "mình",
+            "start": 48.93,
+            "end": 49.28
+          },
+          {
+            "word": "cùng",
+            "start": 49.28,
+            "end": 49.63
+          },
+          {
+            "word": "ở",
+            "start": 49.63,
+            "end": 49.8
+          }
+        ]
+      },
+      {
+        "id": 15,
+        "startTime": 49.9,
+        "endTime": 52.0,
+        "nextLineTime": 52.1,
+        "text": "Cùng làm với những nông dân",
+        "words": [
+          {
+            "word": "Cùng",
+            "start": 49.9,
+            "end": 50.28
+          },
+          {
+            "word": "làm",
+            "start": 50.28,
+            "end": 50.57
+          },
+          {
+            "word": "với",
+            "start": 50.57,
+            "end": 50.86
+          },
+          {
+            "word": "những",
+            "start": 50.86,
+            "end": 51.34
+          },
+          {
+            "word": "nông",
+            "start": 51.34,
+            "end": 51.72
+          },
+          {
+            "word": "dân",
+            "start": 51.72,
+            "end": 52.01
+          }
+        ]
+      },
+      {
+        "id": 16,
+        "startTime": 52.1,
+        "endTime": 54.1,
+        "nextLineTime": 54.2,
+        "text": "Cùng vui cùng sống, chung hơi thở",
+        "words": [
+          {
+            "word": "Cùng",
+            "start": 52.1,
+            "end": 52.41
+          },
+          {
+            "word": "vui",
+            "start": 52.41,
+            "end": 52.64
+          },
+          {
+            "word": "cùng",
+            "start": 52.64,
+            "end": 52.95
+          },
+          {
+            "word": "sống,",
+            "start": 52.95,
+            "end": 53.26
+          },
+          {
+            "word": "chung",
+            "start": 53.26,
+            "end": 53.64
+          },
+          {
+            "word": "hơi",
+            "start": 53.64,
+            "end": 53.87
+          },
+          {
+            "word": "thở",
+            "start": 53.87,
+            "end": 54.1
+          }
+        ]
+      },
+      {
+        "id": 17,
+        "startTime": 54.2,
+        "endTime": 56.3,
+        "nextLineTime": 56.4,
+        "text": "Từ miền xa đến nơi gần",
+        "words": [
+          {
+            "word": "Từ",
+            "start": 54.2,
+            "end": 54.45
+          },
+          {
+            "word": "miền",
+            "start": 54.45,
+            "end": 54.94
+          },
+          {
+            "word": "xa",
+            "start": 54.94,
+            "end": 55.19
+          },
+          {
+            "word": "đến",
+            "start": 55.19,
+            "end": 55.56
+          },
+          {
+            "word": "nơi",
+            "start": 55.56,
+            "end": 55.93
+          },
+          {
+            "word": "gần",
+            "start": 55.93,
+            "end": 56.3
+          }
+        ]
+      },
+      {
+        "id": 18,
+        "startTime": 56.4,
+        "endTime": 58.4,
+        "nextLineTime": 58.5,
+        "text": "Ta sẽ được thấy, được hiểu những điều",
+        "words": [
+          {
+            "word": "Ta",
+            "start": 56.4,
+            "end": 56.54
+          },
+          {
+            "word": "sẽ",
+            "start": 56.54,
+            "end": 56.68
+          },
+          {
+            "word": "được",
+            "start": 56.68,
+            "end": 56.96
+          },
+          {
+            "word": "thấy,",
+            "start": 56.96,
+            "end": 57.24
+          },
+          {
+            "word": "được",
+            "start": 57.24,
+            "end": 57.52
+          },
+          {
+            "word": "hiểu",
+            "start": 57.52,
+            "end": 57.8
+          },
+          {
+            "word": "những",
+            "start": 57.8,
+            "end": 58.14
+          },
+          {
+            "word": "điều",
+            "start": 58.14,
+            "end": 58.42
+          }
+        ]
+      },
+      {
+        "id": 19,
+        "startTime": 58.5,
+        "endTime": 60.1,
+        "nextLineTime": 60.2,
+        "text": "Bình thường mà lại rất phi thường",
+        "words": [
+          {
+            "word": "Bình",
+            "start": 58.5,
+            "end": 58.74
+          },
+          {
+            "word": "thường",
+            "start": 58.74,
+            "end": 59.1
+          },
+          {
+            "word": "mà",
+            "start": 59.1,
+            "end": 59.22
+          },
+          {
+            "word": "lại",
+            "start": 59.22,
+            "end": 59.4
+          },
+          {
+            "word": "rất",
+            "start": 59.4,
+            "end": 59.58
+          },
+          {
+            "word": "phi",
+            "start": 59.58,
+            "end": 59.76
+          },
+          {
+            "word": "thường",
+            "start": 59.76,
+            "end": 60.12
+          }
+        ]
+      },
+      {
+        "id": 20,
+        "startTime": 60.2,
+        "endTime": 61.7,
+        "nextLineTime": 61.8,
+        "text": "Gia đình Haha bắt đầu nha!",
+        "words": [
+          {
+            "word": "Gia",
+            "start": 60.2,
+            "end": 60.41
+          },
+          {
+            "word": "đình",
+            "start": 60.41,
+            "end": 60.7
+          },
+          {
+            "word": "Haha",
+            "start": 60.7,
+            "end": 60.99
+          },
+          {
+            "word": "bắt",
+            "start": 60.99,
+            "end": 61.2
+          },
+          {
+            "word": "đầu",
+            "start": 61.2,
+            "end": 61.41
+          },
+          {
+            "word": "nha!",
+            "start": 61.41,
+            "end": 61.7
+          }
+        ]
+      },
+      {
+        "id": 21,
+        "startTime": 61.8,
+        "endTime": 62.7,
+        "nextLineTime": 62.8,
+        "text": "Sẵn sàng chưa?",
+        "words": [
+          {
+            "word": "Sẵn",
+            "start": 61.8,
+            "end": 62.02
+          },
+          {
+            "word": "sàng",
+            "start": 62.02,
+            "end": 62.32
+          },
+          {
+            "word": "chưa?",
+            "start": 62.32,
+            "end": 62.7
+          }
+        ]
+      },
+      {
+        "id": 22,
+        "startTime": 62.8,
+        "endTime": 67.0,
+        "nextLineTime": 67.1,
+        "text": "Đón lấy nắng sớm phía bên kia chân đồi",
+        "words": [
+          {
+            "word": "Đón",
+            "start": 62.8,
+            "end": 63.22
+          },
+          {
+            "word": "lấy",
+            "start": 63.22,
+            "end": 63.64
+          },
+          {
+            "word": "nắng",
+            "start": 63.64,
+            "end": 64.2
+          },
+          {
+            "word": "sớm",
+            "start": 64.2,
+            "end": 64.62
+          },
+          {
+            "word": "phía",
+            "start": 64.62,
+            "end": 65.18
+          },
+          {
+            "word": "bên",
+            "start": 65.18,
+            "end": 65.6
+          },
+          {
+            "word": "kia",
+            "start": 65.6,
+            "end": 66.02
+          },
+          {
+            "word": "chân",
+            "start": 66.02,
+            "end": 66.58
+          },
+          {
+            "word": "đồi",
+            "start": 66.58,
+            "end": 67.0
+          }
+        ]
+      },
+      {
+        "id": 23,
+        "startTime": 67.1,
+        "endTime": 69.1,
+        "nextLineTime": 69.2,
+        "text": "Từ từ thôi hít hết gió mát",
+        "words": [
+          {
+            "word": "Từ",
+            "start": 67.1,
+            "end": 67.3
+          },
+          {
+            "word": "từ",
+            "start": 67.3,
+            "end": 67.5
+          },
+          {
+            "word": "thôi",
+            "start": 67.5,
+            "end": 67.9
+          },
+          {
+            "word": "hít",
+            "start": 67.9,
+            "end": 68.2
+          },
+          {
+            "word": "hết",
+            "start": 68.2,
+            "end": 68.5
+          },
+          {
+            "word": "gió",
+            "start": 68.5,
+            "end": 68.8
+          },
+          {
+            "word": "mát",
+            "start": 68.8,
+            "end": 69.1
+          }
+        ]
+      },
+      {
+        "id": 24,
+        "startTime": 69.2,
+        "endTime": 71.3,
+        "nextLineTime": 71.4,
+        "text": "Ngay nơi ta ngồi",
+        "words": [
+          {
+            "word": "Ngay",
+            "start": 69.2,
+            "end": 69.85
+          },
+          {
+            "word": "nơi",
+            "start": 69.85,
+            "end": 70.33
+          },
+          {
+            "word": "ta",
+            "start": 70.33,
+            "end": 70.65
+          },
+          {
+            "word": "ngồi",
+            "start": 70.65,
+            "end": 71.3
+          }
+        ]
+      },
+      {
+        "id": 25,
+        "startTime": 71.4,
+        "endTime": 73.6,
+        "nextLineTime": 73.7,
+        "text": "Xỏ giày vào chân ngay, xắn tay lên!",
+        "words": [
+          {
+            "word": "Xỏ",
+            "start": 71.4,
+            "end": 71.56
+          },
+          {
+            "word": "giày",
+            "start": 71.56,
+            "end": 71.89
+          },
+          {
+            "word": "vào",
+            "start": 71.89,
+            "end": 72.13
+          },
+          {
+            "word": "chân",
+            "start": 72.13,
+            "end": 72.46
+          },
+          {
+            "word": "ngay,",
+            "start": 72.46,
+            "end": 72.79
+          },
+          {
+            "word": "xắn",
+            "start": 72.79,
+            "end": 73.03
+          },
+          {
+            "word": "tay",
+            "start": 73.03,
+            "end": 73.27
+          },
+          {
+            "word": "lên!",
+            "start": 73.27,
+            "end": 73.6
+          }
+        ]
+      },
+      {
+        "id": 26,
+        "startTime": 73.7,
+        "endTime": 75.8,
+        "nextLineTime": 75.9,
+        "text": "Theo nhau ta bắt đầu viết nên",
+        "words": [
+          {
+            "word": "Theo",
+            "start": 73.7,
+            "end": 74.07
+          },
+          {
+            "word": "nhau",
+            "start": 74.07,
+            "end": 74.44
+          },
+          {
+            "word": "ta",
+            "start": 74.44,
+            "end": 74.62
+          },
+          {
+            "word": "bắt",
+            "start": 74.62,
+            "end": 74.89
+          },
+          {
+            "word": "đầu",
+            "start": 74.89,
+            "end": 75.16
+          },
+          {
+            "word": "viết",
+            "start": 75.16,
+            "end": 75.53
+          },
+          {
+            "word": "nên",
+            "start": 75.53,
+            "end": 75.8
+          }
+        ]
+      },
+      {
+        "id": 27,
+        "startTime": 75.9,
+        "endTime": 77.8,
+        "nextLineTime": 77.9,
+        "text": "Hành trình ở đây! Nhìn kìa em!",
+        "words": [
+          {
+            "word": "Hành",
+            "start": 75.9,
+            "end": 76.2
+          },
+          {
+            "word": "trình",
+            "start": 76.2,
+            "end": 76.58
+          },
+          {
+            "word": "ở",
+            "start": 76.58,
+            "end": 76.73
+          },
+          {
+            "word": "đây!",
+            "start": 76.73,
+            "end": 77.03
+          },
+          {
+            "word": "Nhìn",
+            "start": 77.03,
+            "end": 77.33
+          },
+          {
+            "word": "kìa",
+            "start": 77.33,
+            "end": 77.56
+          },
+          {
+            "word": "em!",
+            "start": 77.56,
+            "end": 77.79
+          }
+        ]
+      },
+      {
+        "id": 28,
+        "startTime": 77.9,
+        "endTime": 82.0,
+        "nextLineTime": 82.1,
+        "text": "Bao nhiêu thân quen ở ngay nơi lạ",
+        "words": [
+          {
+            "word": "Bao",
+            "start": 77.9,
+            "end": 78.36
+          },
+          {
+            "word": "nhiêu",
+            "start": 78.36,
+            "end": 79.12
+          },
+          {
+            "word": "thân",
+            "start": 79.12,
+            "end": 79.73
+          },
+          {
+            "word": "quen",
+            "start": 79.73,
+            "end": 80.34
+          },
+          {
+            "word": "ở",
+            "start": 80.34,
+            "end": 80.64
+          },
+          {
+            "word": "ngay",
+            "start": 80.64,
+            "end": 81.25
+          },
+          {
+            "word": "nơi",
+            "start": 81.25,
+            "end": 81.71
+          },
+          {
+            "word": "lạ",
+            "start": 81.71,
+            "end": 82.01
+          }
+        ]
+      },
+      {
+        "id": 29,
+        "startTime": 82.1,
+        "endTime": 84.1,
+        "nextLineTime": 84.2,
+        "text": "Chân thành giản đơn",
+        "words": [
+          {
+            "word": "Chân",
+            "start": 82.1,
+            "end": 82.6
+          },
+          {
+            "word": "thành",
+            "start": 82.6,
+            "end": 83.22
+          },
+          {
+            "word": "giản",
+            "start": 83.22,
+            "end": 83.72
+          },
+          {
+            "word": "đơn",
+            "start": 83.72,
+            "end": 84.09
+          }
+        ]
+      },
+      {
+        "id": 30,
+        "startTime": 84.2,
+        "endTime": 86.3,
+        "nextLineTime": 86.4,
+        "text": "Mà vô vàn điều quý giá",
+        "words": [
+          {
+            "word": "Mà",
+            "start": 84.2,
+            "end": 84.45
+          },
+          {
+            "word": "vô",
+            "start": 84.45,
+            "end": 84.7
+          },
+          {
+            "word": "vàn",
+            "start": 84.7,
+            "end": 85.07
+          },
+          {
+            "word": "điều",
+            "start": 85.07,
+            "end": 85.56
+          },
+          {
+            "word": "quý",
+            "start": 85.56,
+            "end": 85.93
+          },
+          {
+            "word": "giá",
+            "start": 85.93,
+            "end": 86.3
+          }
+        ]
+      },
+      {
+        "id": 31,
+        "startTime": 86.4,
+        "endTime": 89.1,
+        "nextLineTime": 89.2,
+        "text": "Thả hồn thơ ngây để ta bình yên",
+        "words": [
+          {
+            "word": "Thả",
+            "start": 86.4,
+            "end": 86.74
+          },
+          {
+            "word": "hồn",
+            "start": 86.74,
+            "end": 87.08
+          },
+          {
+            "word": "thơ",
+            "start": 87.08,
+            "end": 87.42
+          },
+          {
+            "word": "ngây",
+            "start": 87.42,
+            "end": 87.87
+          },
+          {
+            "word": "để",
+            "start": 87.87,
+            "end": 88.09
+          },
+          {
+            "word": "ta",
+            "start": 88.09,
+            "end": 88.31
+          },
+          {
+            "word": "bình",
+            "start": 88.31,
+            "end": 88.76
+          },
+          {
+            "word": "yên",
+            "start": 88.76,
+            "end": 89.1
+          }
+        ]
+      },
+      {
+        "id": 32,
+        "startTime": 89.2,
+        "endTime": 93.1,
+        "nextLineTime": 93.2,
+        "text": "Cùng nhau sống những ngày trời bao la",
+        "words": [
+          {
+            "word": "Cùng",
+            "start": 89.2,
+            "end": 89.72
+          },
+          {
+            "word": "nhau",
+            "start": 89.72,
+            "end": 90.24
+          },
+          {
+            "word": "sống",
+            "start": 90.24,
+            "end": 90.76
+          },
+          {
+            "word": "những",
+            "start": 90.76,
+            "end": 91.41
+          },
+          {
+            "word": "ngày",
+            "start": 91.41,
+            "end": 91.93
+          },
+          {
+            "word": "trời",
+            "start": 91.93,
+            "end": 92.45
+          },
+          {
+            "word": "bao",
+            "start": 92.45,
+            "end": 92.84
+          },
+          {
+            "word": "la",
+            "start": 92.84,
+            "end": 93.1
+          }
+        ]
+      },
+      {
+        "id": 33,
+        "startTime": 93.2,
+        "endTime": 95.3,
+        "nextLineTime": 95.4,
+        "text": "Và ta sẽ thấy người dân Việt Nam",
+        "words": [
+          {
+            "word": "Và",
+            "start": 93.2,
+            "end": 93.37
+          },
+          {
+            "word": "ta",
+            "start": 93.37,
+            "end": 93.54
+          },
+          {
+            "word": "sẽ",
+            "start": 93.54,
+            "end": 93.71
+          },
+          {
+            "word": "thấy",
+            "start": 93.71,
+            "end": 94.05
+          },
+          {
+            "word": "người",
+            "start": 94.05,
+            "end": 94.47
+          },
+          {
+            "word": "dân",
+            "start": 94.47,
+            "end": 94.72
+          },
+          {
+            "word": "Việt",
+            "start": 94.72,
+            "end": 95.06
+          },
+          {
+            "word": "Nam",
+            "start": 95.06,
+            "end": 95.31
+          }
+        ]
+      },
+      {
+        "id": 34,
+        "startTime": 95.4,
+        "endTime": 97.4,
+        "nextLineTime": 97.5,
+        "text": "Ở muôn hướng",
+        "words": [
+          {
+            "word": "Ở",
+            "start": 95.4,
+            "end": 95.76
+          },
+          {
+            "word": "muôn",
+            "start": 95.76,
+            "end": 96.49
+          },
+          {
+            "word": "hướng",
+            "start": 96.49,
+            "end": 97.4
+          }
+        ]
+      },
+      {
+        "id": 35,
+        "startTime": 97.5,
+        "endTime": 101.6,
+        "nextLineTime": 101.7,
+        "text": "Bình thường mà rất phi thường",
+        "words": [
+          {
+            "word": "Bình",
+            "start": 97.5,
+            "end": 98.18
+          },
+          {
+            "word": "thường",
+            "start": 98.18,
+            "end": 99.21
+          },
+          {
+            "word": "mà",
+            "start": 99.21,
+            "end": 99.55
+          },
+          {
+            "word": "rất",
+            "start": 99.55,
+            "end": 100.06
+          },
+          {
+            "word": "phi",
+            "start": 100.06,
+            "end": 100.57
+          },
+          {
+            "word": "thường",
+            "start": 100.57,
+            "end": 101.59
+          }
+        ]
+      },
+      {
+        "id": 36,
+        "startTime": 101.7,
+        "endTime": 103.7,
+        "nextLineTime": 103.8,
+        "text": "Bình thường mà phi thường",
+        "words": [
+          {
+            "word": "Bình",
+            "start": 101.7,
+            "end": 102.08
+          },
+          {
+            "word": "thường",
+            "start": 102.08,
+            "end": 102.65
+          },
+          {
+            "word": "mà",
+            "start": 102.65,
+            "end": 102.84
+          },
+          {
+            "word": "phi",
+            "start": 102.84,
+            "end": 103.13
+          },
+          {
+            "word": "thường",
+            "start": 103.13,
+            "end": 103.7
+          }
+        ]
+      },
+      {
+        "id": 37,
+        "startTime": 103.8,
+        "endTime": 105.9,
+        "nextLineTime": 106.0,
+        "text": "Người thường mà phi phàm",
+        "words": [
+          {
+            "word": "Người",
+            "start": 103.8,
+            "end": 104.33
+          },
+          {
+            "word": "thường",
+            "start": 104.33,
+            "end": 104.96
+          },
+          {
+            "word": "mà",
+            "start": 104.96,
+            "end": 105.17
+          },
+          {
+            "word": "phi",
+            "start": 105.17,
+            "end": 105.48
+          },
+          {
+            "word": "phàm",
+            "start": 105.48,
+            "end": 105.9
+          }
+        ]
+      },
+      {
+        "id": 38,
+        "startTime": 106.0,
+        "endTime": 108.0,
+        "nextLineTime": 108.1,
+        "text": "Nào cùng gia đình Haha",
+        "words": [
+          {
+            "word": "Nào",
+            "start": 106.0,
+            "end": 106.33
+          },
+          {
+            "word": "cùng",
+            "start": 106.33,
+            "end": 106.77
+          },
+          {
+            "word": "gia",
+            "start": 106.77,
+            "end": 107.1
+          },
+          {
+            "word": "đình",
+            "start": 107.1,
+            "end": 107.54
+          },
+          {
+            "word": "Haha",
+            "start": 107.54,
+            "end": 107.98
+          }
+        ]
+      },
+      {
+        "id": 39,
+        "startTime": 108.1,
+        "endTime": 110.1,
+        "nextLineTime": 110.2,
+        "text": "Mình làm nông dân nhá!",
+        "words": [
+          {
+            "word": "Mình",
+            "start": 108.1,
+            "end": 108.54
+          },
+          {
+            "word": "làm",
+            "start": 108.54,
+            "end": 108.87
+          },
+          {
+            "word": "nông",
+            "start": 108.87,
+            "end": 109.31
+          },
+          {
+            "word": "dân",
+            "start": 109.31,
+            "end": 109.64
+          },
+          {
+            "word": "nhá!",
+            "start": 109.64,
+            "end": 110.08
+          }
+        ]
+      },
+      {
+        "id": 40,
+        "startTime": 110.2,
+        "endTime": 112.0,
+        "nextLineTime": 112.1,
+        "text": "Yeah! Tối ngày tất bật",
+        "words": [
+          {
+            "word": "Yeah!",
+            "start": 110.2,
+            "end": 110.7
+          },
+          {
+            "word": "Tối",
+            "start": 110.7,
+            "end": 111.0
+          },
+          {
+            "word": "ngày",
+            "start": 111.0,
+            "end": 111.4
+          },
+          {
+            "word": "tất",
+            "start": 111.4,
+            "end": 111.7
+          },
+          {
+            "word": "bật",
+            "start": 111.7,
+            "end": 112.0
+          }
+        ]
+      },
+      {
+        "id": 41,
+        "startTime": 112.1,
+        "endTime": 114.2,
+        "nextLineTime": 114.3,
+        "text": "Cứ mài thân mình vào với gió sương",
+        "words": [
+          {
+            "word": "Cứ",
+            "start": 112.1,
+            "end": 112.26
+          },
+          {
+            "word": "mài",
+            "start": 112.26,
+            "end": 112.49
+          },
+          {
+            "word": "thân",
+            "start": 112.49,
+            "end": 112.8
+          },
+          {
+            "word": "mình",
+            "start": 112.8,
+            "end": 113.11
+          },
+          {
+            "word": "vào",
+            "start": 113.11,
+            "end": 113.34
+          },
+          {
+            "word": "với",
+            "start": 113.34,
+            "end": 113.57
+          },
+          {
+            "word": "gió",
+            "start": 113.57,
+            "end": 113.8
+          },
+          {
+            "word": "sương",
+            "start": 113.8,
+            "end": 114.19
+          }
+        ]
+      },
+      {
+        "id": 42,
+        "startTime": 114.3,
+        "endTime": 116.4,
+        "nextLineTime": 116.5,
+        "text": "Vẫn kịp cảm nhận sắc đẹp hữu tình",
+        "words": [
+          {
+            "word": "Vẫn",
+            "start": 114.3,
+            "end": 114.54
+          },
+          {
+            "word": "kịp",
+            "start": 114.54,
+            "end": 114.78
+          },
+          {
+            "word": "cảm",
+            "start": 114.78,
+            "end": 115.02
+          },
+          {
+            "word": "nhận",
+            "start": 115.02,
+            "end": 115.34
+          },
+          {
+            "word": "sắc",
+            "start": 115.34,
+            "end": 115.58
+          },
+          {
+            "word": "đẹp",
+            "start": 115.58,
+            "end": 115.82
+          },
+          {
+            "word": "hữu",
+            "start": 115.82,
+            "end": 116.06
+          },
+          {
+            "word": "tình",
+            "start": 116.06,
+            "end": 116.38
+          }
+        ]
+      },
+      {
+        "id": 43,
+        "startTime": 116.5,
+        "endTime": 118.5,
+        "nextLineTime": 118.6,
+        "text": "Của ba miền quê hương",
+        "words": [
+          {
+            "word": "Của",
+            "start": 116.5,
+            "end": 116.85
+          },
+          {
+            "word": "ba",
+            "start": 116.85,
+            "end": 117.09
+          },
+          {
+            "word": "miền",
+            "start": 117.09,
+            "end": 117.56
+          },
+          {
+            "word": "quê",
+            "start": 117.56,
+            "end": 117.91
+          },
+          {
+            "word": "hương",
+            "start": 117.91,
+            "end": 118.5
+          }
+        ]
+      },
+      {
+        "id": 44,
+        "startTime": 118.6,
+        "endTime": 120.7,
+        "nextLineTime": 120.8,
+        "text": "Ngắm đồng lúa vàng sẵn một khung trời",
+        "words": [
+          {
+            "word": "Ngắm",
+            "start": 118.6,
+            "end": 118.88
+          },
+          {
+            "word": "đồng",
+            "start": 118.88,
+            "end": 119.16
+          },
+          {
+            "word": "lúa",
+            "start": 119.16,
+            "end": 119.37
+          },
+          {
+            "word": "vàng",
+            "start": 119.37,
+            "end": 119.65
+          },
+          {
+            "word": "sẵn",
+            "start": 119.65,
+            "end": 119.86
+          },
+          {
+            "word": "một",
+            "start": 119.86,
+            "end": 120.07
+          },
+          {
+            "word": "khung",
+            "start": 120.07,
+            "end": 120.42
+          },
+          {
+            "word": "trời",
+            "start": 120.42,
+            "end": 120.7
+          }
+        ]
+      },
+      {
+        "id": 45,
+        "startTime": 120.8,
+        "endTime": 122.7,
+        "nextLineTime": 122.8,
+        "text": "Rộng lớn để ươm",
+        "words": [
+          {
+            "word": "Rộng",
+            "start": 120.8,
+            "end": 121.43
+          },
+          {
+            "word": "lớn",
+            "start": 121.43,
+            "end": 121.91
+          },
+          {
+            "word": "để",
+            "start": 121.91,
+            "end": 122.23
+          },
+          {
+            "word": "ươm",
+            "start": 122.23,
+            "end": 122.7
+          }
+        ]
+      },
+      {
+        "id": 46,
+        "startTime": 122.8,
+        "endTime": 124.9,
+        "nextLineTime": 125.0,
+        "text": "Nghe sự tất bật vào mỗi sáng sớm",
+        "words": [
+          {
+            "word": "Nghe",
+            "start": 122.8,
+            "end": 123.14
+          },
+          {
+            "word": "sự",
+            "start": 123.14,
+            "end": 123.31
+          },
+          {
+            "word": "tất",
+            "start": 123.31,
+            "end": 123.56
+          },
+          {
+            "word": "bật",
+            "start": 123.56,
+            "end": 123.81
+          },
+          {
+            "word": "vào",
+            "start": 123.81,
+            "end": 124.06
+          },
+          {
+            "word": "mỗi",
+            "start": 124.06,
+            "end": 124.31
+          },
+          {
+            "word": "sáng",
+            "start": 124.31,
+            "end": 124.65
+          },
+          {
+            "word": "sớm",
+            "start": 124.65,
+            "end": 124.9
+          }
+        ]
+      },
+      {
+        "id": 47,
+        "startTime": 125.0,
+        "endTime": 127.0,
+        "nextLineTime": 127.1,
+        "text": "Những tiếng gắt gỏng chứa tình mến thương",
+        "words": [
+          {
+            "word": "Những",
+            "start": 125.0,
+            "end": 125.29
+          },
+          {
+            "word": "tiếng",
+            "start": 125.29,
+            "end": 125.58
+          },
+          {
+            "word": "gắt",
+            "start": 125.58,
+            "end": 125.76
+          },
+          {
+            "word": "gỏng",
+            "start": 125.76,
+            "end": 126.0
+          },
+          {
+            "word": "chứa",
+            "start": 126.0,
+            "end": 126.24
+          },
+          {
+            "word": "tình",
+            "start": 126.24,
+            "end": 126.48
+          },
+          {
+            "word": "mến",
+            "start": 126.48,
+            "end": 126.66
+          },
+          {
+            "word": "thương",
+            "start": 126.66,
+            "end": 127.01
+          }
+        ]
+      },
+      {
+        "id": 48,
+        "startTime": 127.1,
+        "endTime": 129.2,
+        "nextLineTime": 129.3,
+        "text": "Những mâm cơm ngon từ anh cả Thuận",
+        "words": [
+          {
+            "word": "Những",
+            "start": 127.1,
+            "end": 127.49
+          },
+          {
+            "word": "mâm",
+            "start": 127.49,
+            "end": 127.72
+          },
+          {
+            "word": "cơm",
+            "start": 127.72,
+            "end": 127.95
+          },
+          {
+            "word": "ngon",
+            "start": 127.95,
+            "end": 128.26
+          },
+          {
+            "word": "từ",
+            "start": 128.26,
+            "end": 128.42
+          },
+          {
+            "word": "anh",
+            "start": 128.42,
+            "end": 128.65
+          },
+          {
+            "word": "cả",
+            "start": 128.65,
+            "end": 128.81
+          },
+          {
+            "word": "Thuận",
+            "start": 128.81,
+            "end": 129.2
+          }
+        ]
+      },
+      {
+        "id": 49,
+        "startTime": 129.3,
+        "endTime": 131.3,
+        "nextLineTime": 131.4,
+        "text": "Sau một ngày lao động dãi nắng mưa dầm",
+        "words": [
+          {
+            "word": "Sau",
+            "start": 129.3,
+            "end": 129.5
+          },
+          {
+            "word": "một",
+            "start": 129.5,
+            "end": 129.7
+          },
+          {
+            "word": "ngày",
+            "start": 129.7,
+            "end": 129.97
+          },
+          {
+            "word": "lao",
+            "start": 129.97,
+            "end": 130.17
+          },
+          {
+            "word": "động",
+            "start": 130.17,
+            "end": 130.44
+          },
+          {
+            "word": "dãi",
+            "start": 130.44,
+            "end": 130.64
+          },
+          {
+            "word": "nắng",
+            "start": 130.64,
+            "end": 130.91
+          },
+          {
+            "word": "mưa",
+            "start": 130.91,
+            "end": 131.11
+          },
+          {
+            "word": "dầm",
+            "start": 131.11,
+            "end": 131.31
+          }
+        ]
+      },
+      {
+        "id": 50,
+        "startTime": 131.4,
+        "endTime": 132.4,
+        "nextLineTime": 132.5,
+        "text": "Hai Thiện và Ba Nam",
+        "words": [
+          {
+            "word": "Hai",
+            "start": 131.4,
+            "end": 131.6
+          },
+          {
+            "word": "Thiện",
+            "start": 131.6,
+            "end": 131.93
+          },
+          {
+            "word": "và",
+            "start": 131.93,
+            "end": 132.06
+          },
+          {
+            "word": "Ba",
+            "start": 132.06,
+            "end": 132.19
+          },
+          {
+            "word": "Nam",
+            "start": 132.19,
+            "end": 132.39
+          }
+        ]
+      },
+      {
+        "id": 51,
+        "startTime": 132.5,
+        "endTime": 133.5,
+        "nextLineTime": 133.6,
+        "text": "Cùng những màn tranh luận",
+        "words": [
+          {
+            "word": "Cùng",
+            "start": 132.5,
+            "end": 132.69
+          },
+          {
+            "word": "những",
+            "start": 132.69,
+            "end": 132.93
+          },
+          {
+            "word": "màn",
+            "start": 132.93,
+            "end": 133.07
+          },
+          {
+            "word": "tranh",
+            "start": 133.07,
+            "end": 133.31
+          },
+          {
+            "word": "luận",
+            "start": 133.31,
+            "end": 133.5
+          }
+        ]
+      },
+      {
+        "id": 52,
+        "startTime": 133.6,
+        "endTime": 135.6,
+        "nextLineTime": 135.7,
+        "text": "Xem ai phải rửa bát, Út Khánh hay Tư Tâm?",
+        "words": [
+          {
+            "word": "Xem",
+            "start": 133.6,
+            "end": 133.79
+          },
+          {
+            "word": "ai",
+            "start": 133.79,
+            "end": 133.92
+          },
+          {
+            "word": "phải",
+            "start": 133.92,
+            "end": 134.18
+          },
+          {
+            "word": "rửa",
+            "start": 134.18,
+            "end": 134.37
+          },
+          {
+            "word": "bát,",
+            "start": 134.37,
+            "end": 134.56
+          },
+          {
+            "word": "Út",
+            "start": 134.56,
+            "end": 134.69
+          },
+          {
+            "word": "Khánh",
+            "start": 134.69,
+            "end": 135.01
+          },
+          {
+            "word": "hay",
+            "start": 135.01,
+            "end": 135.2
+          },
+          {
+            "word": "Tư",
+            "start": 135.2,
+            "end": 135.33
+          },
+          {
+            "word": "Tâm?",
+            "start": 135.33,
+            "end": 135.59
+          }
+        ]
+      },
+      {
+        "id": 53,
+        "startTime": 135.7,
+        "endTime": 137.8,
+        "nextLineTime": 137.9,
+        "text": "Việc nhỏ việc lớn có anh em đỡ đần",
+        "words": [
+          {
+            "word": "Việc",
+            "start": 135.7,
+            "end": 136.02
+          },
+          {
+            "word": "nhỏ",
+            "start": 136.02,
+            "end": 136.26
+          },
+          {
+            "word": "việc",
+            "start": 136.26,
+            "end": 136.58
+          },
+          {
+            "word": "lớn",
+            "start": 136.58,
+            "end": 136.82
+          },
+          {
+            "word": "có",
+            "start": 136.82,
+            "end": 136.98
+          },
+          {
+            "word": "anh",
+            "start": 136.98,
+            "end": 137.22
+          },
+          {
+            "word": "em",
+            "start": 137.22,
+            "end": 137.38
+          },
+          {
+            "word": "đỡ",
+            "start": 137.38,
+            "end": 137.54
+          },
+          {
+            "word": "đần",
+            "start": 137.54,
+            "end": 137.78
+          }
+        ]
+      },
+      {
+        "id": 54,
+        "startTime": 137.9,
+        "endTime": 138.8,
+        "nextLineTime": 138.9,
+        "text": "Nếu thấy gian nan",
+        "words": [
+          {
+            "word": "Nếu",
+            "start": 137.9,
+            "end": 138.09
+          },
+          {
+            "word": "thấy",
+            "start": 138.09,
+            "end": 138.35
+          },
+          {
+            "word": "gian",
+            "start": 138.35,
+            "end": 138.61
+          },
+          {
+            "word": "nan",
+            "start": 138.61,
+            "end": 138.8
+          }
+        ]
+      },
+      {
+        "id": 55,
+        "startTime": 138.9,
+        "endTime": 139.9,
+        "nextLineTime": 140.0,
+        "text": "Mỗi người một tay một chân",
+        "words": [
+          {
+            "word": "Mỗi",
+            "start": 138.9,
+            "end": 139.04
+          },
+          {
+            "word": "người",
+            "start": 139.04,
+            "end": 139.28
+          },
+          {
+            "word": "một",
+            "start": 139.28,
+            "end": 139.42
+          },
+          {
+            "word": "tay",
+            "start": 139.42,
+            "end": 139.56
+          },
+          {
+            "word": "một",
+            "start": 139.56,
+            "end": 139.7
+          },
+          {
+            "word": "chân",
+            "start": 139.7,
+            "end": 139.89
+          }
+        ]
+      },
+      {
+        "id": 56,
+        "startTime": 140.0,
+        "endTime": 142.1,
+        "nextLineTime": 142.2,
+        "text": "Thi nhau đón nắng ấm như cây con mọc mầm",
+        "words": [
+          {
+            "word": "Thi",
+            "start": 140.0,
+            "end": 140.2
+          },
+          {
+            "word": "nhau",
+            "start": 140.2,
+            "end": 140.47
+          },
+          {
+            "word": "đón",
+            "start": 140.47,
+            "end": 140.67
+          },
+          {
+            "word": "nắng",
+            "start": 140.67,
+            "end": 140.94
+          },
+          {
+            "word": "ấm",
+            "start": 140.94,
+            "end": 141.08
+          },
+          {
+            "word": "như",
+            "start": 141.08,
+            "end": 141.28
+          },
+          {
+            "word": "cây",
+            "start": 141.28,
+            "end": 141.48
+          },
+          {
+            "word": "con",
+            "start": 141.48,
+            "end": 141.68
+          },
+          {
+            "word": "mọc",
+            "start": 141.68,
+            "end": 141.88
+          },
+          {
+            "word": "mầm",
+            "start": 141.88,
+            "end": 142.08
+          }
+        ]
+      },
+      {
+        "id": 57,
+        "startTime": 142.2,
+        "endTime": 144.2,
+        "nextLineTime": 144.3,
+        "text": "Cho nụ cười tươi tắn quanh năm",
+        "words": [
+          {
+            "word": "Cho",
+            "start": 142.2,
+            "end": 142.45
+          },
+          {
+            "word": "nụ",
+            "start": 142.45,
+            "end": 142.62
+          },
+          {
+            "word": "cười",
+            "start": 142.62,
+            "end": 142.95
+          },
+          {
+            "word": "tươi",
+            "start": 142.95,
+            "end": 143.28
+          },
+          {
+            "word": "tắn",
+            "start": 143.28,
+            "end": 143.53
+          },
+          {
+            "word": "quanh",
+            "start": 143.53,
+            "end": 143.95
+          },
+          {
+            "word": "năm",
+            "start": 143.95,
+            "end": 144.2
+          }
+        ]
+      },
+      {
+        "id": 58,
+        "startTime": 144.3,
+        "endTime": 146.3,
+        "nextLineTime": 146.4,
+        "text": "Và mình cùng hát, mình cùng ở",
+        "words": [
+          {
+            "word": "Và",
+            "start": 144.3,
+            "end": 144.47
+          },
+          {
+            "word": "mình",
+            "start": 144.47,
+            "end": 144.82
+          },
+          {
+            "word": "cùng",
+            "start": 144.82,
+            "end": 145.17
+          },
+          {
+            "word": "hát,",
+            "start": 145.17,
+            "end": 145.43
+          },
+          {
+            "word": "mình",
+            "start": 145.43,
+            "end": 145.78
+          },
+          {
+            "word": "cùng",
+            "start": 145.78,
+            "end": 146.13
+          },
+          {
+            "word": "ở",
+            "start": 146.13,
+            "end": 146.3
+          }
+        ]
+      },
+      {
+        "id": 59,
+        "startTime": 146.4,
+        "endTime": 148.5,
+        "nextLineTime": 148.6,
+        "text": "Cùng làm với những nông dân",
+        "words": [
+          {
+            "word": "Cùng",
+            "start": 146.4,
+            "end": 146.78
+          },
+          {
+            "word": "làm",
+            "start": 146.78,
+            "end": 147.07
+          },
+          {
+            "word": "với",
+            "start": 147.07,
+            "end": 147.36
+          },
+          {
+            "word": "những",
+            "start": 147.36,
+            "end": 147.84
+          },
+          {
+            "word": "nông",
+            "start": 147.84,
+            "end": 148.22
+          },
+          {
+            "word": "dân",
+            "start": 148.22,
+            "end": 148.51
+          }
+        ]
+      },
+      {
+        "id": 60,
+        "startTime": 148.6,
+        "endTime": 150.6,
+        "nextLineTime": 150.7,
+        "text": "Cùng vui cùng sống, chung hơi thở",
+        "words": [
+          {
+            "word": "Cùng",
+            "start": 148.6,
+            "end": 148.91
+          },
+          {
+            "word": "vui",
+            "start": 148.91,
+            "end": 149.14
+          },
+          {
+            "word": "cùng",
+            "start": 149.14,
+            "end": 149.45
+          },
+          {
+            "word": "sống,",
+            "start": 149.45,
+            "end": 149.76
+          },
+          {
+            "word": "chung",
+            "start": 149.76,
+            "end": 150.14
+          },
+          {
+            "word": "hơi",
+            "start": 150.14,
+            "end": 150.37
+          },
+          {
+            "word": "thở",
+            "start": 150.37,
+            "end": 150.6
+          }
+        ]
+      },
+      {
+        "id": 61,
+        "startTime": 150.7,
+        "endTime": 152.7,
+        "nextLineTime": 152.8,
+        "text": "Từ miền xa đến nơi gần",
+        "words": [
+          {
+            "word": "Từ",
+            "start": 150.7,
+            "end": 150.94
+          },
+          {
+            "word": "miền",
+            "start": 150.94,
+            "end": 151.41
+          },
+          {
+            "word": "xa",
+            "start": 151.41,
+            "end": 151.65
+          },
+          {
+            "word": "đến",
+            "start": 151.65,
+            "end": 152.0
+          },
+          {
+            "word": "nơi",
+            "start": 152.0,
+            "end": 152.35
+          },
+          {
+            "word": "gần",
+            "start": 152.35,
+            "end": 152.7
+          }
+        ]
+      },
+      {
+        "id": 62,
+        "startTime": 152.8,
+        "endTime": 154.9,
+        "nextLineTime": 155.0,
+        "text": "Ta sẽ được thấy, được hiểu những điều",
+        "words": [
+          {
+            "word": "Ta",
+            "start": 152.8,
+            "end": 152.94
+          },
+          {
+            "word": "sẽ",
+            "start": 152.94,
+            "end": 153.08
+          },
+          {
+            "word": "được",
+            "start": 153.08,
+            "end": 153.37
+          },
+          {
+            "word": "thấy,",
+            "start": 153.37,
+            "end": 153.66
+          },
+          {
+            "word": "được",
+            "start": 153.66,
+            "end": 153.95
+          },
+          {
+            "word": "hiểu",
+            "start": 153.95,
+            "end": 154.24
+          },
+          {
+            "word": "những",
+            "start": 154.24,
+            "end": 154.6
+          },
+          {
+            "word": "điều",
+            "start": 154.6,
+            "end": 154.89
+          }
+        ]
+      },
+      {
+        "id": 63,
+        "startTime": 155.0,
+        "endTime": 156.8,
+        "nextLineTime": 156.9,
+        "text": "Bình thường mà lại rất phi thường",
+        "words": [
+          {
+            "word": "Bình",
+            "start": 155.0,
+            "end": 155.27
+          },
+          {
+            "word": "thường",
+            "start": 155.27,
+            "end": 155.67
+          },
+          {
+            "word": "mà",
+            "start": 155.67,
+            "end": 155.8
+          },
+          {
+            "word": "lại",
+            "start": 155.8,
+            "end": 156.0
+          },
+          {
+            "word": "rất",
+            "start": 156.0,
+            "end": 156.2
+          },
+          {
+            "word": "phi",
+            "start": 156.2,
+            "end": 156.4
+          },
+          {
+            "word": "thường",
+            "start": 156.4,
+            "end": 156.8
+          }
+        ]
+      },
+      {
+        "id": 64,
+        "startTime": 156.9,
+        "endTime": 158.2,
+        "nextLineTime": 158.3,
+        "text": "Gia đình Haha bắt đầu nha!",
+        "words": [
+          {
+            "word": "Gia",
+            "start": 156.9,
+            "end": 157.09
+          },
+          {
+            "word": "đình",
+            "start": 157.09,
+            "end": 157.34
+          },
+          {
+            "word": "Haha",
+            "start": 157.34,
+            "end": 157.59
+          },
+          {
+            "word": "bắt",
+            "start": 157.59,
+            "end": 157.78
+          },
+          {
+            "word": "đầu",
+            "start": 157.78,
+            "end": 157.97
+          },
+          {
+            "word": "nha!",
+            "start": 157.97,
+            "end": 158.22
+          }
+        ]
+      },
+      {
+        "id": 65,
+        "startTime": 158.3,
+        "endTime": 159.2,
+        "nextLineTime": 159.3,
+        "text": "Sẵn sàng chưa?",
+        "words": [
+          {
+            "word": "Sẵn",
+            "start": 158.3,
+            "end": 158.53
+          },
+          {
+            "word": "sàng",
+            "start": 158.53,
+            "end": 158.83
+          },
+          {
+            "word": "chưa?",
+            "start": 158.83,
+            "end": 159.21
+          }
+        ]
+      },
+      {
+        "id": 66,
+        "startTime": 159.3,
+        "endTime": 163.5,
+        "nextLineTime": 163.6,
+        "text": "Đón lấy nắng sớm phía bên kia chân đồi",
+        "words": [
+          {
+            "word": "Đón",
+            "start": 159.3,
+            "end": 159.72
+          },
+          {
+            "word": "lấy",
+            "start": 159.72,
+            "end": 160.14
+          },
+          {
+            "word": "nắng",
+            "start": 160.14,
+            "end": 160.7
+          },
+          {
+            "word": "sớm",
+            "start": 160.7,
+            "end": 161.12
+          },
+          {
+            "word": "phía",
+            "start": 161.12,
+            "end": 161.68
+          },
+          {
+            "word": "bên",
+            "start": 161.68,
+            "end": 162.1
+          },
+          {
+            "word": "kia",
+            "start": 162.1,
+            "end": 162.52
+          },
+          {
+            "word": "chân",
+            "start": 162.52,
+            "end": 163.08
+          },
+          {
+            "word": "đồi",
+            "start": 163.08,
+            "end": 163.5
+          }
+        ]
+      },
+      {
+        "id": 67,
+        "startTime": 163.6,
+        "endTime": 165.6,
+        "nextLineTime": 165.7,
+        "text": "Từ từ thôi hít hết gió mát",
+        "words": [
+          {
+            "word": "Từ",
+            "start": 163.6,
+            "end": 163.8
+          },
+          {
+            "word": "từ",
+            "start": 163.8,
+            "end": 164.0
+          },
+          {
+            "word": "thôi",
+            "start": 164.0,
+            "end": 164.4
+          },
+          {
+            "word": "hít",
+            "start": 164.4,
+            "end": 164.7
+          },
+          {
+            "word": "hết",
+            "start": 164.7,
+            "end": 165.0
+          },
+          {
+            "word": "gió",
+            "start": 165.0,
+            "end": 165.3
+          },
+          {
+            "word": "mát",
+            "start": 165.3,
+            "end": 165.6
+          }
+        ]
+      },
+      {
+        "id": 68,
+        "startTime": 165.7,
+        "endTime": 167.7,
+        "nextLineTime": 167.8,
+        "text": "Ngay nơi ta ngồi",
+        "words": [
+          {
+            "word": "Ngay",
+            "start": 165.7,
+            "end": 166.32
+          },
+          {
+            "word": "nơi",
+            "start": 166.32,
+            "end": 166.78
+          },
+          {
+            "word": "ta",
+            "start": 166.78,
+            "end": 167.09
+          },
+          {
+            "word": "ngồi",
+            "start": 167.09,
+            "end": 167.71
+          }
+        ]
+      },
+      {
+        "id": 69,
+        "startTime": 167.8,
+        "endTime": 170.1,
+        "nextLineTime": 170.2,
+        "text": "Xỏ giày vào chân ngay, xắn tay lên!",
+        "words": [
+          {
+            "word": "Xỏ",
+            "start": 167.8,
+            "end": 167.97
+          },
+          {
+            "word": "giày",
+            "start": 167.97,
+            "end": 168.31
+          },
+          {
+            "word": "vào",
+            "start": 168.31,
+            "end": 168.57
+          },
+          {
+            "word": "chân",
+            "start": 168.57,
+            "end": 168.91
+          },
+          {
+            "word": "ngay,",
+            "start": 168.91,
+            "end": 169.25
+          },
+          {
+            "word": "xắn",
+            "start": 169.25,
+            "end": 169.51
+          },
+          {
+            "word": "tay",
+            "start": 169.51,
+            "end": 169.77
+          },
+          {
+            "word": "lên!",
+            "start": 169.77,
+            "end": 170.11
+          }
+        ]
+      },
+      {
+        "id": 70,
+        "startTime": 170.2,
+        "endTime": 172.3,
+        "nextLineTime": 172.4,
+        "text": "Theo nhau ta bắt đầu viết nên",
+        "words": [
+          {
+            "word": "Theo",
+            "start": 170.2,
+            "end": 170.57
+          },
+          {
+            "word": "nhau",
+            "start": 170.57,
+            "end": 170.94
+          },
+          {
+            "word": "ta",
+            "start": 170.94,
+            "end": 171.12
+          },
+          {
+            "word": "bắt",
+            "start": 171.12,
+            "end": 171.39
+          },
+          {
+            "word": "đầu",
+            "start": 171.39,
+            "end": 171.66
+          },
+          {
+            "word": "viết",
+            "start": 171.66,
+            "end": 172.03
+          },
+          {
+            "word": "nên",
+            "start": 172.03,
+            "end": 172.3
+          }
+        ]
+      },
+      {
+        "id": 71,
+        "startTime": 172.4,
+        "endTime": 174.3,
+        "nextLineTime": 174.4,
+        "text": "Hành trình ở đây! Nhìn kìa em!",
+        "words": [
+          {
+            "word": "Hành",
+            "start": 172.4,
+            "end": 172.7
+          },
+          {
+            "word": "trình",
+            "start": 172.7,
+            "end": 173.08
+          },
+          {
+            "word": "ở",
+            "start": 173.08,
+            "end": 173.23
+          },
+          {
+            "word": "đây!",
+            "start": 173.23,
+            "end": 173.53
+          },
+          {
+            "word": "Nhìn",
+            "start": 173.53,
+            "end": 173.83
+          },
+          {
+            "word": "kìa",
+            "start": 173.83,
+            "end": 174.06
+          },
+          {
+            "word": "em!",
+            "start": 174.06,
+            "end": 174.29
+          }
+        ]
+      },
+      {
+        "id": 72,
+        "startTime": 174.4,
+        "endTime": 178.5,
+        "nextLineTime": 178.6,
+        "text": "Bao nhiêu thân quen ở ngay nơi lạ",
+        "words": [
+          {
+            "word": "Bao",
+            "start": 174.4,
+            "end": 174.86
+          },
+          {
+            "word": "nhiêu",
+            "start": 174.86,
+            "end": 175.62
+          },
+          {
+            "word": "thân",
+            "start": 175.62,
+            "end": 176.23
+          },
+          {
+            "word": "quen",
+            "start": 176.23,
+            "end": 176.84
+          },
+          {
+            "word": "ở",
+            "start": 176.84,
+            "end": 177.14
+          },
+          {
+            "word": "ngay",
+            "start": 177.14,
+            "end": 177.75
+          },
+          {
+            "word": "nơi",
+            "start": 177.75,
+            "end": 178.21
+          },
+          {
+            "word": "lạ",
+            "start": 178.21,
+            "end": 178.51
+          }
+        ]
+      },
+      {
+        "id": 73,
+        "startTime": 178.6,
+        "endTime": 180.6,
+        "nextLineTime": 180.7,
+        "text": "Chân thành giản đơn",
+        "words": [
+          {
+            "word": "Chân",
+            "start": 178.6,
+            "end": 179.1
+          },
+          {
+            "word": "thành",
+            "start": 179.1,
+            "end": 179.72
+          },
+          {
+            "word": "giản",
+            "start": 179.72,
+            "end": 180.22
+          },
+          {
+            "word": "đơn",
+            "start": 180.22,
+            "end": 180.59
+          }
+        ]
+      },
+      {
+        "id": 74,
+        "startTime": 180.7,
+        "endTime": 182.7,
+        "nextLineTime": 182.8,
+        "text": "Mà vô vàn điều quý giá",
+        "words": [
+          {
+            "word": "Mà",
+            "start": 180.7,
+            "end": 180.94
+          },
+          {
+            "word": "vô",
+            "start": 180.94,
+            "end": 181.18
+          },
+          {
+            "word": "vàn",
+            "start": 181.18,
+            "end": 181.53
+          },
+          {
+            "word": "điều",
+            "start": 181.53,
+            "end": 182.0
+          },
+          {
+            "word": "quý",
+            "start": 182.0,
+            "end": 182.35
+          },
+          {
+            "word": "giá",
+            "start": 182.35,
+            "end": 182.7
+          }
+        ]
+      },
+      {
+        "id": 75,
+        "startTime": 182.8,
+        "endTime": 185.4,
+        "nextLineTime": 185.5,
+        "text": "Thả hồn thơ ngây để ta bình yên",
+        "words": [
+          {
+            "word": "Thả",
+            "start": 182.8,
+            "end": 183.12
+          },
+          {
+            "word": "hồn",
+            "start": 183.12,
+            "end": 183.44
+          },
+          {
+            "word": "thơ",
+            "start": 183.44,
+            "end": 183.76
+          },
+          {
+            "word": "ngây",
+            "start": 183.76,
+            "end": 184.19
+          },
+          {
+            "word": "để",
+            "start": 184.19,
+            "end": 184.41
+          },
+          {
+            "word": "ta",
+            "start": 184.41,
+            "end": 184.63
+          },
+          {
+            "word": "bình",
+            "start": 184.63,
+            "end": 185.06
+          },
+          {
+            "word": "yên",
+            "start": 185.06,
+            "end": 185.38
+          }
+        ]
+      },
+      {
+        "id": 76,
+        "startTime": 185.5,
+        "endTime": 188.1,
+        "nextLineTime": 188.2,
+        "text": "Cùng nhau sống những ngày trời bao la",
+        "words": [
+          {
+            "word": "Cùng",
+            "start": 185.5,
+            "end": 185.85
+          },
+          {
+            "word": "nhau",
+            "start": 185.85,
+            "end": 186.2
+          },
+          {
+            "word": "sống",
+            "start": 186.2,
+            "end": 186.55
+          },
+          {
+            "word": "những",
+            "start": 186.55,
+            "end": 186.98
+          },
+          {
+            "word": "ngày",
+            "start": 186.98,
+            "end": 187.33
+          },
+          {
+            "word": "trời",
+            "start": 187.33,
+            "end": 187.68
+          },
+          {
+            "word": "bao",
+            "start": 187.68,
+            "end": 187.94
+          },
+          {
+            "word": "la",
+            "start": 187.94,
+            "end": 188.11
+          }
+        ]
+      },
+      {
+        "id": 77,
+        "startTime": 188.2,
+        "endTime": 189.2,
+        "nextLineTime": 189.3,
+        "text": "Let's go!",
+        "words": [
+          {
+            "word": "Let's",
+            "start": 188.2,
+            "end": 188.82
+          },
+          {
+            "word": "go!",
+            "start": 188.82,
+            "end": 189.19
+          }
+        ]
+      },
+      {
+        "id": 78,
+        "startTime": 189.3,
+        "endTime": 193.5,
+        "nextLineTime": 193.6,
+        "text": "Đón lấy nắng sớm phía bên kia chân đồi",
+        "words": [
+          {
+            "word": "Đón",
+            "start": 189.3,
+            "end": 189.72
+          },
+          {
+            "word": "lấy",
+            "start": 189.72,
+            "end": 190.14
+          },
+          {
+            "word": "nắng",
+            "start": 190.14,
+            "end": 190.7
+          },
+          {
+            "word": "sớm",
+            "start": 190.7,
+            "end": 191.12
+          },
+          {
+            "word": "phía",
+            "start": 191.12,
+            "end": 191.68
+          },
+          {
+            "word": "bên",
+            "start": 191.68,
+            "end": 192.1
+          },
+          {
+            "word": "kia",
+            "start": 192.1,
+            "end": 192.52
+          },
+          {
+            "word": "chân",
+            "start": 192.52,
+            "end": 193.08
+          },
+          {
+            "word": "đồi",
+            "start": 193.08,
+            "end": 193.5
+          }
+        ]
+      },
+      {
+        "id": 79,
+        "startTime": 193.6,
+        "endTime": 195.6,
+        "nextLineTime": 195.7,
+        "text": "Từ từ thôi hít hết gió mát",
+        "words": [
+          {
+            "word": "Từ",
+            "start": 193.6,
+            "end": 193.8
+          },
+          {
+            "word": "từ",
+            "start": 193.8,
+            "end": 194.0
+          },
+          {
+            "word": "thôi",
+            "start": 194.0,
+            "end": 194.4
+          },
+          {
+            "word": "hít",
+            "start": 194.4,
+            "end": 194.7
+          },
+          {
+            "word": "hết",
+            "start": 194.7,
+            "end": 195.0
+          },
+          {
+            "word": "gió",
+            "start": 195.0,
+            "end": 195.3
+          },
+          {
+            "word": "mát",
+            "start": 195.3,
+            "end": 195.6
+          }
+        ]
+      },
+      {
+        "id": 80,
+        "startTime": 195.7,
+        "endTime": 197.7,
+        "nextLineTime": 197.8,
+        "text": "Ngay nơi ta ngồi",
+        "words": [
+          {
+            "word": "Ngay",
+            "start": 195.7,
+            "end": 196.32
+          },
+          {
+            "word": "nơi",
+            "start": 196.32,
+            "end": 196.78
+          },
+          {
+            "word": "ta",
+            "start": 196.78,
+            "end": 197.09
+          },
+          {
+            "word": "ngồi",
+            "start": 197.09,
+            "end": 197.71
+          }
+        ]
+      },
+      {
+        "id": 81,
+        "startTime": 197.8,
+        "endTime": 200.1,
+        "nextLineTime": 200.2,
+        "text": "Xỏ giày vào chân ngay, xắn tay lên!",
+        "words": [
+          {
+            "word": "Xỏ",
+            "start": 197.8,
+            "end": 197.97
+          },
+          {
+            "word": "giày",
+            "start": 197.97,
+            "end": 198.31
+          },
+          {
+            "word": "vào",
+            "start": 198.31,
+            "end": 198.57
+          },
+          {
+            "word": "chân",
+            "start": 198.57,
+            "end": 198.91
+          },
+          {
+            "word": "ngay,",
+            "start": 198.91,
+            "end": 199.25
+          },
+          {
+            "word": "xắn",
+            "start": 199.25,
+            "end": 199.51
+          },
+          {
+            "word": "tay",
+            "start": 199.51,
+            "end": 199.77
+          },
+          {
+            "word": "lên!",
+            "start": 199.77,
+            "end": 200.11
+          }
+        ]
+      },
+      {
+        "id": 82,
+        "startTime": 200.2,
+        "endTime": 202.3,
+        "nextLineTime": 202.4,
+        "text": "Theo nhau ta bắt đầu viết nên",
+        "words": [
+          {
+            "word": "Theo",
+            "start": 200.2,
+            "end": 200.57
+          },
+          {
+            "word": "nhau",
+            "start": 200.57,
+            "end": 200.94
+          },
+          {
+            "word": "ta",
+            "start": 200.94,
+            "end": 201.12
+          },
+          {
+            "word": "bắt",
+            "start": 201.12,
+            "end": 201.39
+          },
+          {
+            "word": "đầu",
+            "start": 201.39,
+            "end": 201.66
+          },
+          {
+            "word": "viết",
+            "start": 201.66,
+            "end": 202.03
+          },
+          {
+            "word": "nên",
+            "start": 202.03,
+            "end": 202.3
+          }
+        ]
+      },
+      {
+        "id": 83,
+        "startTime": 202.4,
+        "endTime": 204.3,
+        "nextLineTime": 204.4,
+        "text": "Hành trình ở đây! Nhìn kìa em!",
+        "words": [
+          {
+            "word": "Hành",
+            "start": 202.4,
+            "end": 202.7
+          },
+          {
+            "word": "trình",
+            "start": 202.7,
+            "end": 203.08
+          },
+          {
+            "word": "ở",
+            "start": 203.08,
+            "end": 203.23
+          },
+          {
+            "word": "đây!",
+            "start": 203.23,
+            "end": 203.53
+          },
+          {
+            "word": "Nhìn",
+            "start": 203.53,
+            "end": 203.83
+          },
+          {
+            "word": "kìa",
+            "start": 203.83,
+            "end": 204.06
+          },
+          {
+            "word": "em!",
+            "start": 204.06,
+            "end": 204.29
+          }
+        ]
+      },
+      {
+        "id": 84,
+        "startTime": 204.4,
+        "endTime": 208.5,
+        "nextLineTime": 208.6,
+        "text": "Bao nhiêu thân quen ở ngay nơi lạ",
+        "words": [
+          {
+            "word": "Bao",
+            "start": 204.4,
+            "end": 204.86
+          },
+          {
+            "word": "nhiêu",
+            "start": 204.86,
+            "end": 205.62
+          },
+          {
+            "word": "thân",
+            "start": 205.62,
+            "end": 206.23
+          },
+          {
+            "word": "quen",
+            "start": 206.23,
+            "end": 206.84
+          },
+          {
+            "word": "ở",
+            "start": 206.84,
+            "end": 207.14
+          },
+          {
+            "word": "ngay",
+            "start": 207.14,
+            "end": 207.75
+          },
+          {
+            "word": "nơi",
+            "start": 207.75,
+            "end": 208.21
+          },
+          {
+            "word": "lạ",
+            "start": 208.21,
+            "end": 208.51
+          }
+        ]
+      },
+      {
+        "id": 85,
+        "startTime": 208.6,
+        "endTime": 210.6,
+        "nextLineTime": 210.7,
+        "text": "Chân thành giản đơn",
+        "words": [
+          {
+            "word": "Chân",
+            "start": 208.6,
+            "end": 209.1
+          },
+          {
+            "word": "thành",
+            "start": 209.1,
+            "end": 209.72
+          },
+          {
+            "word": "giản",
+            "start": 209.72,
+            "end": 210.22
+          },
+          {
+            "word": "đơn",
+            "start": 210.22,
+            "end": 210.59
+          }
+        ]
+      },
+      {
+        "id": 86,
+        "startTime": 210.7,
+        "endTime": 212.7,
+        "nextLineTime": 212.8,
+        "text": "Mà vô vàn điều quý giá",
+        "words": [
+          {
+            "word": "Mà",
+            "start": 210.7,
+            "end": 210.94
+          },
+          {
+            "word": "vô",
+            "start": 210.94,
+            "end": 211.18
+          },
+          {
+            "word": "vàn",
+            "start": 211.18,
+            "end": 211.53
+          },
+          {
+            "word": "điều",
+            "start": 211.53,
+            "end": 212.0
+          },
+          {
+            "word": "quý",
+            "start": 212.0,
+            "end": 212.35
+          },
+          {
+            "word": "giá",
+            "start": 212.35,
+            "end": 212.7
+          }
+        ]
+      },
+      {
+        "id": 87,
+        "startTime": 212.8,
+        "endTime": 215.1,
+        "nextLineTime": 215.2,
+        "text": "Thả hồn thơ ngây để ta bình yên",
+        "words": [
+          {
+            "word": "Thả",
+            "start": 212.8,
+            "end": 213.09
+          },
+          {
+            "word": "hồn",
+            "start": 213.09,
+            "end": 213.38
+          },
+          {
+            "word": "thơ",
+            "start": 213.38,
+            "end": 213.67
+          },
+          {
+            "word": "ngây",
+            "start": 213.67,
+            "end": 214.05
+          },
+          {
+            "word": "để",
+            "start": 214.05,
+            "end": 214.24
+          },
+          {
+            "word": "ta",
+            "start": 214.24,
+            "end": 214.43
+          },
+          {
+            "word": "bình",
+            "start": 214.43,
+            "end": 214.81
+          },
+          {
+            "word": "yên",
+            "start": 214.81,
+            "end": 215.1
+          }
+        ]
+      },
+      {
+        "id": 88,
+        "startTime": 215.2,
+        "endTime": 217.6,
+        "nextLineTime": 217.7,
+        "text": "Cùng nhau sống những ngày trời bao la",
+        "words": [
+          {
+            "word": "Cùng",
+            "start": 215.2,
+            "end": 215.52
+          },
+          {
+            "word": "nhau",
+            "start": 215.52,
+            "end": 215.84
+          },
+          {
+            "word": "sống",
+            "start": 215.84,
+            "end": 216.16
+          },
+          {
+            "word": "những",
+            "start": 216.16,
+            "end": 216.56
+          },
+          {
+            "word": "ngày",
+            "start": 216.56,
+            "end": 216.88
+          },
+          {
+            "word": "trời",
+            "start": 216.88,
+            "end": 217.2
+          },
+          {
+            "word": "bao",
+            "start": 217.2,
+            "end": 217.44
+          },
+          {
+            "word": "la",
+            "start": 217.44,
+            "end": 217.6
+          }
+        ]
+      },
+      {
+        "id": 89,
+        "startTime": 217.7,
+        "endTime": 219.0,
+        "nextLineTime": 219.1,
+        "text": "Và ta sẽ thấy người dân Việt Nam",
+        "words": [
+          {
+            "word": "Và",
+            "start": 217.7,
+            "end": 217.8
+          },
+          {
+            "word": "ta",
+            "start": 217.8,
+            "end": 217.9
+          },
+          {
+            "word": "sẽ",
+            "start": 217.9,
+            "end": 218.0
+          },
+          {
+            "word": "thấy",
+            "start": 218.0,
+            "end": 218.21
+          },
+          {
+            "word": "người",
+            "start": 218.21,
+            "end": 218.47
+          },
+          {
+            "word": "dân",
+            "start": 218.47,
+            "end": 218.63
+          },
+          {
+            "word": "Việt",
+            "start": 218.63,
+            "end": 218.84
+          },
+          {
+            "word": "Nam",
+            "start": 218.84,
+            "end": 219.0
+          }
+        ]
+      },
+      {
+        "id": 90,
+        "startTime": 219.1,
+        "endTime": 220.2,
+        "nextLineTime": 220.3,
+        "text": "Ở muôn hướng",
+        "words": [
+          {
+            "word": "Ở",
+            "start": 219.1,
+            "end": 219.3
+          },
+          {
+            "word": "muôn",
+            "start": 219.3,
+            "end": 219.7
+          },
+          {
+            "word": "hướng",
+            "start": 219.7,
+            "end": 220.2
+          }
+        ]
+      },
+      {
+        "id": 91,
+        "startTime": 220.3,
+        "endTime": 222.1,
+        "nextLineTime": 222.2,
+        "text": "Bình thường mà rất phi thường",
+        "words": [
+          {
+            "word": "Bình",
+            "start": 220.3,
+            "end": 220.6
+          },
+          {
+            "word": "thường",
+            "start": 220.6,
+            "end": 221.05
+          },
+          {
+            "word": "mà",
+            "start": 221.05,
+            "end": 221.2
+          },
+          {
+            "word": "rất",
+            "start": 221.2,
+            "end": 221.42
+          },
+          {
+            "word": "phi",
+            "start": 221.42,
+            "end": 221.64
+          },
+          {
+            "word": "thường",
+            "start": 221.64,
+            "end": 222.09
+          }
+        ]
+      },
+      {
+        "id": 92,
+        "startTime": 222.2,
+        "endTime": 223.4,
+        "nextLineTime": 223.5,
+        "text": "Bình thường mà phi thường",
+        "words": [
+          {
+            "word": "Bình",
+            "start": 222.2,
+            "end": 222.43
+          },
+          {
+            "word": "thường",
+            "start": 222.43,
+            "end": 222.77
+          },
+          {
+            "word": "mà",
+            "start": 222.77,
+            "end": 222.88
+          },
+          {
+            "word": "phi",
+            "start": 222.88,
+            "end": 223.05
+          },
+          {
+            "word": "thường",
+            "start": 223.05,
+            "end": 223.39
+          }
+        ]
+      },
+      {
+        "id": 93,
+        "startTime": 223.5,
+        "endTime": 224.7,
+        "nextLineTime": 224.8,
+        "text": "Người thường mà phi phàm",
+        "words": [
+          {
+            "word": "Người",
+            "start": 223.5,
+            "end": 223.8
+          },
+          {
+            "word": "thường",
+            "start": 223.8,
+            "end": 224.16
+          },
+          {
+            "word": "mà",
+            "start": 224.16,
+            "end": 224.28
+          },
+          {
+            "word": "phi",
+            "start": 224.28,
+            "end": 224.46
+          },
+          {
+            "word": "phàm",
+            "start": 224.46,
+            "end": 224.7
+          }
+        ]
+      },
+      {
+        "id": 94,
+        "startTime": 224.8,
+        "endTime": 226.0,
+        "nextLineTime": 226.1,
+        "text": "Nào cùng gia đình Haha",
+        "words": [
+          {
+            "word": "Nào",
+            "start": 224.8,
+            "end": 225.0
+          },
+          {
+            "word": "cùng",
+            "start": 225.0,
+            "end": 225.27
+          },
+          {
+            "word": "gia",
+            "start": 225.27,
+            "end": 225.47
+          },
+          {
+            "word": "đình",
+            "start": 225.47,
+            "end": 225.74
+          },
+          {
+            "word": "Haha",
+            "start": 225.74,
+            "end": 226.01
+          }
+        ]
+      },
+      {
+        "id": 95,
+        "startTime": 226.1,
+        "endTime": 227.2,
+        "nextLineTime": 227.3,
+        "text": "Mình làm nông dân nhá!",
+        "words": [
+          {
+            "word": "Mình",
+            "start": 226.1,
+            "end": 226.34
+          },
+          {
+            "word": "làm",
+            "start": 226.34,
+            "end": 226.52
+          },
+          {
+            "word": "nông",
+            "start": 226.52,
+            "end": 226.76
+          },
+          {
+            "word": "dân",
+            "start": 226.76,
+            "end": 226.94
+          },
+          {
+            "word": "nhá!",
+            "start": 226.94,
+            "end": 227.18
+          }
+        ]
+      },
+      {
+        "id": 96,
+        "startTime": 227.3,
+        "endTime": 228.4,
+        "nextLineTime": 228.5,
+        "text": "Bình thường mà phi thường",
+        "words": [
+          {
+            "word": "Bình",
+            "start": 227.3,
+            "end": 227.51
+          },
+          {
+            "word": "thường",
+            "start": 227.51,
+            "end": 227.82
+          },
+          {
+            "word": "mà",
+            "start": 227.82,
+            "end": 227.92
+          },
+          {
+            "word": "phi",
+            "start": 227.92,
+            "end": 228.08
+          },
+          {
+            "word": "thường",
+            "start": 228.08,
+            "end": 228.39
+          }
+        ]
+      },
+      {
+        "id": 97,
+        "startTime": 228.5,
+        "endTime": 229.5,
+        "nextLineTime": 229.6,
+        "text": "Người thường mà phi phàm",
+        "words": [
+          {
+            "word": "Người",
+            "start": 228.5,
+            "end": 228.75
+          },
+          {
+            "word": "thường",
+            "start": 228.75,
+            "end": 229.05
+          },
+          {
+            "word": "mà",
+            "start": 229.05,
+            "end": 229.15
+          },
+          {
+            "word": "phi",
+            "start": 229.15,
+            "end": 229.3
+          },
+          {
+            "word": "phàm",
+            "start": 229.3,
+            "end": 229.5
+          }
+        ]
+      },
+      {
+        "id": 98,
+        "startTime": 229.6,
+        "endTime": 230.9,
+        "nextLineTime": 231.0,
+        "text": "Nào cùng gia đình Haha",
+        "words": [
+          {
+            "word": "Nào",
+            "start": 229.6,
+            "end": 229.82
+          },
+          {
+            "word": "cùng",
+            "start": 229.82,
+            "end": 230.11
+          },
+          {
+            "word": "gia",
+            "start": 230.11,
+            "end": 230.33
+          },
+          {
+            "word": "đình",
+            "start": 230.33,
+            "end": 230.62
+          },
+          {
+            "word": "Haha",
+            "start": 230.62,
+            "end": 230.91
+          }
+        ]
+      },
+      {
+        "id": 99,
+        "startTime": 231.0,
+        "endTime": 236.6,
+        "nextLineTime": 238.18,
+        "text": "Mình làm nông dân nhá!",
+        "words": [
+          {
+            "word": "Mình",
+            "start": 231.0,
+            "end": 232.24
+          },
+          {
+            "word": "làm",
+            "start": 232.24,
+            "end": 233.17
+          },
+          {
+            "word": "nông",
+            "start": 233.17,
+            "end": 234.41
+          },
+          {
+            "word": "dân",
+            "start": 234.41,
+            "end": 235.34
+          },
+          {
+            "word": "nhá!",
+            "start": 235.34,
+            "end": 236.58
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "id": "karaoke-sunny-sunny",
+    "filename": "SUNNY SUNNY.mp3",
+    "title": "Sunny, Sunny (Song Ca Tiếng Anh)",
+    "artist": "Suno Studio · Song Ca & Hợp Xướng Thiếu Nhi",
+    "duration": 137.16,
+    "audioUrl": "/karaoke/karaoke-sunny-sunny.mp3",
+    "thumbUrl": "/karaoke/karaoke-sunny-sunny.jpg",
+    "lines": [
+      {
+        "id": 0,
+        "startTime": 8.5,
+        "endTime": 11.9,
+        "nextLineTime": 12.0,
+        "text": "Sun on my nose, shoes on my feet",
+        "words": [
+          {
+            "word": "Sun",
+            "start": 8.5,
+            "end": 8.93
+          },
+          {
+            "word": "on",
+            "start": 8.93,
+            "end": 9.21
+          },
+          {
+            "word": "my",
+            "start": 9.21,
+            "end": 9.49
+          },
+          {
+            "word": "nose,",
+            "start": 9.49,
+            "end": 10.06
+          },
+          {
+            "word": "shoes",
+            "start": 10.06,
+            "end": 10.77
+          },
+          {
+            "word": "on",
+            "start": 10.77,
+            "end": 11.05
+          },
+          {
+            "word": "my",
+            "start": 11.05,
+            "end": 11.33
+          },
+          {
+            "word": "feet",
+            "start": 11.33,
+            "end": 11.9
+          }
+        ]
+      },
+      {
+        "id": 1,
+        "startTime": 12.0,
+        "endTime": 15.4,
+        "nextLineTime": 15.5,
+        "text": "Come outside, come play with me",
+        "words": [
+          {
+            "word": "Come",
+            "start": 12.0,
+            "end": 12.54
+          },
+          {
+            "word": "outside,",
+            "start": 12.54,
+            "end": 13.49
+          },
+          {
+            "word": "come",
+            "start": 13.49,
+            "end": 14.03
+          },
+          {
+            "word": "play",
+            "start": 14.03,
+            "end": 14.57
+          },
+          {
+            "word": "with",
+            "start": 14.57,
+            "end": 15.11
+          },
+          {
+            "word": "me",
+            "start": 15.11,
+            "end": 15.38
+          }
+        ]
+      },
+      {
+        "id": 2,
+        "startTime": 15.5,
+        "endTime": 18.9,
+        "nextLineTime": 19.0,
+        "text": "Hop to the garden, run to the tree",
+        "words": [
+          {
+            "word": "Hop",
+            "start": 15.5,
+            "end": 15.89
+          },
+          {
+            "word": "to",
+            "start": 15.89,
+            "end": 16.15
+          },
+          {
+            "word": "the",
+            "start": 16.15,
+            "end": 16.54
+          },
+          {
+            "word": "garden,",
+            "start": 16.54,
+            "end": 17.32
+          },
+          {
+            "word": "run",
+            "start": 17.32,
+            "end": 17.71
+          },
+          {
+            "word": "to",
+            "start": 17.71,
+            "end": 17.97
+          },
+          {
+            "word": "the",
+            "start": 17.97,
+            "end": 18.36
+          },
+          {
+            "word": "tree",
+            "start": 18.36,
+            "end": 18.88
+          }
+        ]
+      },
+      {
+        "id": 3,
+        "startTime": 19.0,
+        "endTime": 22.9,
+        "nextLineTime": 23.0,
+        "text": "You and me, one, two, three!",
+        "words": [
+          {
+            "word": "You",
+            "start": 19.0,
+            "end": 19.59
+          },
+          {
+            "word": "and",
+            "start": 19.59,
+            "end": 20.18
+          },
+          {
+            "word": "me,",
+            "start": 20.18,
+            "end": 20.57
+          },
+          {
+            "word": "one,",
+            "start": 20.57,
+            "end": 21.16
+          },
+          {
+            "word": "two,",
+            "start": 21.16,
+            "end": 21.75
+          },
+          {
+            "word": "three!",
+            "start": 21.75,
+            "end": 22.92
+          }
+        ]
+      },
+      {
+        "id": 4,
+        "startTime": 23.0,
+        "endTime": 26.4,
+        "nextLineTime": 26.5,
+        "text": "Sunny, sunny, hey, hey, hey!",
+        "words": [
+          {
+            "word": "Sunny,",
+            "start": 23.0,
+            "end": 23.85
+          },
+          {
+            "word": "sunny,",
+            "start": 23.85,
+            "end": 24.7
+          },
+          {
+            "word": "hey,",
+            "start": 24.7,
+            "end": 25.21
+          },
+          {
+            "word": "hey,",
+            "start": 25.21,
+            "end": 25.72
+          },
+          {
+            "word": "hey!",
+            "start": 25.72,
+            "end": 26.4
+          }
+        ]
+      },
+      {
+        "id": 5,
+        "startTime": 26.5,
+        "endTime": 29.9,
+        "nextLineTime": 30.0,
+        "text": "Stomp the ground, we're on our way",
+        "words": [
+          {
+            "word": "Stomp",
+            "start": 26.5,
+            "end": 27.13
+          },
+          {
+            "word": "the",
+            "start": 27.13,
+            "end": 27.51
+          },
+          {
+            "word": "ground,",
+            "start": 27.51,
+            "end": 28.27
+          },
+          {
+            "word": "we're",
+            "start": 28.27,
+            "end": 28.9
+          },
+          {
+            "word": "on",
+            "start": 28.9,
+            "end": 29.15
+          },
+          {
+            "word": "our",
+            "start": 29.15,
+            "end": 29.53
+          },
+          {
+            "word": "way",
+            "start": 29.53,
+            "end": 29.91
+          }
+        ]
+      },
+      {
+        "id": 6,
+        "startTime": 30.0,
+        "endTime": 33.4,
+        "nextLineTime": 33.5,
+        "text": "Sunny, sunny, shout it loud",
+        "words": [
+          {
+            "word": "Sunny,",
+            "start": 30.0,
+            "end": 30.81
+          },
+          {
+            "word": "sunny,",
+            "start": 30.81,
+            "end": 31.62
+          },
+          {
+            "word": "shout",
+            "start": 31.62,
+            "end": 32.43
+          },
+          {
+            "word": "it",
+            "start": 32.43,
+            "end": 32.75
+          },
+          {
+            "word": "loud",
+            "start": 32.75,
+            "end": 33.4
+          }
+        ]
+      },
+      {
+        "id": 7,
+        "startTime": 33.5,
+        "endTime": 36.9,
+        "nextLineTime": 37.0,
+        "text": "Hands up high, head in the clouds",
+        "words": [
+          {
+            "word": "Hands",
+            "start": 33.5,
+            "end": 34.15
+          },
+          {
+            "word": "up",
+            "start": 34.15,
+            "end": 34.41
+          },
+          {
+            "word": "high,",
+            "start": 34.41,
+            "end": 34.93
+          },
+          {
+            "word": "head",
+            "start": 34.93,
+            "end": 35.45
+          },
+          {
+            "word": "in",
+            "start": 35.45,
+            "end": 35.71
+          },
+          {
+            "word": "the",
+            "start": 35.71,
+            "end": 36.1
+          },
+          {
+            "word": "clouds",
+            "start": 36.1,
+            "end": 36.88
+          }
+        ]
+      },
+      {
+        "id": 8,
+        "startTime": 37.0,
+        "endTime": 40.4,
+        "nextLineTime": 40.5,
+        "text": "Grass underfoot, blue overhead",
+        "words": [
+          {
+            "word": "Grass",
+            "start": 37.0,
+            "end": 37.65
+          },
+          {
+            "word": "underfoot,",
+            "start": 37.65,
+            "end": 38.83
+          },
+          {
+            "word": "blue",
+            "start": 38.83,
+            "end": 39.35
+          },
+          {
+            "word": "overhead",
+            "start": 39.35,
+            "end": 40.4
+          }
+        ]
+      },
+      {
+        "id": 9,
+        "startTime": 40.5,
+        "endTime": 43.9,
+        "nextLineTime": 44.0,
+        "text": "Call it out now, go ahead",
+        "words": [
+          {
+            "word": "Call",
+            "start": 40.5,
+            "end": 41.22
+          },
+          {
+            "word": "it",
+            "start": 41.22,
+            "end": 41.58
+          },
+          {
+            "word": "out",
+            "start": 41.58,
+            "end": 42.12
+          },
+          {
+            "word": "now,",
+            "start": 42.12,
+            "end": 42.66
+          },
+          {
+            "word": "go",
+            "start": 42.66,
+            "end": 43.02
+          },
+          {
+            "word": "ahead",
+            "start": 43.02,
+            "end": 43.91
+          }
+        ]
+      },
+      {
+        "id": 10,
+        "startTime": 44.0,
+        "endTime": 47.4,
+        "nextLineTime": 47.5,
+        "text": "Clap-clap, jump-jump, no slow moves",
+        "words": [
+          {
+            "word": "Clap-clap,",
+            "start": 44.0,
+            "end": 45.06
+          },
+          {
+            "word": "jump-jump,",
+            "start": 45.06,
+            "end": 46.12
+          },
+          {
+            "word": "no",
+            "start": 46.12,
+            "end": 46.35
+          },
+          {
+            "word": "slow",
+            "start": 46.35,
+            "end": 46.82
+          },
+          {
+            "word": "moves",
+            "start": 46.82,
+            "end": 47.41
+          }
+        ]
+      },
+      {
+        "id": 11,
+        "startTime": 47.5,
+        "endTime": 51.4,
+        "nextLineTime": 51.5,
+        "text": "Sunny, sunny, we got grooves!",
+        "words": [
+          {
+            "word": "Sunny,",
+            "start": 47.5,
+            "end": 48.35
+          },
+          {
+            "word": "sunny,",
+            "start": 48.35,
+            "end": 49.2
+          },
+          {
+            "word": "we",
+            "start": 49.2,
+            "end": 49.54
+          },
+          {
+            "word": "got",
+            "start": 49.54,
+            "end": 50.05
+          },
+          {
+            "word": "grooves!",
+            "start": 50.05,
+            "end": 51.41
+          }
+        ]
+      },
+      {
+        "id": 12,
+        "startTime": 51.5,
+        "endTime": 54.9,
+        "nextLineTime": 55.0,
+        "text": "Hey now, sunny, sunny, call your name",
+        "words": [
+          {
+            "word": "Hey",
+            "start": 51.5,
+            "end": 51.86
+          },
+          {
+            "word": "now,",
+            "start": 51.86,
+            "end": 52.22
+          },
+          {
+            "word": "sunny,",
+            "start": 52.22,
+            "end": 52.83
+          },
+          {
+            "word": "sunny,",
+            "start": 52.83,
+            "end": 53.44
+          },
+          {
+            "word": "call",
+            "start": 53.44,
+            "end": 53.93
+          },
+          {
+            "word": "your",
+            "start": 53.93,
+            "end": 54.42
+          },
+          {
+            "word": "name",
+            "start": 54.42,
+            "end": 54.91
+          }
+        ]
+      },
+      {
+        "id": 13,
+        "startTime": 55.0,
+        "endTime": 58.4,
+        "nextLineTime": 58.5,
+        "text": "Kick it up, we don't sit still, we play",
+        "words": [
+          {
+            "word": "Kick",
+            "start": 55.0,
+            "end": 55.47
+          },
+          {
+            "word": "it",
+            "start": 55.47,
+            "end": 55.7
+          },
+          {
+            "word": "up,",
+            "start": 55.7,
+            "end": 55.93
+          },
+          {
+            "word": "we",
+            "start": 55.93,
+            "end": 56.16
+          },
+          {
+            "word": "don't",
+            "start": 56.16,
+            "end": 56.75
+          },
+          {
+            "word": "sit",
+            "start": 56.75,
+            "end": 57.1
+          },
+          {
+            "word": "still,",
+            "start": 57.1,
+            "end": 57.69
+          },
+          {
+            "word": "we",
+            "start": 57.69,
+            "end": 57.92
+          },
+          {
+            "word": "play",
+            "start": 57.92,
+            "end": 58.39
+          }
+        ]
+      },
+      {
+        "id": 14,
+        "startTime": 58.5,
+        "endTime": 61.9,
+        "nextLineTime": 62.0,
+        "text": "Sunny, sunny, arms way high",
+        "words": [
+          {
+            "word": "Sunny,",
+            "start": 58.5,
+            "end": 59.31
+          },
+          {
+            "word": "sunny,",
+            "start": 59.31,
+            "end": 60.12
+          },
+          {
+            "word": "arms",
+            "start": 60.12,
+            "end": 60.77
+          },
+          {
+            "word": "way",
+            "start": 60.77,
+            "end": 61.26
+          },
+          {
+            "word": "high",
+            "start": 61.26,
+            "end": 61.91
+          }
+        ]
+      },
+      {
+        "id": 15,
+        "startTime": 62.0,
+        "endTime": 64.72,
+        "nextLineTime": 64.82,
+        "text": "Laughing till we're out",
+        "words": [
+          {
+            "word": "Laughing",
+            "start": 62.0,
+            "end": 63.09
+          },
+          {
+            "word": "till",
+            "start": 63.09,
+            "end": 63.63
+          },
+          {
+            "word": "we're",
+            "start": 63.63,
+            "end": 64.31
+          },
+          {
+            "word": "out",
+            "start": 64.31,
+            "end": 64.72
+          }
+        ]
+      },
+      {
+        "id": 16,
+        "startTime": 64.82,
+        "endTime": 67.4,
+        "nextLineTime": 67.5,
+        "text": "of breath, eyes wide",
+        "words": [
+          {
+            "word": "of",
+            "start": 64.82,
+            "end": 65.14
+          },
+          {
+            "word": "breath,",
+            "start": 65.14,
+            "end": 66.11
+          },
+          {
+            "word": "eyes",
+            "start": 66.11,
+            "end": 66.75
+          },
+          {
+            "word": "wide",
+            "start": 66.75,
+            "end": 67.39
+          }
+        ]
+      },
+      {
+        "id": 17,
+        "startTime": 67.5,
+        "endTime": 70.9,
+        "nextLineTime": 71.0,
+        "text": "Sun on my nose, sun on your toes",
+        "words": [
+          {
+            "word": "Sun",
+            "start": 67.5,
+            "end": 67.92
+          },
+          {
+            "word": "on",
+            "start": 67.92,
+            "end": 68.2
+          },
+          {
+            "word": "my",
+            "start": 68.2,
+            "end": 68.48
+          },
+          {
+            "word": "nose,",
+            "start": 68.48,
+            "end": 69.05
+          },
+          {
+            "word": "sun",
+            "start": 69.05,
+            "end": 69.47
+          },
+          {
+            "word": "on",
+            "start": 69.47,
+            "end": 69.75
+          },
+          {
+            "word": "your",
+            "start": 69.75,
+            "end": 70.32
+          },
+          {
+            "word": "toes",
+            "start": 70.32,
+            "end": 70.89
+          }
+        ]
+      },
+      {
+        "id": 18,
+        "startTime": 71.0,
+        "endTime": 74.4,
+        "nextLineTime": 74.5,
+        "text": "Down the path where the buttercup grows",
+        "words": [
+          {
+            "word": "Down",
+            "start": 71.0,
+            "end": 71.41
+          },
+          {
+            "word": "the",
+            "start": 71.41,
+            "end": 71.72
+          },
+          {
+            "word": "path",
+            "start": 71.72,
+            "end": 72.13
+          },
+          {
+            "word": "where",
+            "start": 72.13,
+            "end": 72.65
+          },
+          {
+            "word": "the",
+            "start": 72.65,
+            "end": 72.96
+          },
+          {
+            "word": "buttercup",
+            "start": 72.96,
+            "end": 73.89
+          },
+          {
+            "word": "grows",
+            "start": 73.89,
+            "end": 74.41
+          }
+        ]
+      },
+      {
+        "id": 19,
+        "startTime": 74.5,
+        "endTime": 77.9,
+        "nextLineTime": 78.0,
+        "text": "Skip to the gate, hop to the tree",
+        "words": [
+          {
+            "word": "Skip",
+            "start": 74.5,
+            "end": 75.04
+          },
+          {
+            "word": "to",
+            "start": 75.04,
+            "end": 75.31
+          },
+          {
+            "word": "the",
+            "start": 75.31,
+            "end": 75.72
+          },
+          {
+            "word": "gate,",
+            "start": 75.72,
+            "end": 76.26
+          },
+          {
+            "word": "hop",
+            "start": 76.26,
+            "end": 76.67
+          },
+          {
+            "word": "to",
+            "start": 76.67,
+            "end": 76.94
+          },
+          {
+            "word": "the",
+            "start": 76.94,
+            "end": 77.35
+          },
+          {
+            "word": "tree",
+            "start": 77.35,
+            "end": 77.89
+          }
+        ]
+      },
+      {
+        "id": 20,
+        "startTime": 78.0,
+        "endTime": 81.9,
+        "nextLineTime": 82.0,
+        "text": "Come play outside with me!",
+        "words": [
+          {
+            "word": "Come",
+            "start": 78.0,
+            "end": 78.71
+          },
+          {
+            "word": "play",
+            "start": 78.71,
+            "end": 79.42
+          },
+          {
+            "word": "outside",
+            "start": 79.42,
+            "end": 80.66
+          },
+          {
+            "word": "with",
+            "start": 80.66,
+            "end": 81.37
+          },
+          {
+            "word": "me!",
+            "start": 81.37,
+            "end": 81.9
+          }
+        ]
+      },
+      {
+        "id": 21,
+        "startTime": 82.0,
+        "endTime": 85.4,
+        "nextLineTime": 85.5,
+        "text": "Sunny, sunny, clap your hands!",
+        "words": [
+          {
+            "word": "Sunny,",
+            "start": 82.0,
+            "end": 82.71
+          },
+          {
+            "word": "sunny,",
+            "start": 82.71,
+            "end": 83.42
+          },
+          {
+            "word": "clap",
+            "start": 83.42,
+            "end": 83.99
+          },
+          {
+            "word": "your",
+            "start": 83.99,
+            "end": 84.56
+          },
+          {
+            "word": "hands!",
+            "start": 84.56,
+            "end": 85.41
+          }
+        ]
+      },
+      {
+        "id": 22,
+        "startTime": 85.5,
+        "endTime": 88.9,
+        "nextLineTime": 89.0,
+        "text": "Sunny, sunny, spin and dance!",
+        "words": [
+          {
+            "word": "Sunny,",
+            "start": 85.5,
+            "end": 86.24
+          },
+          {
+            "word": "sunny,",
+            "start": 86.24,
+            "end": 86.98
+          },
+          {
+            "word": "spin",
+            "start": 86.98,
+            "end": 87.57
+          },
+          {
+            "word": "and",
+            "start": 87.57,
+            "end": 88.01
+          },
+          {
+            "word": "dance!",
+            "start": 88.01,
+            "end": 88.9
+          }
+        ]
+      },
+      {
+        "id": 23,
+        "startTime": 89.0,
+        "endTime": 92.4,
+        "nextLineTime": 92.5,
+        "text": "One, two, three, come out and play",
+        "words": [
+          {
+            "word": "One,",
+            "start": 89.0,
+            "end": 89.41
+          },
+          {
+            "word": "two,",
+            "start": 89.41,
+            "end": 89.82
+          },
+          {
+            "word": "three,",
+            "start": 89.82,
+            "end": 90.5
+          },
+          {
+            "word": "come",
+            "start": 90.5,
+            "end": 91.04
+          },
+          {
+            "word": "out",
+            "start": 91.04,
+            "end": 91.45
+          },
+          {
+            "word": "and",
+            "start": 91.45,
+            "end": 91.86
+          },
+          {
+            "word": "play",
+            "start": 91.86,
+            "end": 92.4
+          }
+        ]
+      },
+      {
+        "id": 24,
+        "startTime": 92.5,
+        "endTime": 97.4,
+        "nextLineTime": 97.5,
+        "text": "Sunny, sunny, hooray, hooray!",
+        "words": [
+          {
+            "word": "Sunny,",
+            "start": 92.5,
+            "end": 93.57
+          },
+          {
+            "word": "sunny,",
+            "start": 93.57,
+            "end": 94.64
+          },
+          {
+            "word": "hooray,",
+            "start": 94.64,
+            "end": 95.92
+          },
+          {
+            "word": "hooray!",
+            "start": 95.92,
+            "end": 97.41
+          }
+        ]
+      },
+      {
+        "id": 25,
+        "startTime": 97.5,
+        "endTime": 100.9,
+        "nextLineTime": 101.0,
+        "text": "Bird in the blue cloud drifting by",
+        "words": [
+          {
+            "word": "Bird",
+            "start": 97.5,
+            "end": 97.99
+          },
+          {
+            "word": "in",
+            "start": 97.99,
+            "end": 98.23
+          },
+          {
+            "word": "the",
+            "start": 98.23,
+            "end": 98.59
+          },
+          {
+            "word": "blue",
+            "start": 98.59,
+            "end": 99.08
+          },
+          {
+            "word": "cloud",
+            "start": 99.08,
+            "end": 99.69
+          },
+          {
+            "word": "drifting",
+            "start": 99.69,
+            "end": 100.66
+          },
+          {
+            "word": "by",
+            "start": 100.66,
+            "end": 100.9
+          }
+        ]
+      },
+      {
+        "id": 26,
+        "startTime": 101.0,
+        "endTime": 104.4,
+        "nextLineTime": 104.5,
+        "text": "We make a big kite, chase the sky",
+        "words": [
+          {
+            "word": "We",
+            "start": 101.0,
+            "end": 101.26
+          },
+          {
+            "word": "make",
+            "start": 101.26,
+            "end": 101.78
+          },
+          {
+            "word": "a",
+            "start": 101.78,
+            "end": 102.04
+          },
+          {
+            "word": "big",
+            "start": 102.04,
+            "end": 102.43
+          },
+          {
+            "word": "kite,",
+            "start": 102.43,
+            "end": 102.95
+          },
+          {
+            "word": "chase",
+            "start": 102.95,
+            "end": 103.6
+          },
+          {
+            "word": "the",
+            "start": 103.6,
+            "end": 103.99
+          },
+          {
+            "word": "sky",
+            "start": 103.99,
+            "end": 104.38
+          }
+        ]
+      },
+      {
+        "id": 27,
+        "startTime": 104.5,
+        "endTime": 107.9,
+        "nextLineTime": 108.0,
+        "text": "Skip to the gate, hop to the tree",
+        "words": [
+          {
+            "word": "Skip",
+            "start": 104.5,
+            "end": 105.04
+          },
+          {
+            "word": "to",
+            "start": 105.04,
+            "end": 105.31
+          },
+          {
+            "word": "the",
+            "start": 105.31,
+            "end": 105.72
+          },
+          {
+            "word": "gate,",
+            "start": 105.72,
+            "end": 106.26
+          },
+          {
+            "word": "hop",
+            "start": 106.26,
+            "end": 106.67
+          },
+          {
+            "word": "to",
+            "start": 106.67,
+            "end": 106.94
+          },
+          {
+            "word": "the",
+            "start": 106.94,
+            "end": 107.35
+          },
+          {
+            "word": "tree",
+            "start": 107.35,
+            "end": 107.89
+          }
+        ]
+      },
+      {
+        "id": 28,
+        "startTime": 108.0,
+        "endTime": 111.9,
+        "nextLineTime": 112.0,
+        "text": "Come play outside with me!",
+        "words": [
+          {
+            "word": "Come",
+            "start": 108.0,
+            "end": 108.71
+          },
+          {
+            "word": "play",
+            "start": 108.71,
+            "end": 109.42
+          },
+          {
+            "word": "outside",
+            "start": 109.42,
+            "end": 110.66
+          },
+          {
+            "word": "with",
+            "start": 110.66,
+            "end": 111.37
+          },
+          {
+            "word": "me!",
+            "start": 111.37,
+            "end": 111.9
+          }
+        ]
+      },
+      {
+        "id": 29,
+        "startTime": 112.0,
+        "endTime": 115.4,
+        "nextLineTime": 115.5,
+        "text": "Sunny, sunny, clap your hands!",
+        "words": [
+          {
+            "word": "Sunny,",
+            "start": 112.0,
+            "end": 112.71
+          },
+          {
+            "word": "sunny,",
+            "start": 112.71,
+            "end": 113.42
+          },
+          {
+            "word": "clap",
+            "start": 113.42,
+            "end": 113.99
+          },
+          {
+            "word": "your",
+            "start": 113.99,
+            "end": 114.56
+          },
+          {
+            "word": "hands!",
+            "start": 114.56,
+            "end": 115.41
+          }
+        ]
+      },
+      {
+        "id": 30,
+        "startTime": 115.5,
+        "endTime": 118.9,
+        "nextLineTime": 119.0,
+        "text": "Sunny, sunny, spin and dance!",
+        "words": [
+          {
+            "word": "Sunny,",
+            "start": 115.5,
+            "end": 116.24
+          },
+          {
+            "word": "sunny,",
+            "start": 116.24,
+            "end": 116.98
+          },
+          {
+            "word": "spin",
+            "start": 116.98,
+            "end": 117.57
+          },
+          {
+            "word": "and",
+            "start": 117.57,
+            "end": 118.01
+          },
+          {
+            "word": "dance!",
+            "start": 118.01,
+            "end": 118.9
+          }
+        ]
+      },
+      {
+        "id": 31,
+        "startTime": 119.0,
+        "endTime": 122.4,
+        "nextLineTime": 122.5,
+        "text": "One, two, three, come out and play",
+        "words": [
+          {
+            "word": "One,",
+            "start": 119.0,
+            "end": 119.41
+          },
+          {
+            "word": "two,",
+            "start": 119.41,
+            "end": 119.82
+          },
+          {
+            "word": "three,",
+            "start": 119.82,
+            "end": 120.5
+          },
+          {
+            "word": "come",
+            "start": 120.5,
+            "end": 121.04
+          },
+          {
+            "word": "out",
+            "start": 121.04,
+            "end": 121.45
+          },
+          {
+            "word": "and",
+            "start": 121.45,
+            "end": 121.86
+          },
+          {
+            "word": "play",
+            "start": 121.86,
+            "end": 122.4
+          }
+        ]
+      },
+      {
+        "id": 32,
+        "startTime": 122.5,
+        "endTime": 125.9,
+        "nextLineTime": 126.0,
+        "text": "Sunny, sunny, hooray, hooray!",
+        "words": [
+          {
+            "word": "Sunny,",
+            "start": 122.5,
+            "end": 123.24
+          },
+          {
+            "word": "sunny,",
+            "start": 123.24,
+            "end": 123.98
+          },
+          {
+            "word": "hooray,",
+            "start": 123.98,
+            "end": 124.87
+          },
+          {
+            "word": "hooray!",
+            "start": 124.87,
+            "end": 125.9
+          }
+        ]
+      },
+      {
+        "id": 33,
+        "startTime": 126.0,
+        "endTime": 129.9,
+        "nextLineTime": 130.0,
+        "text": "Sunny, sunny, hooray, hooray!",
+        "words": [
+          {
+            "word": "Sunny,",
+            "start": 126.0,
+            "end": 126.85
+          },
+          {
+            "word": "sunny,",
+            "start": 126.85,
+            "end": 127.7
+          },
+          {
+            "word": "hooray,",
+            "start": 127.7,
+            "end": 128.72
+          },
+          {
+            "word": "hooray!",
+            "start": 128.72,
+            "end": 129.91
+          }
+        ]
+      },
+      {
+        "id": 34,
+        "startTime": 130.0,
+        "endTime": 133.4,
+        "nextLineTime": 133.5,
+        "text": "Sunny, sunny, you and me",
+        "words": [
+          {
+            "word": "Sunny,",
+            "start": 130.0,
+            "end": 130.94
+          },
+          {
+            "word": "sunny,",
+            "start": 130.94,
+            "end": 131.88
+          },
+          {
+            "word": "you",
+            "start": 131.88,
+            "end": 132.45
+          },
+          {
+            "word": "and",
+            "start": 132.45,
+            "end": 133.02
+          },
+          {
+            "word": "me",
+            "start": 133.02,
+            "end": 133.4
+          }
+        ]
+      },
+      {
+        "id": 35,
+        "startTime": 133.5,
+        "endTime": 137.06,
+        "nextLineTime": 137.16,
+        "text": "One, two, three!",
+        "words": [
+          {
+            "word": "One,",
+            "start": 133.5,
+            "end": 134.39
+          },
+          {
+            "word": "two,",
+            "start": 134.39,
+            "end": 135.28
+          },
+          {
+            "word": "three!",
+            "start": 135.28,
+            "end": 137.06
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "id": "karaoke-tieng-ru-coi-nguon",
+    "filename": "TIẾNG RU CỘI NGUỒN.mp3",
+    "title": "Tiếng Ru Cội Nguồn",
+    "artist": "Anh Trai Vượt Ngàn Chông Gai (Đông Hùng, Thuận Nguyễn, Toki Thành Thỏ, Cheng, K.O, Duy Khánh, OSAD, Hà An Huy)",
+    "duration": 393.82,
+    "audioUrl": "/karaoke/karaoke-tieng-ru-coi-nguon.mp3",
+    "thumbUrl": "/karaoke/karaoke-tieng-ru-coi-nguon.jpg",
+    "lines": [
+      {
+        "id": 0,
+        "startTime": 1.66,
+        "endTime": 4.74,
+        "nextLineTime": 4.84,
+        "text": "À á a à ời",
+        "words": [
+          {
+            "word": "À",
+            "start": 1.66,
+            "end": 2.28
+          },
+          {
+            "word": "á",
+            "start": 2.28,
+            "end": 2.9
+          },
+          {
+            "word": "a",
+            "start": 2.9,
+            "end": 3.52
+          },
+          {
+            "word": "à",
+            "start": 3.52,
+            "end": 4.14
+          },
+          {
+            "word": "ời",
+            "start": 4.14,
+            "end": 4.76
+          }
+        ]
+      },
+      {
+        "id": 1,
+        "startTime": 4.84,
+        "endTime": 10.44,
+        "nextLineTime": 13.9,
+        "text": "À á a à ơi",
+        "words": [
+          {
+            "word": "À",
+            "start": 4.84,
+            "end": 5.96
+          },
+          {
+            "word": "á",
+            "start": 5.96,
+            "end": 7.08
+          },
+          {
+            "word": "a",
+            "start": 7.08,
+            "end": 8.2
+          },
+          {
+            "word": "à",
+            "start": 8.2,
+            "end": 9.32
+          },
+          {
+            "word": "ơi",
+            "start": 9.32,
+            "end": 10.44
+          }
+        ]
+      },
+      {
+        "id": 2,
+        "startTime": 13.9,
+        "endTime": 17.01,
+        "nextLineTime": 17.11,
+        "text": "Ru con từ thuở hồng hoang",
+        "words": [
+          {
+            "word": "Ru",
+            "start": 13.9,
+            "end": 14.21
+          },
+          {
+            "word": "con",
+            "start": 14.21,
+            "end": 14.68
+          },
+          {
+            "word": "từ",
+            "start": 14.68,
+            "end": 14.99
+          },
+          {
+            "word": "thuở",
+            "start": 14.99,
+            "end": 15.61
+          },
+          {
+            "word": "hồng",
+            "start": 15.61,
+            "end": 16.23
+          },
+          {
+            "word": "hoang",
+            "start": 16.23,
+            "end": 17.01
+          }
+        ]
+      },
+      {
+        "id": 3,
+        "startTime": 17.11,
+        "endTime": 22.71,
+        "nextLineTime": 26.17,
+        "text": "Mẹ ru lúa chín cha ru mái chèo",
+        "words": [
+          {
+            "word": "Mẹ",
+            "start": 17.11,
+            "end": 17.6
+          },
+          {
+            "word": "ru",
+            "start": 17.6,
+            "end": 18.09
+          },
+          {
+            "word": "lúa",
+            "start": 18.09,
+            "end": 18.82
+          },
+          {
+            "word": "chín",
+            "start": 18.82,
+            "end": 19.79
+          },
+          {
+            "word": "cha",
+            "start": 19.79,
+            "end": 20.52
+          },
+          {
+            "word": "ru",
+            "start": 20.52,
+            "end": 21.01
+          },
+          {
+            "word": "mái",
+            "start": 21.01,
+            "end": 21.74
+          },
+          {
+            "word": "chèo",
+            "start": 21.74,
+            "end": 22.71
+          }
+        ]
+      },
+      {
+        "id": 4,
+        "startTime": 26.17,
+        "endTime": 31.39,
+        "nextLineTime": 31.49,
+        "text": "À á a à ời",
+        "words": [
+          {
+            "word": "À",
+            "start": 26.17,
+            "end": 27.21
+          },
+          {
+            "word": "á",
+            "start": 27.21,
+            "end": 28.25
+          },
+          {
+            "word": "a",
+            "start": 28.25,
+            "end": 29.29
+          },
+          {
+            "word": "à",
+            "start": 29.29,
+            "end": 30.33
+          },
+          {
+            "word": "ời",
+            "start": 30.33,
+            "end": 31.37
+          }
+        ]
+      },
+      {
+        "id": 5,
+        "startTime": 31.49,
+        "endTime": 37.09,
+        "nextLineTime": 44.68,
+        "text": "À á a à ơi",
+        "words": [
+          {
+            "word": "À",
+            "start": 31.49,
+            "end": 32.61
+          },
+          {
+            "word": "á",
+            "start": 32.61,
+            "end": 33.73
+          },
+          {
+            "word": "a",
+            "start": 33.73,
+            "end": 34.85
+          },
+          {
+            "word": "à",
+            "start": 34.85,
+            "end": 35.97
+          },
+          {
+            "word": "ơi",
+            "start": 35.97,
+            "end": 37.09
+          }
+        ]
+      },
+      {
+        "id": 6,
+        "startTime": 44.68,
+        "endTime": 47.78,
+        "nextLineTime": 47.88,
+        "text": "Nghe theo lời mẹ",
+        "words": [
+          {
+            "word": "Nghe",
+            "start": 44.68,
+            "end": 45.63
+          },
+          {
+            "word": "theo",
+            "start": 45.63,
+            "end": 46.58
+          },
+          {
+            "word": "lời",
+            "start": 46.58,
+            "end": 47.3
+          },
+          {
+            "word": "mẹ",
+            "start": 47.3,
+            "end": 47.78
+          }
+        ]
+      },
+      {
+        "id": 7,
+        "startTime": 47.88,
+        "endTime": 49.37,
+        "nextLineTime": 49.47,
+        "text": "Con bước vào đời",
+        "words": [
+          {
+            "word": "Con",
+            "start": 47.88,
+            "end": 48.22
+          },
+          {
+            "word": "bước",
+            "start": 48.22,
+            "end": 48.68
+          },
+          {
+            "word": "vào",
+            "start": 48.68,
+            "end": 49.02
+          },
+          {
+            "word": "đời",
+            "start": 49.02,
+            "end": 49.36
+          }
+        ]
+      },
+      {
+        "id": 8,
+        "startTime": 49.47,
+        "endTime": 51.48,
+        "nextLineTime": 51.58,
+        "text": "Mang yêu thương làm hành trang",
+        "words": [
+          {
+            "word": "Mang",
+            "start": 49.47,
+            "end": 49.79
+          },
+          {
+            "word": "yêu",
+            "start": 49.79,
+            "end": 50.03
+          },
+          {
+            "word": "thương",
+            "start": 50.03,
+            "end": 50.51
+          },
+          {
+            "word": "làm",
+            "start": 50.51,
+            "end": 50.75
+          },
+          {
+            "word": "hành",
+            "start": 50.75,
+            "end": 51.07
+          },
+          {
+            "word": "trang",
+            "start": 51.07,
+            "end": 51.47
+          }
+        ]
+      },
+      {
+        "id": 9,
+        "startTime": 51.58,
+        "endTime": 53.08,
+        "nextLineTime": 53.18,
+        "text": "Luôn tin mình dù mai",
+        "words": [
+          {
+            "word": "Luôn",
+            "start": 51.58,
+            "end": 51.95
+          },
+          {
+            "word": "tin",
+            "start": 51.95,
+            "end": 52.23
+          },
+          {
+            "word": "mình",
+            "start": 52.23,
+            "end": 52.6
+          },
+          {
+            "word": "dù",
+            "start": 52.6,
+            "end": 52.79
+          },
+          {
+            "word": "mai",
+            "start": 52.79,
+            "end": 53.07
+          }
+        ]
+      },
+      {
+        "id": 10,
+        "startTime": 53.18,
+        "endTime": 56.79,
+        "nextLineTime": 56.89,
+        "text": "Sóng gió vô vàn",
+        "words": [
+          {
+            "word": "Sóng",
+            "start": 53.18,
+            "end": 54.38
+          },
+          {
+            "word": "gió",
+            "start": 54.38,
+            "end": 55.28
+          },
+          {
+            "word": "vô",
+            "start": 55.28,
+            "end": 55.88
+          },
+          {
+            "word": "vàn",
+            "start": 55.88,
+            "end": 56.78
+          }
+        ]
+      },
+      {
+        "id": 11,
+        "startTime": 56.89,
+        "endTime": 59.45,
+        "nextLineTime": 59.55,
+        "text": "Cây có cội và sông có ngàn",
+        "words": [
+          {
+            "word": "Cây",
+            "start": 56.89,
+            "end": 57.27
+          },
+          {
+            "word": "có",
+            "start": 57.27,
+            "end": 57.53
+          },
+          {
+            "word": "cội",
+            "start": 57.53,
+            "end": 57.91
+          },
+          {
+            "word": "và",
+            "start": 57.91,
+            "end": 58.17
+          },
+          {
+            "word": "sông",
+            "start": 58.17,
+            "end": 58.68
+          },
+          {
+            "word": "có",
+            "start": 58.68,
+            "end": 58.94
+          },
+          {
+            "word": "ngàn",
+            "start": 58.94,
+            "end": 59.45
+          }
+        ]
+      },
+      {
+        "id": 12,
+        "startTime": 59.55,
+        "endTime": 61.58,
+        "nextLineTime": 61.68,
+        "text": "Lời mẹ như ánh trăng treo",
+        "words": [
+          {
+            "word": "Lời",
+            "start": 59.55,
+            "end": 59.85
+          },
+          {
+            "word": "mẹ",
+            "start": 59.85,
+            "end": 60.05
+          },
+          {
+            "word": "như",
+            "start": 60.05,
+            "end": 60.35
+          },
+          {
+            "word": "ánh",
+            "start": 60.35,
+            "end": 60.65
+          },
+          {
+            "word": "trăng",
+            "start": 60.65,
+            "end": 61.16
+          },
+          {
+            "word": "treo",
+            "start": 61.16,
+            "end": 61.57
+          }
+        ]
+      },
+      {
+        "id": 13,
+        "startTime": 61.68,
+        "endTime": 63.69,
+        "nextLineTime": 63.79,
+        "text": "Chớ có thấy sóng cả",
+        "words": [
+          {
+            "word": "Chớ",
+            "start": 61.68,
+            "end": 62.08
+          },
+          {
+            "word": "có",
+            "start": 62.08,
+            "end": 62.35
+          },
+          {
+            "word": "thấy",
+            "start": 62.35,
+            "end": 62.89
+          },
+          {
+            "word": "sóng",
+            "start": 62.89,
+            "end": 63.43
+          },
+          {
+            "word": "cả",
+            "start": 63.43,
+            "end": 63.7
+          }
+        ]
+      },
+      {
+        "id": 14,
+        "startTime": 63.79,
+        "endTime": 66.88,
+        "nextLineTime": 66.98,
+        "text": "Mà ngã tay chèo",
+        "words": [
+          {
+            "word": "Mà",
+            "start": 63.79,
+            "end": 64.31
+          },
+          {
+            "word": "ngã",
+            "start": 64.31,
+            "end": 65.08
+          },
+          {
+            "word": "tay",
+            "start": 65.08,
+            "end": 65.85
+          },
+          {
+            "word": "chèo",
+            "start": 65.85,
+            "end": 66.88
+          }
+        ]
+      },
+      {
+        "id": 15,
+        "startTime": 66.98,
+        "endTime": 69.97,
+        "nextLineTime": 70.07,
+        "text": "Biển rộng sóng lớn bão bùng từ muôn phương",
+        "words": [
+          {
+            "word": "Biển",
+            "start": 66.98,
+            "end": 67.33
+          },
+          {
+            "word": "rộng",
+            "start": 67.33,
+            "end": 67.68
+          },
+          {
+            "word": "sóng",
+            "start": 67.68,
+            "end": 68.03
+          },
+          {
+            "word": "lớn",
+            "start": 68.03,
+            "end": 68.29
+          },
+          {
+            "word": "bão",
+            "start": 68.29,
+            "end": 68.55
+          },
+          {
+            "word": "bùng",
+            "start": 68.55,
+            "end": 68.9
+          },
+          {
+            "word": "từ",
+            "start": 68.9,
+            "end": 69.08
+          },
+          {
+            "word": "muôn",
+            "start": 69.08,
+            "end": 69.43
+          },
+          {
+            "word": "phương",
+            "start": 69.43,
+            "end": 69.96
+          }
+        ]
+      },
+      {
+        "id": 16,
+        "startTime": 70.07,
+        "endTime": 72.35,
+        "nextLineTime": 72.45,
+        "text": "Thuyền con vẫn căng buồm",
+        "words": [
+          {
+            "word": "Thuyền",
+            "start": 70.07,
+            "end": 70.75
+          },
+          {
+            "word": "con",
+            "start": 70.75,
+            "end": 71.09
+          },
+          {
+            "word": "vẫn",
+            "start": 71.09,
+            "end": 71.43
+          },
+          {
+            "word": "căng",
+            "start": 71.43,
+            "end": 71.89
+          },
+          {
+            "word": "buồm",
+            "start": 71.89,
+            "end": 72.35
+          }
+        ]
+      },
+      {
+        "id": 17,
+        "startTime": 72.45,
+        "endTime": 75.16,
+        "nextLineTime": 75.26,
+        "text": "Màn đêm có vương nặng vai áo",
+        "words": [
+          {
+            "word": "Màn",
+            "start": 72.45,
+            "end": 72.82
+          },
+          {
+            "word": "đêm",
+            "start": 72.82,
+            "end": 73.19
+          },
+          {
+            "word": "có",
+            "start": 73.19,
+            "end": 73.44
+          },
+          {
+            "word": "vương",
+            "start": 73.44,
+            "end": 74.06
+          },
+          {
+            "word": "nặng",
+            "start": 74.06,
+            "end": 74.55
+          },
+          {
+            "word": "vai",
+            "start": 74.55,
+            "end": 74.92
+          },
+          {
+            "word": "áo",
+            "start": 74.92,
+            "end": 75.17
+          }
+        ]
+      },
+      {
+        "id": 18,
+        "startTime": 75.26,
+        "endTime": 77.93,
+        "nextLineTime": 78.03,
+        "text": "Ướt đẫm bao hạt sương",
+        "words": [
+          {
+            "word": "Ướt",
+            "start": 75.26,
+            "end": 75.73
+          },
+          {
+            "word": "đẫm",
+            "start": 75.73,
+            "end": 76.2
+          },
+          {
+            "word": "bao",
+            "start": 76.2,
+            "end": 76.67
+          },
+          {
+            "word": "hạt",
+            "start": 76.67,
+            "end": 77.14
+          },
+          {
+            "word": "sương",
+            "start": 77.14,
+            "end": 77.93
+          }
+        ]
+      },
+      {
+        "id": 19,
+        "startTime": 78.03,
+        "endTime": 79.15,
+        "nextLineTime": 79.25,
+        "text": "Còn nhiều gian khó",
+        "words": [
+          {
+            "word": "Còn",
+            "start": 78.03,
+            "end": 78.25
+          },
+          {
+            "word": "nhiều",
+            "start": 78.25,
+            "end": 78.62
+          },
+          {
+            "word": "gian",
+            "start": 78.62,
+            "end": 78.92
+          },
+          {
+            "word": "khó",
+            "start": 78.92,
+            "end": 79.14
+          }
+        ]
+      },
+      {
+        "id": 20,
+        "startTime": 79.25,
+        "endTime": 80.73,
+        "nextLineTime": 80.83,
+        "text": "Đang chờ ở phía trước",
+        "words": [
+          {
+            "word": "Đang",
+            "start": 79.25,
+            "end": 79.58
+          },
+          {
+            "word": "chờ",
+            "start": 79.58,
+            "end": 79.83
+          },
+          {
+            "word": "ở",
+            "start": 79.83,
+            "end": 79.99
+          },
+          {
+            "word": "phía",
+            "start": 79.99,
+            "end": 80.32
+          },
+          {
+            "word": "trước",
+            "start": 80.32,
+            "end": 80.73
+          }
+        ]
+      },
+      {
+        "id": 21,
+        "startTime": 80.83,
+        "endTime": 82.71,
+        "nextLineTime": 82.81,
+        "text": "Mẹ dạy con sống kiên cường",
+        "words": [
+          {
+            "word": "Mẹ",
+            "start": 80.83,
+            "end": 81.01
+          },
+          {
+            "word": "dạy",
+            "start": 81.01,
+            "end": 81.28
+          },
+          {
+            "word": "con",
+            "start": 81.28,
+            "end": 81.55
+          },
+          {
+            "word": "sống",
+            "start": 81.55,
+            "end": 81.91
+          },
+          {
+            "word": "kiên",
+            "start": 81.91,
+            "end": 82.27
+          },
+          {
+            "word": "cường",
+            "start": 82.27,
+            "end": 82.72
+          }
+        ]
+      },
+      {
+        "id": 22,
+        "startTime": 82.81,
+        "endTime": 85.92,
+        "nextLineTime": 86.02,
+        "text": "Dù đi xa trăm đường trăm hướng",
+        "words": [
+          {
+            "word": "Dù",
+            "start": 82.81,
+            "end": 83.07
+          },
+          {
+            "word": "đi",
+            "start": 83.07,
+            "end": 83.33
+          },
+          {
+            "word": "xa",
+            "start": 83.33,
+            "end": 83.59
+          },
+          {
+            "word": "trăm",
+            "start": 83.59,
+            "end": 84.11
+          },
+          {
+            "word": "đường",
+            "start": 84.11,
+            "end": 84.76
+          },
+          {
+            "word": "trăm",
+            "start": 84.76,
+            "end": 85.28
+          },
+          {
+            "word": "hướng",
+            "start": 85.28,
+            "end": 85.93
+          }
+        ]
+      },
+      {
+        "id": 23,
+        "startTime": 86.02,
+        "endTime": 89.11,
+        "nextLineTime": 89.21,
+        "text": "Vẫn nhớ về quê hương",
+        "words": [
+          {
+            "word": "Vẫn",
+            "start": 86.02,
+            "end": 86.6
+          },
+          {
+            "word": "nhớ",
+            "start": 86.6,
+            "end": 87.18
+          },
+          {
+            "word": "về",
+            "start": 87.18,
+            "end": 87.57
+          },
+          {
+            "word": "quê",
+            "start": 87.57,
+            "end": 88.15
+          },
+          {
+            "word": "hương",
+            "start": 88.15,
+            "end": 89.12
+          }
+        ]
+      },
+      {
+        "id": 24,
+        "startTime": 89.21,
+        "endTime": 90.68,
+        "nextLineTime": 90.78,
+        "text": "Dạy con cách yêu thương người",
+        "words": [
+          {
+            "word": "Dạy",
+            "start": 89.21,
+            "end": 89.39
+          },
+          {
+            "word": "con",
+            "start": 89.39,
+            "end": 89.57
+          },
+          {
+            "word": "cách",
+            "start": 89.57,
+            "end": 89.81
+          },
+          {
+            "word": "yêu",
+            "start": 89.81,
+            "end": 89.99
+          },
+          {
+            "word": "thương",
+            "start": 89.99,
+            "end": 90.36
+          },
+          {
+            "word": "người",
+            "start": 90.36,
+            "end": 90.67
+          }
+        ]
+      },
+      {
+        "id": 25,
+        "startTime": 90.78,
+        "endTime": 93.61,
+        "nextLineTime": 93.71,
+        "text": "Dạy con khí phách ngút trời",
+        "words": [
+          {
+            "word": "Dạy",
+            "start": 90.78,
+            "end": 91.17
+          },
+          {
+            "word": "con",
+            "start": 91.17,
+            "end": 91.56
+          },
+          {
+            "word": "khí",
+            "start": 91.56,
+            "end": 91.95
+          },
+          {
+            "word": "phách",
+            "start": 91.95,
+            "end": 92.59
+          },
+          {
+            "word": "ngút",
+            "start": 92.59,
+            "end": 93.1
+          },
+          {
+            "word": "trời",
+            "start": 93.1,
+            "end": 93.61
+          }
+        ]
+      },
+      {
+        "id": 26,
+        "startTime": 93.71,
+        "endTime": 95.21,
+        "nextLineTime": 95.31,
+        "text": "Dạy con đứng hiên ngang",
+        "words": [
+          {
+            "word": "Dạy",
+            "start": 93.71,
+            "end": 93.95
+          },
+          {
+            "word": "con",
+            "start": 93.95,
+            "end": 94.19
+          },
+          {
+            "word": "đứng",
+            "start": 94.19,
+            "end": 94.51
+          },
+          {
+            "word": "hiên",
+            "start": 94.51,
+            "end": 94.83
+          },
+          {
+            "word": "ngang",
+            "start": 94.83,
+            "end": 95.22
+          }
+        ]
+      },
+      {
+        "id": 27,
+        "startTime": 95.31,
+        "endTime": 99.51,
+        "nextLineTime": 99.61,
+        "text": "Giữ nước non bờ cõi",
+        "words": [
+          {
+            "word": "Giữ",
+            "start": 95.31,
+            "end": 96.15
+          },
+          {
+            "word": "nước",
+            "start": 96.15,
+            "end": 97.27
+          },
+          {
+            "word": "non",
+            "start": 97.27,
+            "end": 98.11
+          },
+          {
+            "word": "bờ",
+            "start": 98.11,
+            "end": 98.67
+          },
+          {
+            "word": "cõi",
+            "start": 98.67,
+            "end": 99.51
+          }
+        ]
+      },
+      {
+        "id": 28,
+        "startTime": 99.61,
+        "endTime": 101.64,
+        "nextLineTime": 101.74,
+        "text": "Dù làm mây vắt ngang lưng đồi",
+        "words": [
+          {
+            "word": "Dù",
+            "start": 99.61,
+            "end": 99.79
+          },
+          {
+            "word": "làm",
+            "start": 99.79,
+            "end": 100.05
+          },
+          {
+            "word": "mây",
+            "start": 100.05,
+            "end": 100.31
+          },
+          {
+            "word": "vắt",
+            "start": 100.31,
+            "end": 100.57
+          },
+          {
+            "word": "ngang",
+            "start": 100.57,
+            "end": 101.01
+          },
+          {
+            "word": "lưng",
+            "start": 101.01,
+            "end": 101.36
+          },
+          {
+            "word": "đồi",
+            "start": 101.36,
+            "end": 101.62
+          }
+        ]
+      },
+      {
+        "id": 29,
+        "startTime": 101.74,
+        "endTime": 104.35,
+        "nextLineTime": 104.45,
+        "text": "Dù làm con sóng xô ngoài khơi",
+        "words": [
+          {
+            "word": "Dù",
+            "start": 101.74,
+            "end": 101.97
+          },
+          {
+            "word": "làm",
+            "start": 101.97,
+            "end": 102.31
+          },
+          {
+            "word": "con",
+            "start": 102.31,
+            "end": 102.65
+          },
+          {
+            "word": "sóng",
+            "start": 102.65,
+            "end": 103.1
+          },
+          {
+            "word": "xô",
+            "start": 103.1,
+            "end": 103.33
+          },
+          {
+            "word": "ngoài",
+            "start": 103.33,
+            "end": 103.9
+          },
+          {
+            "word": "khơi",
+            "start": 103.9,
+            "end": 104.35
+          }
+        ]
+      },
+      {
+        "id": 30,
+        "startTime": 104.45,
+        "endTime": 105.94,
+        "nextLineTime": 106.04,
+        "text": "Đừng quên tiếng ru cội nguồn",
+        "words": [
+          {
+            "word": "Đừng",
+            "start": 104.45,
+            "end": 104.71
+          },
+          {
+            "word": "quên",
+            "start": 104.71,
+            "end": 104.97
+          },
+          {
+            "word": "tiếng",
+            "start": 104.97,
+            "end": 105.29
+          },
+          {
+            "word": "ru",
+            "start": 105.29,
+            "end": 105.42
+          },
+          {
+            "word": "cội",
+            "start": 105.42,
+            "end": 105.61
+          },
+          {
+            "word": "nguồn",
+            "start": 105.61,
+            "end": 105.93
+          }
+        ]
+      },
+      {
+        "id": 31,
+        "startTime": 106.04,
+        "endTime": 110.72,
+        "nextLineTime": 110.82,
+        "text": "Hỡi đồng bào ơi",
+        "words": [
+          {
+            "word": "Hỡi",
+            "start": 106.04,
+            "end": 107.21
+          },
+          {
+            "word": "đồng",
+            "start": 107.21,
+            "end": 108.77
+          },
+          {
+            "word": "bào",
+            "start": 108.77,
+            "end": 109.94
+          },
+          {
+            "word": "ơi",
+            "start": 109.94,
+            "end": 110.72
+          }
+        ]
+      },
+      {
+        "id": 32,
+        "startTime": 110.82,
+        "endTime": 112.89,
+        "nextLineTime": 112.99,
+        "text": "À a á a ời",
+        "words": [
+          {
+            "word": "À",
+            "start": 110.82,
+            "end": 111.23
+          },
+          {
+            "word": "a",
+            "start": 111.23,
+            "end": 111.64
+          },
+          {
+            "word": "á",
+            "start": 111.64,
+            "end": 112.05
+          },
+          {
+            "word": "a",
+            "start": 112.05,
+            "end": 112.46
+          },
+          {
+            "word": "ời",
+            "start": 112.46,
+            "end": 112.87
+          }
+        ]
+      },
+      {
+        "id": 33,
+        "startTime": 112.99,
+        "endTime": 115.01,
+        "nextLineTime": 115.11,
+        "text": "À a á a ơi",
+        "words": [
+          {
+            "word": "À",
+            "start": 112.99,
+            "end": 113.39
+          },
+          {
+            "word": "a",
+            "start": 113.39,
+            "end": 113.79
+          },
+          {
+            "word": "á",
+            "start": 113.79,
+            "end": 114.19
+          },
+          {
+            "word": "a",
+            "start": 114.19,
+            "end": 114.59
+          },
+          {
+            "word": "ơi",
+            "start": 114.59,
+            "end": 114.99
+          }
+        ]
+      },
+      {
+        "id": 34,
+        "startTime": 115.11,
+        "endTime": 120.71,
+        "nextLineTime": 120.95,
+        "text": "Á a a à ới",
+        "words": [
+          {
+            "word": "Á",
+            "start": 115.11,
+            "end": 116.23
+          },
+          {
+            "word": "a",
+            "start": 116.23,
+            "end": 117.35
+          },
+          {
+            "word": "a",
+            "start": 117.35,
+            "end": 118.47
+          },
+          {
+            "word": "à",
+            "start": 118.47,
+            "end": 119.59
+          },
+          {
+            "word": "ới",
+            "start": 119.59,
+            "end": 120.71
+          }
+        ]
+      },
+      {
+        "id": 35,
+        "startTime": 120.95,
+        "endTime": 122.97,
+        "nextLineTime": 123.07,
+        "text": "À á a a ời",
+        "words": [
+          {
+            "word": "À",
+            "start": 120.95,
+            "end": 121.35
+          },
+          {
+            "word": "á",
+            "start": 121.35,
+            "end": 121.75
+          },
+          {
+            "word": "a",
+            "start": 121.75,
+            "end": 122.15
+          },
+          {
+            "word": "a",
+            "start": 122.15,
+            "end": 122.55
+          },
+          {
+            "word": "ời",
+            "start": 122.55,
+            "end": 122.95
+          }
+        ]
+      },
+      {
+        "id": 36,
+        "startTime": 123.07,
+        "endTime": 125.64,
+        "nextLineTime": 125.74,
+        "text": "À á a à ơi",
+        "words": [
+          {
+            "word": "À",
+            "start": 123.07,
+            "end": 123.58
+          },
+          {
+            "word": "á",
+            "start": 123.58,
+            "end": 124.09
+          },
+          {
+            "word": "a",
+            "start": 124.09,
+            "end": 124.6
+          },
+          {
+            "word": "à",
+            "start": 124.6,
+            "end": 125.11
+          },
+          {
+            "word": "ơi",
+            "start": 125.11,
+            "end": 125.62
+          }
+        ]
+      },
+      {
+        "id": 37,
+        "startTime": 125.74,
+        "endTime": 131.34,
+        "nextLineTime": 157.95,
+        "text": "Á a a à ới",
+        "words": [
+          {
+            "word": "Á",
+            "start": 125.74,
+            "end": 126.86
+          },
+          {
+            "word": "a",
+            "start": 126.86,
+            "end": 127.98
+          },
+          {
+            "word": "a",
+            "start": 127.98,
+            "end": 129.1
+          },
+          {
+            "word": "à",
+            "start": 129.1,
+            "end": 130.22
+          },
+          {
+            "word": "ới",
+            "start": 130.22,
+            "end": 131.34
+          }
+        ]
+      },
+      {
+        "id": 38,
+        "startTime": 157.95,
+        "endTime": 159.92,
+        "nextLineTime": 160.02,
+        "text": "Nghe lời cha là con tiên rồng",
+        "words": [
+          {
+            "word": "Nghe",
+            "start": 157.95,
+            "end": 158.29
+          },
+          {
+            "word": "lời",
+            "start": 158.29,
+            "end": 158.55
+          },
+          {
+            "word": "cha",
+            "start": 158.55,
+            "end": 158.81
+          },
+          {
+            "word": "là",
+            "start": 158.81,
+            "end": 158.98
+          },
+          {
+            "word": "con",
+            "start": 158.98,
+            "end": 159.24
+          },
+          {
+            "word": "tiên",
+            "start": 159.24,
+            "end": 159.58
+          },
+          {
+            "word": "rồng",
+            "start": 159.58,
+            "end": 159.92
+          }
+        ]
+      },
+      {
+        "id": 39,
+        "startTime": 160.02,
+        "endTime": 162.05,
+        "nextLineTime": 162.15,
+        "text": "Thì cưỡi mây trời mà bay",
+        "words": [
+          {
+            "word": "Thì",
+            "start": 160.02,
+            "end": 160.34
+          },
+          {
+            "word": "cưỡi",
+            "start": 160.34,
+            "end": 160.77
+          },
+          {
+            "word": "mây",
+            "start": 160.77,
+            "end": 161.09
+          },
+          {
+            "word": "trời",
+            "start": 161.09,
+            "end": 161.52
+          },
+          {
+            "word": "mà",
+            "start": 161.52,
+            "end": 161.73
+          },
+          {
+            "word": "bay",
+            "start": 161.73,
+            "end": 162.05
+          }
+        ]
+      },
+      {
+        "id": 40,
+        "startTime": 162.15,
+        "endTime": 163.37,
+        "nextLineTime": 163.47,
+        "text": "Thẳng lưng mà tung hoành",
+        "words": [
+          {
+            "word": "Thẳng",
+            "start": 162.15,
+            "end": 162.46
+          },
+          {
+            "word": "lưng",
+            "start": 162.46,
+            "end": 162.7
+          },
+          {
+            "word": "mà",
+            "start": 162.7,
+            "end": 162.82
+          },
+          {
+            "word": "tung",
+            "start": 162.82,
+            "end": 163.06
+          },
+          {
+            "word": "hoành",
+            "start": 163.06,
+            "end": 163.37
+          }
+        ]
+      },
+      {
+        "id": 41,
+        "startTime": 163.47,
+        "endTime": 164.7,
+        "nextLineTime": 164.8,
+        "text": "Dẫu thế thời đổi thay",
+        "words": [
+          {
+            "word": "Dẫu",
+            "start": 163.47,
+            "end": 163.69
+          },
+          {
+            "word": "thế",
+            "start": 163.69,
+            "end": 163.91
+          },
+          {
+            "word": "thời",
+            "start": 163.91,
+            "end": 164.2
+          },
+          {
+            "word": "đổi",
+            "start": 164.2,
+            "end": 164.42
+          },
+          {
+            "word": "thay",
+            "start": 164.42,
+            "end": 164.71
+          }
+        ]
+      },
+      {
+        "id": 42,
+        "startTime": 164.8,
+        "endTime": 167.89,
+        "nextLineTime": 167.99,
+        "text": "Ngựa phi nước đại kiên cường mà đi",
+        "words": [
+          {
+            "word": "Ngựa",
+            "start": 164.8,
+            "end": 165.26
+          },
+          {
+            "word": "phi",
+            "start": 165.26,
+            "end": 165.6
+          },
+          {
+            "word": "nước",
+            "start": 165.6,
+            "end": 166.06
+          },
+          {
+            "word": "đại",
+            "start": 166.06,
+            "end": 166.4
+          },
+          {
+            "word": "kiên",
+            "start": 166.4,
+            "end": 166.86
+          },
+          {
+            "word": "cường",
+            "start": 166.86,
+            "end": 167.43
+          },
+          {
+            "word": "mà",
+            "start": 167.43,
+            "end": 167.66
+          },
+          {
+            "word": "đi",
+            "start": 167.66,
+            "end": 167.89
+          }
+        ]
+      },
+      {
+        "id": 43,
+        "startTime": 167.99,
+        "endTime": 170.55,
+        "nextLineTime": 170.65,
+        "text": "Đội non nước trên vai",
+        "words": [
+          {
+            "word": "Đội",
+            "start": 167.99,
+            "end": 168.44
+          },
+          {
+            "word": "non",
+            "start": 168.44,
+            "end": 168.89
+          },
+          {
+            "word": "nước",
+            "start": 168.89,
+            "end": 169.49
+          },
+          {
+            "word": "trên",
+            "start": 169.49,
+            "end": 170.09
+          },
+          {
+            "word": "vai",
+            "start": 170.09,
+            "end": 170.54
+          }
+        ]
+      },
+      {
+        "id": 44,
+        "startTime": 170.65,
+        "endTime": 171.6,
+        "nextLineTime": 171.7,
+        "text": "Dạy con rồng lượn rồng bay",
+        "words": [
+          {
+            "word": "Dạy",
+            "start": 170.65,
+            "end": 170.79
+          },
+          {
+            "word": "con",
+            "start": 170.79,
+            "end": 170.93
+          },
+          {
+            "word": "rồng",
+            "start": 170.93,
+            "end": 171.11
+          },
+          {
+            "word": "lượn",
+            "start": 171.11,
+            "end": 171.29
+          },
+          {
+            "word": "rồng",
+            "start": 171.29,
+            "end": 171.47
+          },
+          {
+            "word": "bay",
+            "start": 171.47,
+            "end": 171.61
+          }
+        ]
+      },
+      {
+        "id": 45,
+        "startTime": 171.7,
+        "endTime": 172.94,
+        "nextLineTime": 173.04,
+        "text": "Dù đôi khi rồng chao rồng đảo",
+        "words": [
+          {
+            "word": "Dù",
+            "start": 171.7,
+            "end": 171.81
+          },
+          {
+            "word": "đôi",
+            "start": 171.81,
+            "end": 171.97
+          },
+          {
+            "word": "khi",
+            "start": 171.97,
+            "end": 172.13
+          },
+          {
+            "word": "rồng",
+            "start": 172.13,
+            "end": 172.35
+          },
+          {
+            "word": "chao",
+            "start": 172.35,
+            "end": 172.57
+          },
+          {
+            "word": "rồng",
+            "start": 172.57,
+            "end": 172.79
+          },
+          {
+            "word": "đảo",
+            "start": 172.79,
+            "end": 172.95
+          }
+        ]
+      },
+      {
+        "id": 46,
+        "startTime": 173.04,
+        "endTime": 174.26,
+        "nextLineTime": 174.36,
+        "text": "Nhưng con không được phép cúi đầu",
+        "words": [
+          {
+            "word": "Nhưng",
+            "start": 173.04,
+            "end": 173.27
+          },
+          {
+            "word": "con",
+            "start": 173.27,
+            "end": 173.41
+          },
+          {
+            "word": "không",
+            "start": 173.41,
+            "end": 173.64
+          },
+          {
+            "word": "được",
+            "start": 173.64,
+            "end": 173.82
+          },
+          {
+            "word": "phép",
+            "start": 173.82,
+            "end": 174.0
+          },
+          {
+            "word": "cúi",
+            "start": 174.0,
+            "end": 174.14
+          },
+          {
+            "word": "đầu",
+            "start": 174.14,
+            "end": 174.28
+          }
+        ]
+      },
+      {
+        "id": 47,
+        "startTime": 174.36,
+        "endTime": 175.86,
+        "nextLineTime": 175.96,
+        "text": "Đời nhân đời quả người vay người trả",
+        "words": [
+          {
+            "word": "Đời",
+            "start": 174.36,
+            "end": 174.52
+          },
+          {
+            "word": "nhân",
+            "start": 174.52,
+            "end": 174.73
+          },
+          {
+            "word": "đời",
+            "start": 174.73,
+            "end": 174.89
+          },
+          {
+            "word": "quả",
+            "start": 174.89,
+            "end": 175.05
+          },
+          {
+            "word": "người",
+            "start": 175.05,
+            "end": 175.31
+          },
+          {
+            "word": "vay",
+            "start": 175.31,
+            "end": 175.47
+          },
+          {
+            "word": "người",
+            "start": 175.47,
+            "end": 175.73
+          },
+          {
+            "word": "trả",
+            "start": 175.73,
+            "end": 175.89
+          }
+        ]
+      },
+      {
+        "id": 48,
+        "startTime": 175.96,
+        "endTime": 177.45,
+        "nextLineTime": 177.55,
+        "text": "Qua cầu thì phải biết nông sâu",
+        "words": [
+          {
+            "word": "Qua",
+            "start": 175.96,
+            "end": 176.15
+          },
+          {
+            "word": "cầu",
+            "start": 176.15,
+            "end": 176.34
+          },
+          {
+            "word": "thì",
+            "start": 176.34,
+            "end": 176.53
+          },
+          {
+            "word": "phải",
+            "start": 176.53,
+            "end": 176.78
+          },
+          {
+            "word": "biết",
+            "start": 176.78,
+            "end": 177.03
+          },
+          {
+            "word": "nông",
+            "start": 177.03,
+            "end": 177.28
+          },
+          {
+            "word": "sâu",
+            "start": 177.28,
+            "end": 177.47
+          }
+        ]
+      },
+      {
+        "id": 49,
+        "startTime": 177.55,
+        "endTime": 178.78,
+        "nextLineTime": 178.88,
+        "text": "Non sông kết thành vần câu",
+        "words": [
+          {
+            "word": "Non",
+            "start": 177.55,
+            "end": 177.73
+          },
+          {
+            "word": "sông",
+            "start": 177.73,
+            "end": 177.96
+          },
+          {
+            "word": "kết",
+            "start": 177.96,
+            "end": 178.14
+          },
+          {
+            "word": "thành",
+            "start": 178.14,
+            "end": 178.43
+          },
+          {
+            "word": "vần",
+            "start": 178.43,
+            "end": 178.61
+          },
+          {
+            "word": "câu",
+            "start": 178.61,
+            "end": 178.79
+          }
+        ]
+      },
+      {
+        "id": 50,
+        "startTime": 178.88,
+        "endTime": 180.38,
+        "nextLineTime": 180.48,
+        "text": "Anh em hợp ý tâm đầu",
+        "words": [
+          {
+            "word": "Anh",
+            "start": 178.88,
+            "end": 179.16
+          },
+          {
+            "word": "em",
+            "start": 179.16,
+            "end": 179.35
+          },
+          {
+            "word": "hợp",
+            "start": 179.35,
+            "end": 179.63
+          },
+          {
+            "word": "ý",
+            "start": 179.63,
+            "end": 179.82
+          },
+          {
+            "word": "tâm",
+            "start": 179.82,
+            "end": 180.1
+          },
+          {
+            "word": "đầu",
+            "start": 180.1,
+            "end": 180.38
+          }
+        ]
+      },
+      {
+        "id": 51,
+        "startTime": 180.48,
+        "endTime": 181.97,
+        "nextLineTime": 182.07,
+        "text": "Ta say nghĩa tình đậm sâu",
+        "words": [
+          {
+            "word": "Ta",
+            "start": 180.48,
+            "end": 180.63
+          },
+          {
+            "word": "say",
+            "start": 180.63,
+            "end": 180.85
+          },
+          {
+            "word": "nghĩa",
+            "start": 180.85,
+            "end": 181.22
+          },
+          {
+            "word": "tình",
+            "start": 181.22,
+            "end": 181.52
+          },
+          {
+            "word": "đậm",
+            "start": 181.52,
+            "end": 181.74
+          },
+          {
+            "word": "sâu",
+            "start": 181.74,
+            "end": 181.96
+          }
+        ]
+      },
+      {
+        "id": 52,
+        "startTime": 182.07,
+        "endTime": 182.87,
+        "nextLineTime": 182.86,
+        "text": "Ngoắc cả cần câu",
+        "words": [
+          {
+            "word": "Ngoắc",
+            "start": 182.07,
+            "end": 182.38
+          },
+          {
+            "word": "cả",
+            "start": 182.38,
+            "end": 182.5
+          },
+          {
+            "word": "cần",
+            "start": 182.5,
+            "end": 182.68
+          },
+          {
+            "word": "câu",
+            "start": 182.68,
+            "end": 182.86
+          }
+        ]
+      },
+      {
+        "id": 53,
+        "startTime": 182.86,
+        "endTime": 184.36,
+        "nextLineTime": 184.46,
+        "text": "Nghe lời cha nên con phải kiên cường",
+        "words": [
+          {
+            "word": "Nghe",
+            "start": 182.86,
+            "end": 183.07
+          },
+          {
+            "word": "lời",
+            "start": 183.07,
+            "end": 183.23
+          },
+          {
+            "word": "cha",
+            "start": 183.23,
+            "end": 183.39
+          },
+          {
+            "word": "nên",
+            "start": 183.39,
+            "end": 183.55
+          },
+          {
+            "word": "con",
+            "start": 183.55,
+            "end": 183.71
+          },
+          {
+            "word": "phải",
+            "start": 183.71,
+            "end": 183.92
+          },
+          {
+            "word": "kiên",
+            "start": 183.92,
+            "end": 184.13
+          },
+          {
+            "word": "cường",
+            "start": 184.13,
+            "end": 184.39
+          }
+        ]
+      },
+      {
+        "id": 54,
+        "startTime": 184.46,
+        "endTime": 185.26,
+        "nextLineTime": 185.26,
+        "text": "Vì cuộc đời đôi khi",
+        "words": [
+          {
+            "word": "Vì",
+            "start": 184.46,
+            "end": 184.57
+          },
+          {
+            "word": "cuộc",
+            "start": 184.57,
+            "end": 184.78
+          },
+          {
+            "word": "đời",
+            "start": 184.78,
+            "end": 184.94
+          },
+          {
+            "word": "đôi",
+            "start": 184.94,
+            "end": 185.1
+          },
+          {
+            "word": "khi",
+            "start": 185.1,
+            "end": 185.26
+          }
+        ]
+      },
+      {
+        "id": 55,
+        "startTime": 185.26,
+        "endTime": 186.06,
+        "nextLineTime": 186.05,
+        "text": "Không ngọt như viên đường",
+        "words": [
+          {
+            "word": "Không",
+            "start": 185.26,
+            "end": 185.45
+          },
+          {
+            "word": "ngọt",
+            "start": 185.45,
+            "end": 185.6
+          },
+          {
+            "word": "như",
+            "start": 185.6,
+            "end": 185.71
+          },
+          {
+            "word": "viên",
+            "start": 185.71,
+            "end": 185.86
+          },
+          {
+            "word": "đường",
+            "start": 185.86,
+            "end": 186.05
+          }
+        ]
+      },
+      {
+        "id": 56,
+        "startTime": 186.05,
+        "endTime": 187.29,
+        "nextLineTime": 187.39,
+        "text": "Trên lưng ngựa phải chắc cái dây cương",
+        "words": [
+          {
+            "word": "Trên",
+            "start": 186.05,
+            "end": 186.21
+          },
+          {
+            "word": "lưng",
+            "start": 186.21,
+            "end": 186.37
+          },
+          {
+            "word": "ngựa",
+            "start": 186.37,
+            "end": 186.53
+          },
+          {
+            "word": "phải",
+            "start": 186.53,
+            "end": 186.69
+          },
+          {
+            "word": "chắc",
+            "start": 186.69,
+            "end": 186.85
+          },
+          {
+            "word": "cái",
+            "start": 186.85,
+            "end": 186.97
+          },
+          {
+            "word": "dây",
+            "start": 186.97,
+            "end": 187.09
+          },
+          {
+            "word": "cương",
+            "start": 187.09,
+            "end": 187.29
+          }
+        ]
+      },
+      {
+        "id": 57,
+        "startTime": 187.39,
+        "endTime": 188.19,
+        "nextLineTime": 187.92,
+        "text": "Đầu ngẩng cao",
+        "words": [
+          {
+            "word": "Đầu",
+            "start": 187.39,
+            "end": 187.61
+          },
+          {
+            "word": "ngẩng",
+            "start": 187.61,
+            "end": 187.97
+          },
+          {
+            "word": "cao",
+            "start": 187.97,
+            "end": 188.19
+          }
+        ]
+      },
+      {
+        "id": 58,
+        "startTime": 187.92,
+        "endTime": 188.88,
+        "nextLineTime": 188.98,
+        "text": "Nhưng luôn phải khiêm nhường",
+        "words": [
+          {
+            "word": "Nhưng",
+            "start": 187.92,
+            "end": 188.12
+          },
+          {
+            "word": "luôn",
+            "start": 188.12,
+            "end": 188.28
+          },
+          {
+            "word": "phải",
+            "start": 188.28,
+            "end": 188.44
+          },
+          {
+            "word": "khiêm",
+            "start": 188.44,
+            "end": 188.64
+          },
+          {
+            "word": "nhường",
+            "start": 188.64,
+            "end": 188.88
+          }
+        ]
+      },
+      {
+        "id": 59,
+        "startTime": 188.98,
+        "endTime": 189.78,
+        "nextLineTime": 189.77,
+        "text": "Trách nhiệm trên vai",
+        "words": [
+          {
+            "word": "Trách",
+            "start": 188.98,
+            "end": 189.22
+          },
+          {
+            "word": "nhiệm",
+            "start": 189.22,
+            "end": 189.46
+          },
+          {
+            "word": "trên",
+            "start": 189.46,
+            "end": 189.65
+          },
+          {
+            "word": "vai",
+            "start": 189.65,
+            "end": 189.79
+          }
+        ]
+      },
+      {
+        "id": 60,
+        "startTime": 189.77,
+        "endTime": 191.0,
+        "nextLineTime": 191.1,
+        "text": "Phải gánh vác vì con là thân trai",
+        "words": [
+          {
+            "word": "Phải",
+            "start": 189.77,
+            "end": 189.96
+          },
+          {
+            "word": "gánh",
+            "start": 189.96,
+            "end": 190.15
+          },
+          {
+            "word": "vác",
+            "start": 190.15,
+            "end": 190.29
+          },
+          {
+            "word": "vì",
+            "start": 190.29,
+            "end": 190.38
+          },
+          {
+            "word": "con",
+            "start": 190.38,
+            "end": 190.52
+          },
+          {
+            "word": "là",
+            "start": 190.52,
+            "end": 190.61
+          },
+          {
+            "word": "thân",
+            "start": 190.61,
+            "end": 190.8
+          },
+          {
+            "word": "trai",
+            "start": 190.8,
+            "end": 190.99
+          }
+        ]
+      },
+      {
+        "id": 61,
+        "startTime": 191.1,
+        "endTime": 192.86,
+        "nextLineTime": 192.96,
+        "text": "Biết cho đi và biết cách nhận lại",
+        "words": [
+          {
+            "word": "Biết",
+            "start": 191.1,
+            "end": 191.37
+          },
+          {
+            "word": "cho",
+            "start": 191.37,
+            "end": 191.57
+          },
+          {
+            "word": "đi",
+            "start": 191.57,
+            "end": 191.71
+          },
+          {
+            "word": "và",
+            "start": 191.71,
+            "end": 191.85
+          },
+          {
+            "word": "biết",
+            "start": 191.85,
+            "end": 192.12
+          },
+          {
+            "word": "cách",
+            "start": 192.12,
+            "end": 192.39
+          },
+          {
+            "word": "nhận",
+            "start": 192.39,
+            "end": 192.66
+          },
+          {
+            "word": "lại",
+            "start": 192.66,
+            "end": 192.86
+          }
+        ]
+      },
+      {
+        "id": 62,
+        "startTime": 192.96,
+        "endTime": 193.76,
+        "nextLineTime": 193.76,
+        "text": "Biết cách đối diện",
+        "words": [
+          {
+            "word": "Biết",
+            "start": 192.96,
+            "end": 193.17
+          },
+          {
+            "word": "cách",
+            "start": 193.17,
+            "end": 193.38
+          },
+          {
+            "word": "đối",
+            "start": 193.38,
+            "end": 193.54
+          },
+          {
+            "word": "diện",
+            "start": 193.54,
+            "end": 193.75
+          }
+        ]
+      },
+      {
+        "id": 63,
+        "startTime": 193.76,
+        "endTime": 195.44,
+        "nextLineTime": 195.54,
+        "text": "Và biết cách sửa sai",
+        "words": [
+          {
+            "word": "Và",
+            "start": 193.76,
+            "end": 193.97
+          },
+          {
+            "word": "biết",
+            "start": 193.97,
+            "end": 194.39
+          },
+          {
+            "word": "cách",
+            "start": 194.39,
+            "end": 194.81
+          },
+          {
+            "word": "sửa",
+            "start": 194.81,
+            "end": 195.12
+          },
+          {
+            "word": "sai",
+            "start": 195.12,
+            "end": 195.44
+          }
+        ]
+      },
+      {
+        "id": 64,
+        "startTime": 195.54,
+        "endTime": 196.51,
+        "nextLineTime": 196.61,
+        "text": "Mai đây con đi xa đam mê",
+        "words": [
+          {
+            "word": "Mai",
+            "start": 195.54,
+            "end": 195.7
+          },
+          {
+            "word": "đây",
+            "start": 195.7,
+            "end": 195.86
+          },
+          {
+            "word": "con",
+            "start": 195.86,
+            "end": 196.02
+          },
+          {
+            "word": "đi",
+            "start": 196.02,
+            "end": 196.13
+          },
+          {
+            "word": "xa",
+            "start": 196.13,
+            "end": 196.24
+          },
+          {
+            "word": "đam",
+            "start": 196.24,
+            "end": 196.4
+          },
+          {
+            "word": "mê",
+            "start": 196.4,
+            "end": 196.51
+          }
+        ]
+      },
+      {
+        "id": 65,
+        "startTime": 196.61,
+        "endTime": 197.41,
+        "nextLineTime": 197.41,
+        "text": "Trong tim đưa con bay cao",
+        "words": [
+          {
+            "word": "Trong",
+            "start": 196.61,
+            "end": 196.81
+          },
+          {
+            "word": "tim",
+            "start": 196.81,
+            "end": 196.93
+          },
+          {
+            "word": "đưa",
+            "start": 196.93,
+            "end": 197.05
+          },
+          {
+            "word": "con",
+            "start": 197.05,
+            "end": 197.17
+          },
+          {
+            "word": "bay",
+            "start": 197.17,
+            "end": 197.29
+          },
+          {
+            "word": "cao",
+            "start": 197.29,
+            "end": 197.41
+          }
+        ]
+      },
+      {
+        "id": 66,
+        "startTime": 197.41,
+        "endTime": 198.21,
+        "nextLineTime": 198.21,
+        "text": "Trong thâm tâm luôn mang theo",
+        "words": [
+          {
+            "word": "Trong",
+            "start": 197.41,
+            "end": 197.58
+          },
+          {
+            "word": "thâm",
+            "start": 197.58,
+            "end": 197.71
+          },
+          {
+            "word": "tâm",
+            "start": 197.71,
+            "end": 197.81
+          },
+          {
+            "word": "luôn",
+            "start": 197.81,
+            "end": 197.94
+          },
+          {
+            "word": "mang",
+            "start": 197.94,
+            "end": 198.07
+          },
+          {
+            "word": "theo",
+            "start": 198.07,
+            "end": 198.2
+          }
+        ]
+      },
+      {
+        "id": 67,
+        "startTime": 198.21,
+        "endTime": 199.01,
+        "nextLineTime": 199.01,
+        "text": "Lời căn dặn ngày nào",
+        "words": [
+          {
+            "word": "Lời",
+            "start": 198.21,
+            "end": 198.36
+          },
+          {
+            "word": "căn",
+            "start": 198.36,
+            "end": 198.51
+          },
+          {
+            "word": "dặn",
+            "start": 198.51,
+            "end": 198.66
+          },
+          {
+            "word": "ngày",
+            "start": 198.66,
+            "end": 198.86
+          },
+          {
+            "word": "nào",
+            "start": 198.86,
+            "end": 199.01
+          }
+        ]
+      },
+      {
+        "id": 68,
+        "startTime": 199.01,
+        "endTime": 199.81,
+        "nextLineTime": 199.73,
+        "text": "Thân nam nhi nên không lung lay",
+        "words": [
+          {
+            "word": "Thân",
+            "start": 199.01,
+            "end": 199.14
+          },
+          {
+            "word": "nam",
+            "start": 199.14,
+            "end": 199.24
+          },
+          {
+            "word": "nhi",
+            "start": 199.24,
+            "end": 199.34
+          },
+          {
+            "word": "nên",
+            "start": 199.34,
+            "end": 199.44
+          },
+          {
+            "word": "không",
+            "start": 199.44,
+            "end": 199.6
+          },
+          {
+            "word": "lung",
+            "start": 199.6,
+            "end": 199.73
+          },
+          {
+            "word": "lay",
+            "start": 199.73,
+            "end": 199.83
+          }
+        ]
+      },
+      {
+        "id": 69,
+        "startTime": 199.73,
+        "endTime": 200.53,
+        "nextLineTime": 200.2,
+        "text": "Vì ba cái chuyện tầm phào",
+        "words": [
+          {
+            "word": "Vì",
+            "start": 199.73,
+            "end": 199.81
+          },
+          {
+            "word": "ba",
+            "start": 199.81,
+            "end": 199.89
+          },
+          {
+            "word": "cái",
+            "start": 199.89,
+            "end": 200.01
+          },
+          {
+            "word": "chuyện",
+            "start": 200.01,
+            "end": 200.25
+          },
+          {
+            "word": "tầm",
+            "start": 200.25,
+            "end": 200.37
+          },
+          {
+            "word": "phào",
+            "start": 200.37,
+            "end": 200.53
+          }
+        ]
+      },
+      {
+        "id": 70,
+        "startTime": 200.2,
+        "endTime": 201.0,
+        "nextLineTime": 200.99,
+        "text": "Phải bỏ ngoài tai mấy lời xì xào",
+        "words": [
+          {
+            "word": "Phải",
+            "start": 200.2,
+            "end": 200.33
+          },
+          {
+            "word": "bỏ",
+            "start": 200.33,
+            "end": 200.39
+          },
+          {
+            "word": "ngoài",
+            "start": 200.39,
+            "end": 200.55
+          },
+          {
+            "word": "tai",
+            "start": 200.55,
+            "end": 200.65
+          },
+          {
+            "word": "mấy",
+            "start": 200.65,
+            "end": 200.75
+          },
+          {
+            "word": "lời",
+            "start": 200.75,
+            "end": 200.85
+          },
+          {
+            "word": "xì",
+            "start": 200.85,
+            "end": 200.91
+          },
+          {
+            "word": "xào",
+            "start": 200.91,
+            "end": 201.01
+          }
+        ]
+      },
+      {
+        "id": 71,
+        "startTime": 200.99,
+        "endTime": 201.88,
+        "nextLineTime": 201.98,
+        "text": "Làm từng người yêu mến con tự hào",
+        "words": [
+          {
+            "word": "Làm",
+            "start": 200.99,
+            "end": 201.09
+          },
+          {
+            "word": "từng",
+            "start": 201.09,
+            "end": 201.23
+          },
+          {
+            "word": "người",
+            "start": 201.23,
+            "end": 201.4
+          },
+          {
+            "word": "yêu",
+            "start": 201.4,
+            "end": 201.5
+          },
+          {
+            "word": "mến",
+            "start": 201.5,
+            "end": 201.6
+          },
+          {
+            "word": "con",
+            "start": 201.6,
+            "end": 201.7
+          },
+          {
+            "word": "tự",
+            "start": 201.7,
+            "end": 201.77
+          },
+          {
+            "word": "hào",
+            "start": 201.77,
+            "end": 201.87
+          }
+        ]
+      },
+      {
+        "id": 72,
+        "startTime": 201.98,
+        "endTime": 203.49,
+        "nextLineTime": 203.59,
+        "text": "Lao vào đời và con lại chiến đấu",
+        "words": [
+          {
+            "word": "Lao",
+            "start": 201.98,
+            "end": 202.16
+          },
+          {
+            "word": "vào",
+            "start": 202.16,
+            "end": 202.34
+          },
+          {
+            "word": "đời",
+            "start": 202.34,
+            "end": 202.52
+          },
+          {
+            "word": "và",
+            "start": 202.52,
+            "end": 202.64
+          },
+          {
+            "word": "con",
+            "start": 202.64,
+            "end": 202.82
+          },
+          {
+            "word": "lại",
+            "start": 202.82,
+            "end": 203.0
+          },
+          {
+            "word": "chiến",
+            "start": 203.0,
+            "end": 203.3
+          },
+          {
+            "word": "đấu",
+            "start": 203.3,
+            "end": 203.48
+          }
+        ]
+      },
+      {
+        "id": 73,
+        "startTime": 203.59,
+        "endTime": 204.82,
+        "nextLineTime": 204.92,
+        "text": "Từng bản nhạc để con biến tấu",
+        "words": [
+          {
+            "word": "Từng",
+            "start": 203.59,
+            "end": 203.8
+          },
+          {
+            "word": "bản",
+            "start": 203.8,
+            "end": 203.96
+          },
+          {
+            "word": "nhạc",
+            "start": 203.96,
+            "end": 204.17
+          },
+          {
+            "word": "để",
+            "start": 204.17,
+            "end": 204.28
+          },
+          {
+            "word": "con",
+            "start": 204.28,
+            "end": 204.44
+          },
+          {
+            "word": "biến",
+            "start": 204.44,
+            "end": 204.65
+          },
+          {
+            "word": "tấu",
+            "start": 204.65,
+            "end": 204.81
+          }
+        ]
+      },
+      {
+        "id": 74,
+        "startTime": 204.92,
+        "endTime": 205.72,
+        "nextLineTime": 205.73,
+        "text": "Con làm vì gia đình",
+        "words": [
+          {
+            "word": "Con",
+            "start": 204.92,
+            "end": 205.08
+          },
+          {
+            "word": "làm",
+            "start": 205.08,
+            "end": 205.24
+          },
+          {
+            "word": "vì",
+            "start": 205.24,
+            "end": 205.35
+          },
+          {
+            "word": "gia",
+            "start": 205.35,
+            "end": 205.51
+          },
+          {
+            "word": "đình",
+            "start": 205.51,
+            "end": 205.72
+          }
+        ]
+      },
+      {
+        "id": 75,
+        "startTime": 205.73,
+        "endTime": 206.53,
+        "nextLineTime": 206.52,
+        "text": "Và vì mảnh đất thiêng",
+        "words": [
+          {
+            "word": "Và",
+            "start": 205.73,
+            "end": 205.82
+          },
+          {
+            "word": "vì",
+            "start": 205.82,
+            "end": 205.91
+          },
+          {
+            "word": "mảnh",
+            "start": 205.91,
+            "end": 206.1
+          },
+          {
+            "word": "đất",
+            "start": 206.1,
+            "end": 206.24
+          },
+          {
+            "word": "thiêng",
+            "start": 206.24,
+            "end": 206.52
+          }
+        ]
+      },
+      {
+        "id": 76,
+        "startTime": 206.52,
+        "endTime": 207.48,
+        "nextLineTime": 207.58,
+        "text": "Bởi vì trong huyết quản",
+        "words": [
+          {
+            "word": "Bởi",
+            "start": 206.52,
+            "end": 206.67
+          },
+          {
+            "word": "vì",
+            "start": 206.67,
+            "end": 206.77
+          },
+          {
+            "word": "trong",
+            "start": 206.77,
+            "end": 207.02
+          },
+          {
+            "word": "huyết",
+            "start": 207.02,
+            "end": 207.27
+          },
+          {
+            "word": "quản",
+            "start": 207.27,
+            "end": 207.47
+          }
+        ]
+      },
+      {
+        "id": 77,
+        "startTime": 207.58,
+        "endTime": 213.18,
+        "nextLineTime": 241.75,
+        "text": "Là con rồng cháu tiên",
+        "words": [
+          {
+            "word": "Là",
+            "start": 207.58,
+            "end": 208.24
+          },
+          {
+            "word": "con",
+            "start": 208.24,
+            "end": 209.23
+          },
+          {
+            "word": "rồng",
+            "start": 209.23,
+            "end": 210.55
+          },
+          {
+            "word": "cháu",
+            "start": 210.55,
+            "end": 211.87
+          },
+          {
+            "word": "tiên",
+            "start": 211.87,
+            "end": 213.19
+          }
+        ]
+      },
+      {
+        "id": 78,
+        "startTime": 241.75,
+        "endTime": 245.37,
+        "nextLineTime": 245.47,
+        "text": "Giống rồng tiên dựng sơn hà",
+        "words": [
+          {
+            "word": "Giống",
+            "start": 241.75,
+            "end": 242.57
+          },
+          {
+            "word": "rồng",
+            "start": 242.57,
+            "end": 243.23
+          },
+          {
+            "word": "tiên",
+            "start": 243.23,
+            "end": 243.89
+          },
+          {
+            "word": "dựng",
+            "start": 243.89,
+            "end": 244.55
+          },
+          {
+            "word": "sơn",
+            "start": 244.55,
+            "end": 245.04
+          },
+          {
+            "word": "hà",
+            "start": 245.04,
+            "end": 245.37
+          }
+        ]
+      },
+      {
+        "id": 79,
+        "startTime": 245.47,
+        "endTime": 251.07,
+        "nextLineTime": 252.93,
+        "text": "Trăm con chung một mái nhà yêu thương",
+        "words": [
+          {
+            "word": "Trăm",
+            "start": 245.47,
+            "end": 246.22
+          },
+          {
+            "word": "con",
+            "start": 246.22,
+            "end": 246.78
+          },
+          {
+            "word": "chung",
+            "start": 246.78,
+            "end": 247.71
+          },
+          {
+            "word": "một",
+            "start": 247.71,
+            "end": 248.27
+          },
+          {
+            "word": "mái",
+            "start": 248.27,
+            "end": 248.83
+          },
+          {
+            "word": "nhà",
+            "start": 248.83,
+            "end": 249.39
+          },
+          {
+            "word": "yêu",
+            "start": 249.39,
+            "end": 249.95
+          },
+          {
+            "word": "thương",
+            "start": 249.95,
+            "end": 251.07
+          }
+        ]
+      },
+      {
+        "id": 80,
+        "startTime": 252.93,
+        "endTime": 256.01,
+        "nextLineTime": 256.11,
+        "text": "Thăng Long vươn xa văn hiến ngàn năm",
+        "words": [
+          {
+            "word": "Thăng",
+            "start": 252.93,
+            "end": 253.46
+          },
+          {
+            "word": "Long",
+            "start": 253.46,
+            "end": 253.88
+          },
+          {
+            "word": "vươn",
+            "start": 253.88,
+            "end": 254.3
+          },
+          {
+            "word": "xa",
+            "start": 254.3,
+            "end": 254.51
+          },
+          {
+            "word": "văn",
+            "start": 254.51,
+            "end": 254.83
+          },
+          {
+            "word": "hiến",
+            "start": 254.83,
+            "end": 255.25
+          },
+          {
+            "word": "ngàn",
+            "start": 255.25,
+            "end": 255.67
+          },
+          {
+            "word": "năm",
+            "start": 255.67,
+            "end": 255.99
+          }
+        ]
+      },
+      {
+        "id": 81,
+        "startTime": 256.11,
+        "endTime": 258.12,
+        "nextLineTime": 258.22,
+        "text": "Đất trời son sắc nòi giống",
+        "words": [
+          {
+            "word": "Đất",
+            "start": 256.11,
+            "end": 256.4
+          },
+          {
+            "word": "trời",
+            "start": 256.4,
+            "end": 256.78
+          },
+          {
+            "word": "son",
+            "start": 256.78,
+            "end": 257.07
+          },
+          {
+            "word": "sắc",
+            "start": 257.07,
+            "end": 257.36
+          },
+          {
+            "word": "nòi",
+            "start": 257.36,
+            "end": 257.65
+          },
+          {
+            "word": "giống",
+            "start": 257.65,
+            "end": 258.13
+          }
+        ]
+      },
+      {
+        "id": 82,
+        "startTime": 258.22,
+        "endTime": 259.72,
+        "nextLineTime": 259.82,
+        "text": "Tiên trang sử vàng",
+        "words": [
+          {
+            "word": "Tiên",
+            "start": 258.22,
+            "end": 258.62
+          },
+          {
+            "word": "trang",
+            "start": 258.62,
+            "end": 259.12
+          },
+          {
+            "word": "sử",
+            "start": 259.12,
+            "end": 259.32
+          },
+          {
+            "word": "vàng",
+            "start": 259.32,
+            "end": 259.72
+          }
+        ]
+      },
+      {
+        "id": 83,
+        "startTime": 259.82,
+        "endTime": 261.73,
+        "nextLineTime": 261.83,
+        "text": "A ới a á a a à à a a",
+        "words": [
+          {
+            "word": "A",
+            "start": 259.82,
+            "end": 260.01
+          },
+          {
+            "word": "ới",
+            "start": 260.01,
+            "end": 260.2
+          },
+          {
+            "word": "a",
+            "start": 260.2,
+            "end": 260.39
+          },
+          {
+            "word": "á",
+            "start": 260.39,
+            "end": 260.58
+          },
+          {
+            "word": "a",
+            "start": 260.58,
+            "end": 260.77
+          },
+          {
+            "word": "a",
+            "start": 260.77,
+            "end": 260.96
+          },
+          {
+            "word": "à",
+            "start": 260.96,
+            "end": 261.15
+          },
+          {
+            "word": "à",
+            "start": 261.15,
+            "end": 261.34
+          },
+          {
+            "word": "a",
+            "start": 261.34,
+            "end": 261.53
+          },
+          {
+            "word": "a",
+            "start": 261.53,
+            "end": 261.72
+          }
+        ]
+      },
+      {
+        "id": 84,
+        "startTime": 261.83,
+        "endTime": 265.47,
+        "nextLineTime": 265.57,
+        "text": "A ới a á a a à à a a",
+        "words": [
+          {
+            "word": "A",
+            "start": 261.83,
+            "end": 262.19
+          },
+          {
+            "word": "ới",
+            "start": 262.19,
+            "end": 262.55
+          },
+          {
+            "word": "a",
+            "start": 262.55,
+            "end": 262.91
+          },
+          {
+            "word": "á",
+            "start": 262.91,
+            "end": 263.27
+          },
+          {
+            "word": "a",
+            "start": 263.27,
+            "end": 263.63
+          },
+          {
+            "word": "a",
+            "start": 263.63,
+            "end": 263.99
+          },
+          {
+            "word": "à",
+            "start": 263.99,
+            "end": 264.35
+          },
+          {
+            "word": "à",
+            "start": 264.35,
+            "end": 264.71
+          },
+          {
+            "word": "a",
+            "start": 264.71,
+            "end": 265.07
+          },
+          {
+            "word": "a",
+            "start": 265.07,
+            "end": 265.43
+          }
+        ]
+      },
+      {
+        "id": 85,
+        "startTime": 265.57,
+        "endTime": 268.14,
+        "nextLineTime": 268.24,
+        "text": "Ngày hội bên non sông một nhà",
+        "words": [
+          {
+            "word": "Ngày",
+            "start": 265.57,
+            "end": 266.02
+          },
+          {
+            "word": "hội",
+            "start": 266.02,
+            "end": 266.36
+          },
+          {
+            "word": "bên",
+            "start": 266.36,
+            "end": 266.7
+          },
+          {
+            "word": "non",
+            "start": 266.7,
+            "end": 267.04
+          },
+          {
+            "word": "sông",
+            "start": 267.04,
+            "end": 267.49
+          },
+          {
+            "word": "một",
+            "start": 267.49,
+            "end": 267.83
+          },
+          {
+            "word": "nhà",
+            "start": 267.83,
+            "end": 268.17
+          }
+        ]
+      },
+      {
+        "id": 86,
+        "startTime": 268.24,
+        "endTime": 269.15,
+        "nextLineTime": 269.25,
+        "text": "Anh em ta đồng lòng",
+        "words": [
+          {
+            "word": "Anh",
+            "start": 268.24,
+            "end": 268.42
+          },
+          {
+            "word": "em",
+            "start": 268.42,
+            "end": 268.54
+          },
+          {
+            "word": "ta",
+            "start": 268.54,
+            "end": 268.66
+          },
+          {
+            "word": "đồng",
+            "start": 268.66,
+            "end": 268.9
+          },
+          {
+            "word": "lòng",
+            "start": 268.9,
+            "end": 269.14
+          }
+        ]
+      },
+      {
+        "id": 87,
+        "startTime": 269.25,
+        "endTime": 270.73,
+        "nextLineTime": 270.83,
+        "text": "Đồng tâm dựng xây Tổ quốc",
+        "words": [
+          {
+            "word": "Đồng",
+            "start": 269.25,
+            "end": 269.55
+          },
+          {
+            "word": "tâm",
+            "start": 269.55,
+            "end": 269.77
+          },
+          {
+            "word": "dựng",
+            "start": 269.77,
+            "end": 270.07
+          },
+          {
+            "word": "xây",
+            "start": 270.07,
+            "end": 270.29
+          },
+          {
+            "word": "Tổ",
+            "start": 270.29,
+            "end": 270.44
+          },
+          {
+            "word": "quốc",
+            "start": 270.44,
+            "end": 270.74
+          }
+        ]
+      },
+      {
+        "id": 88,
+        "startTime": 270.83,
+        "endTime": 272.36,
+        "nextLineTime": 272.46,
+        "text": "Kỉ nguyên vươn mình vang trời",
+        "words": [
+          {
+            "word": "Kỉ",
+            "start": 270.83,
+            "end": 270.96
+          },
+          {
+            "word": "nguyên",
+            "start": 270.96,
+            "end": 271.34
+          },
+          {
+            "word": "vươn",
+            "start": 271.34,
+            "end": 271.59
+          },
+          {
+            "word": "mình",
+            "start": 271.59,
+            "end": 271.84
+          },
+          {
+            "word": "vang",
+            "start": 271.84,
+            "end": 272.09
+          },
+          {
+            "word": "trời",
+            "start": 272.09,
+            "end": 272.34
+          }
+        ]
+      },
+      {
+        "id": 89,
+        "startTime": 272.46,
+        "endTime": 275.55,
+        "nextLineTime": 275.65,
+        "text": "A ới a á a a à à a a",
+        "words": [
+          {
+            "word": "A",
+            "start": 272.46,
+            "end": 272.77
+          },
+          {
+            "word": "ới",
+            "start": 272.77,
+            "end": 273.08
+          },
+          {
+            "word": "a",
+            "start": 273.08,
+            "end": 273.39
+          },
+          {
+            "word": "á",
+            "start": 273.39,
+            "end": 273.7
+          },
+          {
+            "word": "a",
+            "start": 273.7,
+            "end": 274.01
+          },
+          {
+            "word": "a",
+            "start": 274.01,
+            "end": 274.32
+          },
+          {
+            "word": "à",
+            "start": 274.32,
+            "end": 274.63
+          },
+          {
+            "word": "à",
+            "start": 274.63,
+            "end": 274.94
+          },
+          {
+            "word": "a",
+            "start": 274.94,
+            "end": 275.25
+          },
+          {
+            "word": "a",
+            "start": 275.25,
+            "end": 275.56
+          }
+        ]
+      },
+      {
+        "id": 90,
+        "startTime": 275.65,
+        "endTime": 281.25,
+        "nextLineTime": 310.92,
+        "text": "A ới a á a a à à a a",
+        "words": [
+          {
+            "word": "A",
+            "start": 275.65,
+            "end": 276.21
+          },
+          {
+            "word": "ới",
+            "start": 276.21,
+            "end": 276.77
+          },
+          {
+            "word": "a",
+            "start": 276.77,
+            "end": 277.33
+          },
+          {
+            "word": "á",
+            "start": 277.33,
+            "end": 277.89
+          },
+          {
+            "word": "a",
+            "start": 277.89,
+            "end": 278.45
+          },
+          {
+            "word": "a",
+            "start": 278.45,
+            "end": 279.01
+          },
+          {
+            "word": "à",
+            "start": 279.01,
+            "end": 279.57
+          },
+          {
+            "word": "à",
+            "start": 279.57,
+            "end": 280.13
+          },
+          {
+            "word": "a",
+            "start": 280.13,
+            "end": 280.69
+          },
+          {
+            "word": "a",
+            "start": 280.69,
+            "end": 281.25
+          }
+        ]
+      },
+      {
+        "id": 91,
+        "startTime": 310.92,
+        "endTime": 312.84,
+        "nextLineTime": 312.94,
+        "text": "Dạy con cách yêu thương người",
+        "words": [
+          {
+            "word": "Dạy",
+            "start": 310.92,
+            "end": 311.16
+          },
+          {
+            "word": "con",
+            "start": 311.16,
+            "end": 311.4
+          },
+          {
+            "word": "cách",
+            "start": 311.4,
+            "end": 311.72
+          },
+          {
+            "word": "yêu",
+            "start": 311.72,
+            "end": 311.96
+          },
+          {
+            "word": "thương",
+            "start": 311.96,
+            "end": 312.44
+          },
+          {
+            "word": "người",
+            "start": 312.44,
+            "end": 312.84
+          }
+        ]
+      },
+      {
+        "id": 92,
+        "startTime": 312.94,
+        "endTime": 315.74,
+        "nextLineTime": 315.84,
+        "text": "Dạy con khí phách ngút trời",
+        "words": [
+          {
+            "word": "Dạy",
+            "start": 312.94,
+            "end": 313.32
+          },
+          {
+            "word": "con",
+            "start": 313.32,
+            "end": 313.7
+          },
+          {
+            "word": "khí",
+            "start": 313.7,
+            "end": 314.08
+          },
+          {
+            "word": "phách",
+            "start": 314.08,
+            "end": 314.72
+          },
+          {
+            "word": "ngút",
+            "start": 314.72,
+            "end": 315.23
+          },
+          {
+            "word": "trời",
+            "start": 315.23,
+            "end": 315.74
+          }
+        ]
+      },
+      {
+        "id": 93,
+        "startTime": 315.84,
+        "endTime": 317.35,
+        "nextLineTime": 317.45,
+        "text": "Dạy con đứng hiên ngang",
+        "words": [
+          {
+            "word": "Dạy",
+            "start": 315.84,
+            "end": 316.08
+          },
+          {
+            "word": "con",
+            "start": 316.08,
+            "end": 316.32
+          },
+          {
+            "word": "đứng",
+            "start": 316.32,
+            "end": 316.64
+          },
+          {
+            "word": "hiên",
+            "start": 316.64,
+            "end": 316.96
+          },
+          {
+            "word": "ngang",
+            "start": 316.96,
+            "end": 317.36
+          }
+        ]
+      },
+      {
+        "id": 94,
+        "startTime": 317.45,
+        "endTime": 320.52,
+        "nextLineTime": 320.62,
+        "text": "Giữ nước non bờ cõi",
+        "words": [
+          {
+            "word": "Giữ",
+            "start": 317.45,
+            "end": 318.06
+          },
+          {
+            "word": "nước",
+            "start": 318.06,
+            "end": 318.88
+          },
+          {
+            "word": "non",
+            "start": 318.88,
+            "end": 319.49
+          },
+          {
+            "word": "bờ",
+            "start": 319.49,
+            "end": 319.9
+          },
+          {
+            "word": "cõi",
+            "start": 319.9,
+            "end": 320.51
+          }
+        ]
+      },
+      {
+        "id": 95,
+        "startTime": 320.62,
+        "endTime": 323.72,
+        "nextLineTime": 323.82,
+        "text": "Dù làm mây vắt ngang lưng đồi",
+        "words": [
+          {
+            "word": "Dù",
+            "start": 320.62,
+            "end": 320.89
+          },
+          {
+            "word": "làm",
+            "start": 320.89,
+            "end": 321.29
+          },
+          {
+            "word": "mây",
+            "start": 321.29,
+            "end": 321.69
+          },
+          {
+            "word": "vắt",
+            "start": 321.69,
+            "end": 322.09
+          },
+          {
+            "word": "ngang",
+            "start": 322.09,
+            "end": 322.76
+          },
+          {
+            "word": "lưng",
+            "start": 322.76,
+            "end": 323.3
+          },
+          {
+            "word": "đồi",
+            "start": 323.3,
+            "end": 323.7
+          }
+        ]
+      },
+      {
+        "id": 96,
+        "startTime": 323.82,
+        "endTime": 326.38,
+        "nextLineTime": 326.48,
+        "text": "Dù làm con sóng xô ngoài khơi",
+        "words": [
+          {
+            "word": "Dù",
+            "start": 323.82,
+            "end": 324.04
+          },
+          {
+            "word": "làm",
+            "start": 324.04,
+            "end": 324.37
+          },
+          {
+            "word": "con",
+            "start": 324.37,
+            "end": 324.7
+          },
+          {
+            "word": "sóng",
+            "start": 324.7,
+            "end": 325.15
+          },
+          {
+            "word": "xô",
+            "start": 325.15,
+            "end": 325.37
+          },
+          {
+            "word": "ngoài",
+            "start": 325.37,
+            "end": 325.93
+          },
+          {
+            "word": "khơi",
+            "start": 325.93,
+            "end": 326.38
+          }
+        ]
+      },
+      {
+        "id": 97,
+        "startTime": 326.48,
+        "endTime": 328.49,
+        "nextLineTime": 328.59,
+        "text": "Đừng quên tiếng ru cội nguồn",
+        "words": [
+          {
+            "word": "Đừng",
+            "start": 326.48,
+            "end": 326.83
+          },
+          {
+            "word": "quên",
+            "start": 326.83,
+            "end": 327.18
+          },
+          {
+            "word": "tiếng",
+            "start": 327.18,
+            "end": 327.62
+          },
+          {
+            "word": "ru",
+            "start": 327.62,
+            "end": 327.79
+          },
+          {
+            "word": "cội",
+            "start": 327.79,
+            "end": 328.05
+          },
+          {
+            "word": "nguồn",
+            "start": 328.05,
+            "end": 328.49
+          }
+        ]
+      },
+      {
+        "id": 98,
+        "startTime": 328.59,
+        "endTime": 331.59,
+        "nextLineTime": 331.69,
+        "text": "Hỡi đồng bào ơi",
+        "words": [
+          {
+            "word": "Hỡi",
+            "start": 328.59,
+            "end": 329.34
+          },
+          {
+            "word": "đồng",
+            "start": 329.34,
+            "end": 330.34
+          },
+          {
+            "word": "bào",
+            "start": 330.34,
+            "end": 331.09
+          },
+          {
+            "word": "ơi",
+            "start": 331.09,
+            "end": 331.59
+          }
+        ]
+      },
+      {
+        "id": 99,
+        "startTime": 331.69,
+        "endTime": 334.27,
+        "nextLineTime": 334.37,
+        "text": "Dạy con cách yêu thương người",
+        "words": [
+          {
+            "word": "Dạy",
+            "start": 331.69,
+            "end": 332.01
+          },
+          {
+            "word": "con",
+            "start": 332.01,
+            "end": 332.33
+          },
+          {
+            "word": "cách",
+            "start": 332.33,
+            "end": 332.76
+          },
+          {
+            "word": "yêu",
+            "start": 332.76,
+            "end": 333.08
+          },
+          {
+            "word": "thương",
+            "start": 333.08,
+            "end": 333.72
+          },
+          {
+            "word": "người",
+            "start": 333.72,
+            "end": 334.26
+          }
+        ]
+      },
+      {
+        "id": 100,
+        "startTime": 334.37,
+        "endTime": 336.97,
+        "nextLineTime": 337.07,
+        "text": "Dạy con khí phách ngút trời",
+        "words": [
+          {
+            "word": "Dạy",
+            "start": 334.37,
+            "end": 334.72
+          },
+          {
+            "word": "con",
+            "start": 334.72,
+            "end": 335.07
+          },
+          {
+            "word": "khí",
+            "start": 335.07,
+            "end": 335.42
+          },
+          {
+            "word": "phách",
+            "start": 335.42,
+            "end": 336.01
+          },
+          {
+            "word": "ngút",
+            "start": 336.01,
+            "end": 336.48
+          },
+          {
+            "word": "trời",
+            "start": 336.48,
+            "end": 336.95
+          }
+        ]
+      },
+      {
+        "id": 101,
+        "startTime": 337.07,
+        "endTime": 338.56,
+        "nextLineTime": 338.66,
+        "text": "Dạy con đứng hiên ngang",
+        "words": [
+          {
+            "word": "Dạy",
+            "start": 337.07,
+            "end": 337.31
+          },
+          {
+            "word": "con",
+            "start": 337.31,
+            "end": 337.55
+          },
+          {
+            "word": "đứng",
+            "start": 337.55,
+            "end": 337.86
+          },
+          {
+            "word": "hiên",
+            "start": 337.86,
+            "end": 338.17
+          },
+          {
+            "word": "ngang",
+            "start": 338.17,
+            "end": 338.56
+          }
+        ]
+      },
+      {
+        "id": 102,
+        "startTime": 338.66,
+        "endTime": 342.28,
+        "nextLineTime": 342.38,
+        "text": "Giữ nước non bờ cõi",
+        "words": [
+          {
+            "word": "Giữ",
+            "start": 338.66,
+            "end": 339.38
+          },
+          {
+            "word": "nước",
+            "start": 339.38,
+            "end": 340.35
+          },
+          {
+            "word": "non",
+            "start": 340.35,
+            "end": 341.07
+          },
+          {
+            "word": "bờ",
+            "start": 341.07,
+            "end": 341.55
+          },
+          {
+            "word": "cõi",
+            "start": 341.55,
+            "end": 342.27
+          }
+        ]
+      },
+      {
+        "id": 103,
+        "startTime": 342.38,
+        "endTime": 345.46,
+        "nextLineTime": 345.56,
+        "text": "Dù làm mây vắt ngang lưng đồi",
+        "words": [
+          {
+            "word": "Dù",
+            "start": 342.38,
+            "end": 342.65
+          },
+          {
+            "word": "làm",
+            "start": 342.65,
+            "end": 343.05
+          },
+          {
+            "word": "mây",
+            "start": 343.05,
+            "end": 343.45
+          },
+          {
+            "word": "vắt",
+            "start": 343.45,
+            "end": 343.85
+          },
+          {
+            "word": "ngang",
+            "start": 343.85,
+            "end": 344.52
+          },
+          {
+            "word": "lưng",
+            "start": 344.52,
+            "end": 345.06
+          },
+          {
+            "word": "đồi",
+            "start": 345.06,
+            "end": 345.46
+          }
+        ]
+      },
+      {
+        "id": 104,
+        "startTime": 345.56,
+        "endTime": 348.12,
+        "nextLineTime": 348.22,
+        "text": "Dù làm con sóng xô ngoài khơi",
+        "words": [
+          {
+            "word": "Dù",
+            "start": 345.56,
+            "end": 345.78
+          },
+          {
+            "word": "làm",
+            "start": 345.78,
+            "end": 346.11
+          },
+          {
+            "word": "con",
+            "start": 346.11,
+            "end": 346.44
+          },
+          {
+            "word": "sóng",
+            "start": 346.44,
+            "end": 346.89
+          },
+          {
+            "word": "xô",
+            "start": 346.89,
+            "end": 347.11
+          },
+          {
+            "word": "ngoài",
+            "start": 347.11,
+            "end": 347.67
+          },
+          {
+            "word": "khơi",
+            "start": 347.67,
+            "end": 348.12
+          }
+        ]
+      },
+      {
+        "id": 105,
+        "startTime": 348.22,
+        "endTime": 350.26,
+        "nextLineTime": 350.36,
+        "text": "Đừng quên tiếng ru cội nguồn",
+        "words": [
+          {
+            "word": "Đừng",
+            "start": 348.22,
+            "end": 348.57
+          },
+          {
+            "word": "quên",
+            "start": 348.57,
+            "end": 348.92
+          },
+          {
+            "word": "tiếng",
+            "start": 348.92,
+            "end": 349.36
+          },
+          {
+            "word": "ru",
+            "start": 349.36,
+            "end": 349.54
+          },
+          {
+            "word": "cội",
+            "start": 349.54,
+            "end": 349.81
+          },
+          {
+            "word": "nguồn",
+            "start": 349.81,
+            "end": 350.25
+          }
+        ]
+      },
+      {
+        "id": 106,
+        "startTime": 350.36,
+        "endTime": 353.43,
+        "nextLineTime": 353.53,
+        "text": "Hỡi đồng bào ơi",
+        "words": [
+          {
+            "word": "Hỡi",
+            "start": 350.36,
+            "end": 351.13
+          },
+          {
+            "word": "đồng",
+            "start": 351.13,
+            "end": 352.15
+          },
+          {
+            "word": "bào",
+            "start": 352.15,
+            "end": 352.92
+          },
+          {
+            "word": "ơi",
+            "start": 352.92,
+            "end": 353.43
+          }
+        ]
+      },
+      {
+        "id": 107,
+        "startTime": 353.53,
+        "endTime": 356.11,
+        "nextLineTime": 356.21,
+        "text": "À a á a ời",
+        "words": [
+          {
+            "word": "À",
+            "start": 353.53,
+            "end": 354.05
+          },
+          {
+            "word": "a",
+            "start": 354.05,
+            "end": 354.57
+          },
+          {
+            "word": "á",
+            "start": 354.57,
+            "end": 355.09
+          },
+          {
+            "word": "a",
+            "start": 355.09,
+            "end": 355.61
+          },
+          {
+            "word": "ời",
+            "start": 355.61,
+            "end": 356.13
+          }
+        ]
+      },
+      {
+        "id": 108,
+        "startTime": 356.21,
+        "endTime": 358.75,
+        "nextLineTime": 358.85,
+        "text": "À a á a ơi",
+        "words": [
+          {
+            "word": "À",
+            "start": 356.21,
+            "end": 356.72
+          },
+          {
+            "word": "a",
+            "start": 356.72,
+            "end": 357.23
+          },
+          {
+            "word": "á",
+            "start": 357.23,
+            "end": 357.74
+          },
+          {
+            "word": "a",
+            "start": 357.74,
+            "end": 358.25
+          },
+          {
+            "word": "ơi",
+            "start": 358.25,
+            "end": 358.76
+          }
+        ]
+      },
+      {
+        "id": 109,
+        "startTime": 358.85,
+        "endTime": 364.37,
+        "nextLineTime": 364.47,
+        "text": "Á a a à ới",
+        "words": [
+          {
+            "word": "Á",
+            "start": 358.85,
+            "end": 359.95
+          },
+          {
+            "word": "a",
+            "start": 359.95,
+            "end": 361.05
+          },
+          {
+            "word": "a",
+            "start": 361.05,
+            "end": 362.15
+          },
+          {
+            "word": "à",
+            "start": 362.15,
+            "end": 363.25
+          },
+          {
+            "word": "ới",
+            "start": 363.25,
+            "end": 364.35
+          }
+        ]
+      },
+      {
+        "id": 110,
+        "startTime": 364.47,
+        "endTime": 367.01,
+        "nextLineTime": 367.11,
+        "text": "À á a a ời",
+        "words": [
+          {
+            "word": "À",
+            "start": 364.47,
+            "end": 364.98
+          },
+          {
+            "word": "á",
+            "start": 364.98,
+            "end": 365.49
+          },
+          {
+            "word": "a",
+            "start": 365.49,
+            "end": 366.0
+          },
+          {
+            "word": "a",
+            "start": 366.0,
+            "end": 366.51
+          },
+          {
+            "word": "ời",
+            "start": 366.51,
+            "end": 367.02
+          }
+        ]
+      },
+      {
+        "id": 111,
+        "startTime": 367.11,
+        "endTime": 369.66,
+        "nextLineTime": 369.76,
+        "text": "À á a à ơi",
+        "words": [
+          {
+            "word": "À",
+            "start": 367.11,
+            "end": 367.62
+          },
+          {
+            "word": "á",
+            "start": 367.62,
+            "end": 368.13
+          },
+          {
+            "word": "a",
+            "start": 368.13,
+            "end": 368.64
+          },
+          {
+            "word": "à",
+            "start": 368.64,
+            "end": 369.15
+          },
+          {
+            "word": "ơi",
+            "start": 369.15,
+            "end": 369.66
+          }
+        ]
+      },
+      {
+        "id": 112,
+        "startTime": 369.76,
+        "endTime": 375.36,
+        "nextLineTime": 393.82,
+        "text": "Á a a à ới",
+        "words": [
+          {
+            "word": "Á",
+            "start": 369.76,
+            "end": 370.88
+          },
+          {
+            "word": "a",
+            "start": 370.88,
+            "end": 372.0
+          },
+          {
+            "word": "a",
+            "start": 372.0,
+            "end": 373.12
+          },
+          {
+            "word": "à",
+            "start": 373.12,
+            "end": 374.24
+          },
+          {
+            "word": "ới",
+            "start": 374.24,
+            "end": 375.36
+          }
+        ]
+      }
+    ]
+  },
   {
     "id": "karaoke-anh-sang-cua-doi-toi",
     "filename": "ÁNH SÁNG CỦA ĐỜI TÔI.mp3",

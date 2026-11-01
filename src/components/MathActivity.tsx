@@ -18,6 +18,7 @@ import {
   KAWAII_PASTRY_CATALOG,
   MATH_MINI_GAMES,
   buildArithmeticTable,
+  drawRandomArithmeticTableConfig,
   formatMathForSpeech,
   generateBakeryOrders,
   generateCoinMarketRounds,
@@ -56,6 +57,8 @@ export function MathActivity({
   const [feedbackMessage, setFeedbackMessage] = useState("");
   const [attemptsCount, setAttemptsCount] = useState(0);
   const [hintsUsedCount, setHintsUsedCount] = useState(0);
+  const [showMelodyComparisonClip, setShowMelodyComparisonClip] =
+    useState(false);
   const completedRef = useRef(false);
 
   // ---------------------------------------------------------------------------
@@ -63,7 +66,7 @@ export function MathActivity({
   // ---------------------------------------------------------------------------
   const activeCatalog = KAWAII_PASTRY_CATALOG;
   const bakeryOrders = useMemo(
-    () => generateBakeryOrders(level, seedOffset, "all").slice(0, 3),
+    () => generateBakeryOrders(level, seedOffset, "all").slice(0, 5),
     [level, seedOffset],
   );
   const currentBakeryOrder =
@@ -87,7 +90,7 @@ export function MathActivity({
   // STATE MINI-GAME 2: BÀN TIỆC SO SÁNH (<, >, =) & CÂN BẰNG 2 ĐĨA
   // ---------------------------------------------------------------------------
   const pizzaRounds = useMemo(
-    () => generatePizzaRounds(level, seedOffset).slice(0, 3),
+    () => generatePizzaRounds(level, seedOffset).slice(0, 5),
     [level, seedOffset],
   );
   const currentPizzaRound =
@@ -106,12 +109,16 @@ export function MathActivity({
   const [selectedRowIdx, setSelectedRowIdx] = useState<number>(1);
   const [solvedTableRows, setSolvedTableRows] = useState<number[]>([]);
   const [wrongGuessChoice, setWrongGuessChoice] = useState<number | null>(null);
+  const hiddenRowIndices = useMemo(
+    () => generateHiddenTableIndices(level, seedOffset),
+    [level, seedOffset, tableOp, tableBase],
+  );
 
   // ---------------------------------------------------------------------------
   // STATE MINI-GAME 4: SIÊU THỊ XU VÀNG (TÍNH TIỀN & THỐI TIỀN THỪA)
   // ---------------------------------------------------------------------------
   const coinRounds = useMemo(
-    () => generateCoinMarketRounds(level, seedOffset, "all").slice(0, 3),
+    () => generateCoinMarketRounds(level, seedOffset, "all").slice(0, 5),
     [level, seedOffset],
   );
   const currentCoinRound =
@@ -150,6 +157,25 @@ export function MathActivity({
     stop();
 
     if (viewMode === "menu") {
+      if (soundEnabled) {
+        const ord0 = bakeryOrders[0];
+        if (ord0) {
+          const itemName = ord0.pastryA.name.toLowerCase();
+          const y = ord0.missingOperand ?? Math.abs(ord0.targetCountA - ord0.initialCountA);
+          const riddle0 =
+            ord0.mode === "single"
+              ? ord0.operator === "+"
+                ? `Đố Nấm: Kitty có ${ord0.initialCountA} ${itemName}, thêm ${y} cái nữa là mấy? Nấm chạm từng hình trong rổ để đếm nhé!`
+                : `Đố Nấm: Có ${ord0.initialCountA} ${itemName}, ăn bớt ${y} cái còn lại mấy? Nấm chạm từng hình để đếm nhé!`
+              : ord0.mode === "equation"
+                ? `Đố Nấm: Đang có ${ord0.initialCountA} ${itemName}, cần ${ord0.operator === "+" ? "thêm mấy" : "bớt mấy"} để được ${ord0.targetCountA}?`
+                : `Đố Nấm: Mấy cộng mấy bằng ${ord0.totalTargetCount ?? ord0.targetCountA + (ord0.targetCountB || 0)}? Nấm chọn 2 số ở dưới nhé!`;
+          void rawPrefetch(formatMathForSpeech(riddle0), "vi-VN");
+        }
+        if (pizzaRounds[0]?.prompt) {
+          void rawPrefetch(formatMathForSpeech(pizzaRounds[0].prompt), "vi-VN");
+        }
+      }
       return;
     }
 
@@ -161,6 +187,19 @@ export function MathActivity({
       setSelectedBakeryNumberB(null);
       setActiveMissingSlot("A");
       setCountedItemIndices([]);
+      if (soundEnabled && ord) {
+        const itemName = ord.pastryA.name.toLowerCase();
+        const y = ord.missingOperand ?? Math.abs(ord.targetCountA - ord.initialCountA);
+        const riddle =
+          ord.mode === "single"
+            ? ord.operator === "+"
+              ? `Đố Nấm: Kitty có ${ord.initialCountA} ${itemName}, thêm ${y} cái nữa là mấy? Nấm chạm từng hình trong rổ để đếm nhé!`
+              : `Đố Nấm: Có ${ord.initialCountA} ${itemName}, ăn bớt ${y} cái còn lại mấy? Nấm chạm từng hình để đếm nhé!`
+            : ord.mode === "equation"
+              ? `Đố Nấm: Đang có ${ord.initialCountA} ${itemName}, cần ${ord.operator === "+" ? "thêm mấy" : "bớt mấy"} để được ${ord.targetCountA}?`
+              : `Đố Nấm: Mấy cộng mấy bằng ${ord.totalTargetCount ?? ord.targetCountA + (ord.targetCountB || 0)}? Nấm chọn 2 số ở dưới nhé!`;
+        void rawPrefetch(formatMathForSpeech(riddle), "vi-VN");
+      }
     } else if (activeGameId === "pizza-party") {
       const pRound = pizzaRounds[roundIdx % pizzaRounds.length] || pizzaRounds[0];
       setSelectedComparisonSign(null);
@@ -170,7 +209,7 @@ export function MathActivity({
       }
     } else if (activeGameId === "arithmetic-tables") {
       setSolvedTableRows([]);
-      setSelectedRowIdx(1);
+      setSelectedRowIdx(hiddenRowIndices[0] || 1);
       setWrongGuessChoice(null);
       if (soundEnabled) {
         const rows = buildArithmeticTable(tableOp, tableBase);
@@ -642,10 +681,6 @@ export function MathActivity({
   // XỬ LÝ MINI-GAME 3: BẢNG CỬU CHƯƠNG & PHÉP TÍNH (+ - × ÷ TỪ 1 ĐẾN 9)
   // ===========================================================================
   const tableRows = buildArithmeticTable(tableOp, tableBase);
-  const hiddenRowIndices = useMemo(
-    () => generateHiddenTableIndices(level, seedOffset),
-    [level, seedOffset],
-  );
 
   const activeTableRow = tableRows[selectedRowIdx - 1] || tableRows[0];
   const isCurrentRowHidden =
@@ -837,6 +872,22 @@ export function MathActivity({
               >
                 👑 Cấp 3: Khó
               </button>
+              <button
+                type="button"
+                className="level-switch-pill active-orange"
+                style={{
+                  background: "linear-gradient(135deg, #FF5E97 0%, #FF85B3 100%)",
+                  color: "#FFFFFF",
+                  border: "2px solid #FFFFFF",
+                  boxShadow: "0 6px 16px rgba(255, 94, 151, 0.32)",
+                }}
+                onClick={() => {
+                  stop();
+                  setShowMelodyComparisonClip(true);
+                }}
+              >
+                🎬 Clip My Melody Dạy Dấu &gt; &lt; =
+              </button>
             </div>
           </div>
 
@@ -848,6 +899,13 @@ export function MathActivity({
                 className={`math-minigame-card coded-3d-minigame-card theme-card-${idx + 1}`}
                 aria-label={`${game.badge}: ${game.title}`}
                 onClick={() => {
+                  if (game.id === "arithmetic-tables") {
+                    const nextCfg = drawRandomArithmeticTableConfig(
+                      `${tableOp}-${tableBase}`,
+                    );
+                    setTableOp(nextCfg.op);
+                    setTableBase(nextCfg.baseNum);
+                  }
                   setActiveGameId(game.id);
                   setSeedOffset((s) => s + 1);
                   setRoundIdx(0);
@@ -892,14 +950,28 @@ export function MathActivity({
                 <ArrowLeft size={14} /> Chọn bài khác
               </button>
               <span>{currentGameMeta.title}</span>
-              {activeGameId !== "arithmetic-tables" && (
+              {activeGameId !== "arithmetic-tables" ? (
                 <small className="math-round-counter">
                   Câu {roundIdx + 1}/{totalRoundsInCurrentGame}
+                </small>
+              ) : (
+                <small className="math-round-counter">
+                  🎁 Đã mở {solvedTableRows.length}/{hiddenRowIndices.length} hộp quà
                 </small>
               )}
             </div>
 
-            <div className="music-slide-right-tools">
+            <div className="music-slide-right-tools" style={{ display: "flex", gap: 8 }}>
+              <button
+                type="button"
+                className="chunky-btn chunky-pink btn-sm"
+                onClick={() => {
+                  stop();
+                  setShowMelodyComparisonClip(true);
+                }}
+              >
+                🎬 Clip Dấu &gt; &lt; =
+              </button>
               <button
                 type="button"
                 className="chunky-btn chunky-blue btn-sm"
@@ -925,38 +997,24 @@ export function MathActivity({
                  ============================================================= */}
               <div className="bakery-equation-level-stage">
                 <div className="bakery-equation-top-row">
-                  {/* CỘT TRÁI: BẢNG PHÉP TÍNH LỚN THEO CẤP ĐỘ (CHỈ HIỂN THỊ SỐ RÕ RÀNG) */}
+                  {/* CỘT TRÁI: VÙNG PHÉP TÍNH SỐ THUẦN KHIẾT (NỀN PASTEL NHẠT KHÔNG VIỀN) */}
                   <div className="bakery-big-equation-card">
-                    <button
-                      type="button"
-                      className="equation-card-level-pill"
-                      onClick={handleSpeakCurrentInstruction}
-                      title="Chạm để nghe đọc đề bài"
-                    >
-                      <Volume2 size={14} />
-                      <span>
-                        {currentBakeryOrder.mode === "single"
-                          ? "🎀 Đố vui Cộng Trừ 10 (Chạm để nghe)"
-                          : currentBakeryOrder.mode === "equation"
-                            ? "🎀 Tìm số ẩn (x ± ? = y)"
-                            : "🎀 Tách gộp số (? + ? = x)"}
-                      </span>
-                    </button>
-
                     <div
                       className="equation-card-subtitle"
                       onClick={handleSpeakCurrentInstruction}
                       style={{ cursor: "pointer" }}
+                      title="Chạm để nghe đọc đề bài"
                     >
+                      🔊{" "}
                       {currentBakeryOrder.mode === "single"
                         ? currentBakeryOrder.operator === "+"
-                          ? `Đố Nấm: Kitty có ${currentBakeryOrder.initialCountA} ${currentBakeryOrder.pastryA.name.toLowerCase()}, thêm ${currentBakeryOrder.missingOperand} cái nữa là mấy?`
-                          : `Đố Nấm: Có ${currentBakeryOrder.initialCountA} ${currentBakeryOrder.pastryA.name.toLowerCase()}, ăn bớt ${currentBakeryOrder.missingOperand} cái còn lại mấy?`
+                          ? `Có ${currentBakeryOrder.initialCountA} ${currentBakeryOrder.pastryA.name.toLowerCase()}, thêm ${currentBakeryOrder.missingOperand} cái nữa là mấy?`
+                          : `Có ${currentBakeryOrder.initialCountA} ${currentBakeryOrder.pastryA.name.toLowerCase()}, bớt ${currentBakeryOrder.missingOperand} cái còn lại mấy?`
                         : currentBakeryOrder.mode === "equation"
                           ? currentBakeryOrder.operator === "+"
-                            ? `Đố Nấm: Đang có ${currentBakeryOrder.initialCountA}, thêm mấy để được ${currentBakeryOrder.targetCountA}?`
-                            : `Đố Nấm: Đang có ${currentBakeryOrder.initialCountA}, bớt mấy để còn ${currentBakeryOrder.targetCountA}?`
-                          : `Chọn 2 số bất kỳ cộng lại bằng ${currentBakeryOrder.totalTargetCount ?? currentBakeryOrder.targetCountA + (currentBakeryOrder.targetCountB || 0)}:`}
+                            ? `Đang có ${currentBakeryOrder.initialCountA}, thêm mấy để được ${currentBakeryOrder.targetCountA}?`
+                            : `Đang có ${currentBakeryOrder.initialCountA}, bớt mấy để còn ${currentBakeryOrder.targetCountA}?`
+                          : `Chọn 2 số cộng lại bằng ${currentBakeryOrder.totalTargetCount ?? currentBakeryOrder.targetCountA + (currentBakeryOrder.targetCountB || 0)}:`}
                     </div>
 
                     {/* 3 Ô SỐ CỦA PHÉP TÍNH — CHỈ ĐỂ SỐ THUẦN KHIẾT, KHÔNG ĐỂ ICON */}
@@ -1098,28 +1156,21 @@ export function MathActivity({
                     }`}
                   >
                     <div className="basket-panel-header">
-                      <img
-                        src={KAWAII_ITEM_IMAGES.bakeryBasket}
-                        alt=""
-                        className="basket-header-icon-img"
-                      />
                       {currentBakeryOrder.mode === "single" ? (
                         <span>
-                          👆 Chạm từng hình ({currentBakeryOrder.pastryA.icon}{" "}
-                          {currentBakeryOrder.pastryA.name} •{" "}
-                          {currentBakeryOrder.pastryA.englishName}) để đếm{" "}
-                          <strong>1, 2, 3...</strong> rồi chọn số nhé!
+                          👆 Chạm từng hình để đếm ({currentBakeryOrder.pastryA.icon}{" "}
+                          {currentBakeryOrder.pastryA.name})
                         </span>
                       ) : currentBakeryOrder.mode === "equation" ? (
                         <span>
-                          Rổ Minh Họa: Đang có <strong>{trayCountA}</strong> /{" "}
+                          Đang có <strong>{trayCountA}</strong> /{" "}
                           <strong>{currentBakeryOrder.targetCountA}</strong>{" "}
                           {currentBakeryOrder.pastryA.icon}{" "}
                           {currentBakeryOrder.pastryA.name}
                         </span>
                       ) : (
                         <span>
-                          Rổ Minh Họa: Đã gộp{" "}
+                          Đã gộp{" "}
                           <strong>
                             {(selectedBakeryNumber ?? 0) +
                               (selectedBakeryNumberB ?? 0)}
@@ -1332,23 +1383,19 @@ export function MathActivity({
                   </div>
                 </div>
 
-                {/* KHAY 10 CON SỐ TỪ 1 ĐẾN 10 Ở DƯỚI CHO CẢ 3 CẤP ĐỘ — CHỈ HIỂN THỊ SỐ, KHÔNG ICON */}
+                {/* KHAY 10 CON SỐ TỪ 1 ĐẾN 10 Ở DƯỚI CHO CẢ 3 CẤP ĐỘ — CHỈ HIỂN THỊ SỐ, KHÔNG KHUNG BỌC */}
                 <div className="numbered-pastries-tray-panel pure-numbers-tray">
-                  <div className="numbered-tray-title">
-                    {currentBakeryOrder.mode === "dual" ? (
+                  {currentBakeryOrder.mode === "dual" && (
+                    <div className="numbered-tray-title">
                       <span>
                         Đang điền{" "}
                         <strong>
                           Ô ? thứ {activeMissingSlot === "A" ? "1" : "2"}
-                        </strong>{" "}
-                        — Chạm chọn số (1–10):
+                        </strong>
+                        :
                       </span>
-                    ) : (
-                      <span>
-                        Chạm chọn số đúng (1–10) điền vào ô <strong>?</strong>:
-                      </span>
-                    )}
-                  </div>
+                    </div>
+                  )}
                   <div className="numbered-pastries-grid pure-numbers-grid">
                     {[1, 2, 3, 4, 5, 6, 7, 8, 9, 10].map((num) => {
                       const isSelected =
@@ -1431,7 +1478,7 @@ export function MathActivity({
                   gap: "12px",
                 }}
               >
-                {/* ĐĨA TRÁI */}
+                {/* BÊN TRÁI */}
                 <div
                   className={`pizza-plate-card ${
                     feedbackState === "correct" ? "plate-match-ok" : ""
@@ -1439,24 +1486,21 @@ export function MathActivity({
                 >
                   <div className="plate-card-top">
                     <span>
-                      Đĩa Trái ({currentPizzaRound.itemName || "Món ăn"})
+                      Bên Trái ({currentPizzaRound.itemName || "Món ăn"})
                     </span>
-                    <strong className="plate-count-pill">
-                      {currentPizzaRound.leftExprParts
-                        ? `${currentPizzaRound.leftExprParts.label}`
-                        : currentPizzaRound.leftCount}
-                    </strong>
                   </div>
 
                   <div className="plate-surface-btn" style={{ cursor: "default" }}>
-                    <img
-                      src={KAWAII_ITEM_IMAGES.pinkPlate}
-                      alt=""
-                      className="plate-bg-img"
-                    />
+                    <div className="compare-hero-number-box">
+                      <span className="compare-hero-number">
+                        {currentPizzaRound.leftExprParts
+                          ? `${currentPizzaRound.leftExprParts.label}`
+                          : currentPizzaRound.leftCount}
+                      </span>
+                    </div>
                     <div className="plate-slices-overlay">
                       {currentPizzaRound.leftExprParts ? (
-                        // Cấp 3: Minh họa trực quan phép cộng (a + b) hoặc phép trừ (a − b) trên Đĩa Trái
+                        // Cấp 3: Minh họa trực quan phép cộng (a + b) hoặc phép trừ (a − b) trên Bên Trái
                         currentPizzaRound.leftExprParts.op === "+" ? (
                           <>
                             {Array.from({
@@ -1584,7 +1628,7 @@ export function MathActivity({
                   </div>
                 </div>
 
-                {/* ĐĨA PHẢI */}
+                {/* BÊN PHẢI */}
                 <div
                   className={`pizza-plate-card ${
                     (currentPizzaRound.comparisonMode === "balance-plate" &&
@@ -1600,17 +1644,12 @@ export function MathActivity({
                 >
                   <div className="plate-card-top">
                     <span>
-                      Đĩa Phải (
+                      Bên Phải (
                       {currentPizzaRound.rightItemName ||
                         currentPizzaRound.itemName ||
                         "Món ăn"}
                       )
                     </span>
-                    <strong className="plate-count-pill">
-                      {currentPizzaRound.comparisonMode === "balance-plate"
-                        ? rightPlateCount
-                        : currentPizzaRound.rightCount}
-                    </strong>
                   </div>
 
                   <button
@@ -1629,15 +1668,17 @@ export function MathActivity({
                     }}
                     title={
                       currentPizzaRound.comparisonMode === "balance-plate"
-                        ? "Chạm để thêm 1 món vào Đĩa Phải"
+                        ? "Chạm để thêm 1 món vào Bên Phải"
                         : ""
                     }
                   >
-                    <img
-                      src={KAWAII_ITEM_IMAGES.pinkPlate}
-                      alt=""
-                      className="plate-bg-img"
-                    />
+                    <div className="compare-hero-number-box">
+                      <span className="compare-hero-number">
+                        {currentPizzaRound.comparisonMode === "balance-plate"
+                          ? rightPlateCount
+                          : currentPizzaRound.rightCount}
+                      </span>
+                    </div>
                     <div className="plate-slices-overlay">
                       {Array.from({
                         length:
@@ -1689,14 +1730,6 @@ export function MathActivity({
               {/* KHAY CHỌN DẤU (<, =, >) Ở CẤP 1 & CẤP 3 */}
               {currentPizzaRound.comparisonMode !== "balance-plate" && (
                 <div className="numbered-pastries-tray-panel">
-                  <div className="numbered-tray-title">
-                    <span>
-                      Chạm chọn dấu <strong>&lt; (Bé hơn)</strong>,{" "}
-                      <strong>= (Bằng nhau)</strong> hoặc{" "}
-                      <strong>&gt; (Lớn hơn)</strong> điền vào ô <strong>?</strong>{" "}
-                      ở giữa nhé:
-                    </span>
-                  </div>
                   <div
                     style={{
                       display: "grid",
@@ -2287,24 +2320,95 @@ export function MathActivity({
               ) : (
                 <button
                   type="button"
-                  className="chunky-btn chunky-green btn-sm math-primary-cta-btn"
-                  onClick={() =>
-                    onComplete({
-                      attempts: Math.max(1, attemptsCount || 1),
-                      answers: [`Hoàn thành ${currentGameMeta.title}`],
-                      activityId: activeGameId,
-                      skillIds: currentGameMeta.skillIds,
-                      hintsUsed: hintsUsedCount,
-                      independentResult:
-                        hintsUsedCount === 0 ? "passed" : "assisted",
-                      completionSource: "child-confirmed",
-                    })
-                  }
+                  className="chunky-btn chunky-yellow btn-sm math-primary-cta-btn"
+                  onClick={() => {
+                    const nextHidden =
+                      hiddenRowIndices.find(
+                        (idx) => !solvedTableRows.includes(idx),
+                      ) || 1;
+                    setSelectedRowIdx(nextHidden);
+                    const row = tableRows[nextHidden - 1] || tableRows[0];
+                    if (soundEnabled && row) {
+                      speak(
+                        `${row.spokenQuestion} Nấm chạm chọn hộp quà có kết quả đúng nhé!`,
+                        "vi-VN",
+                        { playbackRate: 0.94 },
+                      );
+                    }
+                  }}
                 >
-                  <Star size={16} fill="currentColor" /> Hoàn thành & Nhận Sao!
+                  🎁 Mở tiếp Hộp Quà ({solvedTableRows.length}/
+                  {hiddenRowIndices.length})
                 </button>
               )}
             </div>
+          </div>
+        </div>
+      )}
+
+      {/* =====================================================================
+          MODAL XEM CLIP BÀI GIẢNG MY MELODY DẠY SO SÁNH (> < =)
+         ===================================================================== */}
+      {showMelodyComparisonClip && (
+        <div
+          style={{
+            position: "fixed",
+            inset: 0,
+            zIndex: 9999,
+            background: "rgba(15, 23, 42, 0.82)",
+            backdropFilter: "blur(8px)",
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+            padding: 20,
+          }}
+          onClick={() => setShowMelodyComparisonClip(false)}
+        >
+          <div
+            style={{
+              width: "min(980px, 95vw)",
+              background: "#FFFDF9",
+              borderRadius: 28,
+              border: "4px solid #FF85B3",
+              boxShadow: "0 24px 60px rgba(0, 0, 0, 0.45)",
+              padding: 18,
+              display: "flex",
+              flexDirection: "column",
+              gap: 12,
+            }}
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div
+              style={{
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "space-between",
+                gap: 12,
+              }}
+            >
+              <strong style={{ fontSize: 20, color: "#BE185D" }}>
+                🎀 Bài Giảng: My Melody Dạy Bé So Sánh Lớn (&gt;), Bé (&lt;), Bằng (=)
+              </strong>
+              <button
+                type="button"
+                className="chunky-btn chunky-pink btn-sm"
+                onClick={() => setShowMelodyComparisonClip(false)}
+              >
+                ✕ Đóng &amp; Vào Chơi
+              </button>
+            </div>
+            <video
+              src="/videos/melody-comparison-lesson.mp4"
+              controls
+              autoPlay
+              playsInline
+              style={{
+                width: "100%",
+                maxHeight: "74vh",
+                borderRadius: 18,
+                background: "#000",
+              }}
+            />
           </div>
         </div>
       )}

@@ -1,816 +1,1946 @@
 import { useEffect, useMemo, useState } from "react";
 import {
+  ArrowLeft,
   Check,
   ChefHat,
   RotateCcw,
+  ShieldCheck,
   Sparkles,
   Utensils,
   Volume2,
 } from "lucide-react";
 import type { ActivityProps } from "../types";
-import { useSpeech } from "../hooks/useSpeech";
-import { playCardPlaceSound, playRewardTone } from "../lib/sound";
-import { getSharedAssetByImage } from "../data/sharedAssetCatalog";
+import { prefetchSpeech, useSpeech } from "../hooks/useSpeech";
+import { drawNonRepeatingItems } from "../lib/nonRepeatingDeck";
+import {
+  playCorrectDingSound,
+  playRewardTone,
+  playWrongBuzzSound,
+} from "../lib/sound";
+
+// 6 câu lệnh ngắn phổ quát dùng chung cho toàn bộ Kỹ năng sống (được cache 100%, phát 0ms)
+const UNIVERSAL_PROMPTS = {
+  cookStep1: "Con chọn 3 nguyên liệu đúng nhé!",
+  cookStep2: "Con chạm vào từng món để sơ chế nhé!",
+  cookStep3: "Bấm nút nấu chín và bày ra đĩa nào!",
+  habitStage1: "Con chọn 3 đồ dùng cần chuẩn bị nhé!",
+  habitStage2: "Con xếp các bước theo thứ tự 1, 2, 3 nhé!",
+  completed: "Giỏi quá! Nấm đã hoàn thành xuất sắc!",
+} as const;
 
 interface IngredientOption {
   id: string;
   name: string;
-  englishName: string;
-  emoji: string;
   imageUrl: string;
   isCorrect: boolean;
   prepActionLabel?: string;
   prepDoneLabel?: string;
-  preppedEmoji?: string;
   preppedImageUrl?: string;
 }
 
 interface CookingRecipe {
   id: string;
-  title: string;
   shortTitle: string;
   emoji: string;
   platedImageUrl: string;
   namSticker: string;
-  companionSticker: string;
-  companionName: string;
-  introLine: string;
-  prepPromptLine: string;
-  cookPromptLine: string;
-  successLine: string;
   cookActionLabel: string;
   platedLabel: string;
-  platedSubtitle?: string;
-  step2TabLabel?: string;
-  step2Title?: string;
-  step3TabLabel?: string;
-  step3Title?: string;
-  step3DoneTitle?: string;
   ingredients: IngredientOption[];
+}
+
+interface HabitPrepTool {
+  id: string;
+  name: string;
+  imageUrl: string;
+  isCorrect: boolean;
+}
+
+interface HabitSequenceStep {
+  id: string;
+  order: 1 | 2 | 3;
+  label: string;
+  imageUrl: string;
 }
 
 interface DailyHabitQuest {
   id: string;
-  title: string;
   shortTitle: string;
   emoji: string;
+  heroImageUrl: string;
   namSticker: string;
-  companionSticker: string;
-  companionName: string;
-  introLine: string;
-  successLine: string;
-  steps: {
-    id: string;
-    order: number;
-    label: string;
-    englishLabel?: string;
-    emoji: string;
-    imageUrl?: string;
-  }[];
+  prepTools: HabitPrepTool[];
+  steps: HabitSequenceStep[];
 }
 
 const COOKING_RECIPES: CookingRecipe[] = [
   {
     id: "recipe-cookies",
-    title: "Làm Bánh Quy Gấu, Trái Tim & Ngôi Sao",
     shortTitle: "🍪 Bánh Quy",
     emoji: "🍪",
-    platedImageUrl: "/assets/items/lifeskills/lifeskills_14.png",
-    namSticker: "/assets/nam-stickers/nam-chef-cookies.png",
-    companionSticker: "/assets/nam-stickers/nam-3d-cookies.png",
-    companionName: "My Melody",
-    introLine:
-      "Hôm nay thợ làm bánh Nấm nướng khay Bánh Quy Gấu, Trái Tim và Ngôi Sao nhé! Bước 1: Con hãy chọn 3 nguyên liệu làm bánh đưa lên bàn nào!",
-    prepPromptLine:
-      "Đủ 3 nguyên liệu làm bánh rồi! Bước 2: Mình cùng nhào bột mịn, cán bột ấn khuôn Tim - Sao và phết kem dâu nhé!",
-    cookPromptLine:
-      "Những chiếc bánh quy đã tạo hình xinh xắn! Bước 3: Bấm nút Đút Lò Nướng Bánh Vàng Thơm ngay thôi!",
-    successLine:
-      "Thơm phức cả căn bếp! Khay bánh quy hình Trái Tim hồng và Ngôi Sao vàng của Nấm đã ra lò tuyệt đẹp!",
-    cookActionLabel: "🔥 Đút Lò Nướng Khay Bánh Quy Vàng Thơm!",
-    platedLabel: "🍪 Khay Bánh Quy Sao & Tim (Cookie Tray)",
-    platedSubtitle: "Mẻ bánh quy mới ra lò thơm phức cho Nấm!",
-    step2TabLabel: "2. Nhào & Tạo khuôn",
-    step2Title: "🥣 Nhào bột, cán khuôn & trang trí bánh",
-    step3TabLabel: "3. Đút lò nướng",
-    step3Title: "🔥 Đút lò nướng chín khay bánh quy",
-    step3DoneTitle: "🍪 Đã nướng chín khay bánh quy thơm lừng!",
+    platedImageUrl: "/assets/items/lifeskills/lifeskills_14.webp",
+    namSticker: "/assets/nam-stickers/nam-chef-cookies.webp",
+    cookActionLabel: "🔥 Nướng Bánh Quy!",
+    platedLabel: "🍪 Khay Bánh Quy Thơm Phức",
     ingredients: [
       {
         id: "flour-butter",
-        name: "Bao bột mì thơm",
-        englishName: "Flour Sack",
-        emoji: "🌾",
-        imageUrl: "/assets/items/lifeskills/lifeskills_05.png",
+        name: "Bột mì",
+        imageUrl: "/assets/items/lifeskills/lifeskills_05.webp",
         isCorrect: true,
-        prepActionLabel: "🥣 Nhào bột mịn trong tô",
-        prepDoneLabel: "Đã trộn bột mịn",
-        preppedEmoji: "🥣",
-        preppedImageUrl: "/assets/items/lifeskills/lifeskills_02.png",
+        prepActionLabel: "Nhào bột",
+        prepDoneLabel: "Đã nhào bột",
+        preppedImageUrl: "/assets/items/lifeskills/lifeskills_02.webp",
       },
       {
         id: "egg-milk-cookie",
-        name: "Bát trứng gà tươi",
-        englishName: "Cracked Egg",
-        emoji: "🥚",
-        imageUrl: "/assets/items/lifeskills/lifeskills_04.png",
+        name: "Trứng gà",
+        imageUrl: "/assets/items/lifeskills/lifeskills_04.webp",
         isCorrect: true,
-        prepActionLabel: "🥖 Cán bột & ấn khuôn Sao Tim",
-        prepDoneLabel: "Đã cán khuôn bánh",
-        preppedEmoji: "🥖",
-        preppedImageUrl: "/assets/items/lifeskills/lifeskills_13.png",
+        prepActionLabel: "Cán khuôn",
+        prepDoneLabel: "Đã cán khuôn",
+        preppedImageUrl: "/assets/items/lifeskills/lifeskills_13.webp",
       },
       {
         id: "icing-choco",
-        name: "Kem dâu trang trí",
-        englishName: "Strawberry Icing",
-        emoji: "🍓",
-        imageUrl: "/assets/items/lifeskills/lifeskills_15.png",
+        name: "Kem dâu",
+        imageUrl: "/assets/items/lifeskills/lifeskills_15.webp",
         isCorrect: true,
-        prepActionLabel: "🎛️ Đánh bông kem & phết bánh",
-        prepDoneLabel: "Đã phết kem dâu",
-        preppedEmoji: "🎛️",
-        preppedImageUrl: "/assets/items/lifeskills/lifeskills_18.png",
+        prepActionLabel: "Đánh kem",
+        prepDoneLabel: "Đã đánh kem",
+        preppedImageUrl: "/assets/items/lifeskills/lifeskills_18.webp",
       },
       {
         id: "scissors-wrong",
-        name: "Cây kéo thủ công",
-        englishName: "Pink Scissors",
-        emoji: "✂️",
-        imageUrl: "/assets/items/school/school_09.png",
+        name: "Cây kéo",
+        imageUrl: "/assets/items/school/school_09.webp",
         isCorrect: false,
       },
       {
         id: "clock-wrong",
-        name: "Đồng hồ báo thức",
-        englishName: "Alarm Clock",
-        emoji: "⏰",
-        imageUrl: "/assets/items/home/home_05.png",
+        name: "Đồng hồ",
+        imageUrl: "/assets/items/home/home_05.webp",
         isCorrect: false,
       },
     ],
   },
   {
     id: "recipe-milktea",
-    title: "Pha Trà Sữa Trân Châu & Nước Cam Mát",
     shortTitle: "🧋 Trà Sữa",
     emoji: "🧋",
-    platedImageUrl: "/assets/items/sweets/sweet_11.png",
-    namSticker: "/assets/nam-stickers/nam-chef-milktea.png",
-    companionSticker: "/assets/nam-stickers/nam-hug-capybara.png",
-    companionName: "Gấu Bông & Capybara",
-    introLine:
-      "Cùng pha ly Trà Sữa Trân Châu thơm béo cho Nấm và bạn Gấu Bông nhé! Bước 1: Con hãy chọn 3 nguyên liệu pha trà sữa đưa lên quầy nào!",
-    prepPromptLine:
-      "Đủ 3 nguyên liệu rồi! Bước 2: Con bấm ủ trà thơm, nấu trân châu dẻo mềm và đong sữa bò tươi nhé!",
-    cookPromptLine:
-      "Trà thơm, sữa béo và trân châu dẻo đã sẵn sàng! Bước 3: Bấm Lắc Đều Ly Trà Sữa & Cắm Ống Hút nào!",
-    successLine:
-      "Ngọt mát mê ly! Ly Trà Sữa Trân Châu Đường Đen của Nấm và bạn Gấu Bông ngon số một luôn!",
-    cookActionLabel: "🧊 Lắc Đều Ly Trà Sữa & Cắm Ống Hút!",
-    platedLabel: "🧋 Ly Trà Sữa Trân Châu (Bubble Tea)",
-    platedSubtitle: "Trà sữa thơm béo dẻo ngọt đã sẵn sàng cho Nấm!",
-    step2TabLabel: "2. Ủ trà & Đong sữa",
-    step2Title: "🫖 Ủ hồng trà, nấu trân châu & đong sữa",
-    step3TabLabel: "3. Lắc & Cắm ống hút",
-    step3Title: "🧊 Lắc bình trà sữa & cắm ống hút",
-    step3DoneTitle: "🧋 Đã pha xong ly trà sữa trân châu!",
+    platedImageUrl: "/assets/items/sweets/sweet_11.webp",
+    namSticker: "/assets/nam-stickers/nam-chef-milktea.webp",
+    cookActionLabel: "🧊 Lắc Trà Sữa!",
+    platedLabel: "🧋 Ly Trà Sữa Trân Châu",
     ingredients: [
       {
         id: "black-tea",
-        name: "Tách hồng trà thơm",
-        englishName: "Pink Teacup",
-        emoji: "🍵",
-        imageUrl: "/assets/items/home/home_02.png",
+        name: "Hồng trà",
+        imageUrl: "/assets/items/home/home_02.webp",
         isCorrect: true,
-        prepActionLabel: "🍲 Đun ủ cốt hồng trà",
-        prepDoneLabel: "Đã ủ cốt trà thơm",
-        preppedEmoji: "🍲",
-        preppedImageUrl: "/assets/items/lifeskills/lifeskills_08.png",
+        prepActionLabel: "Ủ cốt trà",
+        prepDoneLabel: "Đã ủ trà",
+        preppedImageUrl: "/assets/items/lifeskills/lifeskills_08.webp",
       },
       {
         id: "boba-pearls",
-        name: "Trân châu & Pudding",
-        englishName: "Caramel Pudding",
-        emoji: "🍮",
-        imageUrl: "/assets/items/lifeskills/lifeskills_24.png",
+        name: "Trân châu",
+        imageUrl: "/assets/items/lifeskills/lifeskills_24.webp",
         isCorrect: true,
-        prepActionLabel: "🥣 Múc trân châu & pudding",
-        prepDoneLabel: "Trân châu dẻo mềm",
-        preppedEmoji: "🥣",
-        preppedImageUrl: "/assets/items/lifeskills/lifeskills_10.png",
+        prepActionLabel: "Múc trân châu",
+        prepDoneLabel: "Đã múc",
+        preppedImageUrl: "/assets/items/lifeskills/lifeskills_10.webp",
       },
       {
         id: "fresh-milk-cream",
-        name: "Hộp sữa bò tươi",
-        englishName: "Fresh Milk Carton",
-        emoji: "🥛",
-        imageUrl: "/assets/items/lifeskills/lifeskills_03.png",
+        name: "Sữa tươi",
+        imageUrl: "/assets/items/lifeskills/lifeskills_03.webp",
         isCorrect: true,
-        prepActionLabel: "🥄 Đong sữa bằng muỗng màu",
-        prepDoneLabel: "Đã đong sữa béo",
-        preppedEmoji: "🥄",
-        preppedImageUrl: "/assets/items/lifeskills/lifeskills_11.png",
+        prepActionLabel: "Đong sữa",
+        prepDoneLabel: "Đã đong sữa",
+        preppedImageUrl: "/assets/items/lifeskills/lifeskills_11.webp",
       },
       {
         id: "soap-bar",
-        name: "Chai sữa tắm hồng",
-        englishName: "Pink Soap",
-        emoji: "🧴",
-        imageUrl: "/assets/items/home/home_09.png",
+        name: "Sữa tắm",
+        imageUrl: "/assets/items/home/home_09.webp",
         isCorrect: false,
       },
       {
         id: "ruler-tool",
-        name: "Thước kẻ gỗ",
-        englishName: "Wooden Ruler",
-        emoji: "📏",
-        imageUrl: "/assets/items/school/school_06.png",
+        name: "Thước kẻ",
+        imageUrl: "/assets/items/school/school_06.webp",
         isCorrect: false,
       },
     ],
   },
   {
     id: "recipe-bento",
-    title: "Cơm Hộp Bento Gấu Trứng Cuộn",
     shortTitle: "🍱 Cơm Bento",
     emoji: "🍱",
-    platedImageUrl: "/assets/items/lifeskills/lifeskills_19.png",
-    namSticker: "/assets/nam-stickers/nam-eat-bento.png",
-    companionSticker: "/assets/nam-stickers/nam-hug-mymelody.png",
-    companionName: "My Melody",
-    introLine:
-      "Hôm nay đầu bếp Nấm cùng My Melody làm Cơm Hộp Bento Gấu nhé! Bước 1: Con hãy chọn 3 nguyên liệu nấu ăn trong 5 món dưới đây!",
-    prepPromptLine:
-      "Đủ 3 nguyên liệu trên bảng rồi! Bước 2: Mình cùng nấu cơm dẻo, chiên trứng ốp la trên chảo và thái rau củ trên thớt nhé!",
-    cookPromptLine:
-      "Sơ chế xong hết rồi! Bước 3: Bấm nút Nấu Chín và Bày Lên Đĩa hộp Bento Gấu nào!",
-    successLine:
-      "Oa! Hộp cơm Bento Gấu có bát cơm trắng nóng hổi, trứng chiên và rau củ xanh đã bày lên đĩa tuyệt đẹp!",
-    cookActionLabel: "🍳 Nấu Chín & Bày Hộp Bento Lên Đĩa!",
-    platedLabel: "🍚 Bát Cơm Bento Nóng Hổi (Steamed Rice Bowl)",
+    platedImageUrl: "/assets/items/lifeskills/lifeskills_19.webp",
+    namSticker: "/assets/nam-stickers/nam-eat-bento.webp",
+    cookActionLabel: "🍳 Bày Cơm Bento!",
+    platedLabel: "🍚 Hộp Cơm Bento Nóng Hổi",
     ingredients: [
       {
         id: "rice",
-        name: "Gạo & Cơm trắng",
-        englishName: "Steamed Rice",
-        emoji: "🍚",
-        imageUrl: "/assets/items/lifeskills/lifeskills_19.png",
+        name: "Cơm trắng",
+        imageUrl: "/assets/items/lifeskills/lifeskills_19.webp",
         isCorrect: true,
-        prepActionLabel: "🍲 Vo gạo & nấu nồi hoa đào",
-        prepDoneLabel: "Đã nấu cơm dẻo",
-        preppedEmoji: "🍲",
-        preppedImageUrl: "/assets/items/lifeskills/lifeskills_08.png",
+        prepActionLabel: "Nấu cơm",
+        prepDoneLabel: "Đã nấu cơm",
+        preppedImageUrl: "/assets/items/lifeskills/lifeskills_08.webp",
       },
       {
         id: "egg",
-        name: "Bát trứng đập vỏ",
-        englishName: "Cracked Egg Bowl",
-        emoji: "🥚",
-        imageUrl: "/assets/items/lifeskills/lifeskills_04.png",
+        name: "Trứng gà",
+        imageUrl: "/assets/items/lifeskills/lifeskills_04.webp",
         isCorrect: true,
-        prepActionLabel: "🍳 Chiên trứng trên chảo hồng",
-        prepDoneLabel: "Đã chiên trứng vàng",
-        preppedEmoji: "🍳",
-        preppedImageUrl: "/assets/items/lifeskills/lifeskills_07.png",
+        prepActionLabel: "Chiên trứng",
+        prepDoneLabel: "Đã chiên trứng",
+        preppedImageUrl: "/assets/items/lifeskills/lifeskills_07.webp",
       },
       {
         id: "broccoli",
-        name: "Rổ rau củ tươi",
-        englishName: "Vegetable Basket",
-        emoji: "🥦",
-        imageUrl: "/assets/items/lifeskills/lifeskills_06.png",
+        name: "Rau củ",
+        imageUrl: "/assets/items/lifeskills/lifeskills_06.webp",
         isCorrect: true,
-        prepActionLabel: "🪵 Thái rau củ trên thớt gỗ",
-        prepDoneLabel: "Đã rửa & thái rau",
-        preppedEmoji: "🪵",
-        preppedImageUrl: "/assets/items/lifeskills/lifeskills_01.png",
+        prepActionLabel: "Thái rau",
+        prepDoneLabel: "Đã thái rau",
+        preppedImageUrl: "/assets/items/lifeskills/lifeskills_01.webp",
       },
       {
         id: "toy",
-        name: "Ô tô đồ chơi đỏ",
-        englishName: "Red Car",
-        emoji: "🚗",
-        imageUrl: "/assets/items/vehicles/vehicle_01.png",
+        name: "Ô tô",
+        imageUrl: "/assets/items/vehicles/vehicle_01.webp",
         isCorrect: false,
       },
       {
         id: "crayon",
-        name: "Hộp bút sáp màu",
-        englishName: "Crayons",
-        emoji: "🖍️",
-        imageUrl: "/assets/items/school/school_08.png",
+        name: "Bút màu",
+        imageUrl: "/assets/items/school/school_08.webp",
         isCorrect: false,
       },
     ],
   },
   {
     id: "recipe-ramen",
-    title: "Mì Ramen Trứng Đào Thơm Lừng",
     shortTitle: "🍜 Mì Ramen",
     emoji: "🍜",
-    platedImageUrl: "/assets/items/lifeskills/lifeskills_20.png",
-    namSticker: "/assets/nam-stickers/nam-eat-noodles.png",
-    companionSticker: "/assets/nam-stickers/nam-hug-doraemon.png",
-    companionName: "Doraemon",
-    introLine:
-      "Cùng Doraemon nấu tô Mì Ramen nóng hổi nhé! Bước 1: Con hãy chọn đúng 3 nguyên liệu nấu mì đưa lên bảng nào!",
-    prepPromptLine:
-      "Tuyệt quá! Bước 2: Con chạm vào từng món để cán sợi mì tươi, luộc trứng lòng đào và thái rau củ trên thớt nhé!",
-    cookPromptLine:
-      "Nguyên liệu đã sơ chế sạch sẽ! Bước 3: Bấm nút Nấu Mì & Bày Ra Tô ngay thôi!",
-    successLine:
-      "Xì xụp! Tô Mì Ramen trứng đào và rau cải thơm lừng đã bày ra đĩa rồi! Nấm nấu ăn giỏi quá đi!",
-    cookActionLabel: "🍲 Nấu Mì Chín & Bày Ra Tô Lớn!",
-    platedLabel: "🍜 Tô Mì Ramen Trứng Đào (Ramen Noodle Bowl)",
+    platedImageUrl: "/assets/items/lifeskills/lifeskills_20.webp",
+    namSticker: "/assets/nam-stickers/nam-eat-noodles.webp",
+    cookActionLabel: "🍲 Nấu Tô Mì Ramen!",
+    platedLabel: "🍜 Tô Mì Ramen Trứng Đào",
     ingredients: [
       {
         id: "noodle",
-        name: "Bột mì làm sợi mì",
-        englishName: "Flour Sack",
-        emoji: "🌾",
-        imageUrl: "/assets/items/lifeskills/lifeskills_05.png",
+        name: "Vắt mì",
+        imageUrl: "/assets/items/lifeskills/lifeskills_05.webp",
         isCorrect: true,
-        prepActionLabel: "🍲 Trụng mì trong nồi hoa đào",
-        prepDoneLabel: "Đã trụng mì mềm",
-        preppedEmoji: "🍲",
-        preppedImageUrl: "/assets/items/lifeskills/lifeskills_08.png",
+        prepActionLabel: "Trụng mì",
+        prepDoneLabel: "Đã trụng mì",
+        preppedImageUrl: "/assets/items/lifeskills/lifeskills_08.webp",
       },
       {
         id: "egg2",
-        name: "Bát trứng gà tươi",
-        englishName: "Cracked Egg Bowl",
-        emoji: "🥚",
-        imageUrl: "/assets/items/lifeskills/lifeskills_04.png",
+        name: "Trứng gà",
+        imageUrl: "/assets/items/lifeskills/lifeskills_04.webp",
         isCorrect: true,
-        prepActionLabel: "🥣 Múc trứng lòng đào bằng muôi",
-        prepDoneLabel: "Đã luộc trứng đào",
-        preppedEmoji: "🥣",
-        preppedImageUrl: "/assets/items/lifeskills/lifeskills_10.png",
+        prepActionLabel: "Luộc trứng",
+        prepDoneLabel: "Đã luộc trứng",
+        preppedImageUrl: "/assets/items/lifeskills/lifeskills_10.webp",
       },
       {
         id: "greens",
-        name: "Rổ rau củ tươi",
-        englishName: "Vegetable Basket",
-        emoji: "🥬",
-        imageUrl: "/assets/items/lifeskills/lifeskills_06.png",
+        name: "Rau xanh",
+        imageUrl: "/assets/items/lifeskills/lifeskills_06.webp",
         isCorrect: true,
-        prepActionLabel: "🪵 Rửa & thái hành rau trên thớt",
-        prepDoneLabel: "Đã thái rau xanh",
-        preppedEmoji: "🪵",
-        preppedImageUrl: "/assets/items/lifeskills/lifeskills_01.png",
+        prepActionLabel: "Thái rau",
+        prepDoneLabel: "Đã thái rau",
+        preppedImageUrl: "/assets/items/lifeskills/lifeskills_01.webp",
       },
       {
         id: "shoe",
-        name: "Cặp sách đi học",
-        englishName: "Pink Backpack",
-        emoji: "🎒",
-        imageUrl: "/assets/items/school/school_01.png",
+        name: "Cặp sách",
+        imageUrl: "/assets/items/school/school_01.webp",
         isCorrect: false,
       },
       {
         id: "ball",
-        name: "Máy bay đồ chơi",
-        englishName: "Airplane",
-        emoji: "✈️",
-        imageUrl: "/assets/items/vehicles/vehicle_06.png",
+        name: "Máy bay",
+        imageUrl: "/assets/items/vehicles/vehicle_06.webp",
         isCorrect: false,
       },
     ],
   },
   {
     id: "recipe-burger",
-    title: "Bánh Burger Bò Phô Mai Rau Xanh",
     shortTitle: "🍔 Bánh Burger",
     emoji: "🍔",
-    platedImageUrl: "/assets/items/lifeskills/lifeskills_21.png",
-    namSticker: "/assets/nam-stickers/nam-eat-burger.png",
-    companionSticker: "/assets/nam-stickers/nam-hug-purin.png",
-    companionName: "Pompompurin",
-    introLine:
-      "Đầu bếp Nấm ơi, cùng Pompompurin làm Bánh Burger nhé! Bước 1: Chọn 3 nguyên liệu làm bánh đưa lên bảng nào!",
-    prepPromptLine:
-      "Đủ 3 món rồi! Bước 2: Cùng nướng vỏ bánh mì, áp chảo thịt phô mai bằng xẻng gỗ và thái cà chua xà lách nhé!",
-    cookPromptLine:
-      "Sơ chế hoàn tất! Bước 3: Bấm nút Áp Chảo & Bày Bánh Burger Lên Đĩa nào!",
-    successLine:
-      "Tuyệt vời! Chiếc bánh Burger cao tầng có đủ bánh mì, phô mai và rau xà lách đã bày lên đĩa ngon tuyệt cú mèo!",
-    cookActionLabel: "🔥 Áp Chảo & Bày Bánh Burger Lên Đĩa!",
-    platedLabel: "🍔 Bánh Burger Bò Phô Mai (Cheeseburger)",
+    platedImageUrl: "/assets/items/lifeskills/lifeskills_21.webp",
+    namSticker: "/assets/nam-stickers/nam-eat-burger.webp",
+    cookActionLabel: "🔥 Kẹp Bánh Burger!",
+    platedLabel: "🍔 Bánh Burger Bò Phô Mai",
     ingredients: [
       {
         id: "bread",
-        name: "Bánh mì tròn mềm",
-        englishName: "Burger Bun",
-        emoji: "🥯",
-        imageUrl: "/assets/math/pastries16/pastry16_10.png",
+        name: "Vỏ bánh mì",
+        imageUrl: "/assets/math/pastries16/pastry16_10.webp",
         isCorrect: true,
-        prepActionLabel: "🧤 Đeo găng nướng thơm vỏ bánh",
-        prepDoneLabel: "Đã nướng vỏ bánh",
-        preppedEmoji: "🧤",
-        preppedImageUrl: "/assets/items/lifeskills/lifeskills_17.png",
+        prepActionLabel: "Nướng bánh",
+        prepDoneLabel: "Đã nướng bánh",
+        preppedImageUrl: "/assets/items/lifeskills/lifeskills_17.webp",
       },
       {
         id: "cheese",
-        name: "Trứng & Phô mai bò",
-        englishName: "Frying Pan & Patty",
-        emoji: "🍳",
-        imageUrl: "/assets/items/lifeskills/lifeskills_07.png",
+        name: "Thịt & Phô mai",
+        imageUrl: "/assets/items/lifeskills/lifeskills_07.webp",
         isCorrect: true,
-        prepActionLabel: "🥄 Dùng xẻng gỗ lật chín thịt",
-        prepDoneLabel: "Đã áp chảo thơm",
-        preppedEmoji: "🥄",
-        preppedImageUrl: "/assets/items/lifeskills/lifeskills_09.png",
+        prepActionLabel: "Áp chảo",
+        prepDoneLabel: "Đã áp chảo",
+        preppedImageUrl: "/assets/items/lifeskills/lifeskills_09.webp",
       },
       {
         id: "salad",
-        name: "Rổ cà chua & xà lách",
-        englishName: "Vegetable Basket",
-        emoji: "🥬",
-        imageUrl: "/assets/items/lifeskills/lifeskills_06.png",
+        name: "Rau & Cà chua",
+        imageUrl: "/assets/items/lifeskills/lifeskills_06.webp",
         isCorrect: true,
-        prepActionLabel: "🪵 Thái lát cà chua trên thớt",
-        prepDoneLabel: "Đã rửa & thái lát",
-        preppedEmoji: "🪵",
-        preppedImageUrl: "/assets/items/lifeskills/lifeskills_01.png",
+        prepActionLabel: "Thái lát",
+        prepDoneLabel: "Đã thái lát",
+        preppedImageUrl: "/assets/items/lifeskills/lifeskills_01.webp",
       },
       {
         id: "book",
-        name: "Quyển sổ lò xo tím",
-        englishName: "Purple Notebook",
-        emoji: "📓",
-        imageUrl: "/assets/items/school/school_02.png",
+        name: "Quyển sổ",
+        imageUrl: "/assets/items/school/school_02.webp",
         isCorrect: false,
       },
       {
         id: "umbrella",
-        name: "Đèn bàn ánh vàng",
-        englishName: "Table Lamp",
-        emoji: "💡",
-        imageUrl: "/assets/items/home/home_01.png",
+        name: "Đèn bàn",
+        imageUrl: "/assets/items/home/home_01.webp",
         isCorrect: false,
       },
     ],
   },
   {
     id: "recipe-chicken",
-    title: "Đùi Gà Rán Giòn & Salad Cà Chua",
     shortTitle: "🍗 Gà Rán Giòn",
     emoji: "🍗",
-    platedImageUrl: "/assets/items/lifeskills/lifeskills_22.png",
-    namSticker: "/assets/nam-stickers/nam-eat-chicken.png",
-    companionSticker: "/assets/nam-stickers/nam-hug-cinna.png",
-    companionName: "Cinnamoroll",
-    introLine:
-      "Cùng Cinnamoroll làm món Đùi Gà Rán Giòn & Salad nhé! Bước 1: Nấm chọn 3 nguyên liệu tươi ngon đưa lên bảng nào!",
-    prepPromptLine:
-      "Giỏi quá! Bước 2: Mình tẩm bột mì trứng cho gà, thái rau cà chua và vắt nước cam tươi mát nhé!",
-    cookPromptLine:
-      "Mọi thứ đã sẵn sàng! Bước 3: Bấm Chiên Vàng Giòn & Bày Lên Đĩa thôi!",
-    successLine:
-      "Giòn rụm thơm phức! Đĩa gà rán vàng ươm ăn kèm salad cà chua và chanh vàng ngon hết sẩy luôn!",
-    cookActionLabel: "🍳 Chiên Vàng Giòn & Bày Đĩa Gà Rán!",
-    platedLabel: "🍗 Đĩa Gà Rán Giòn & Salad (Fried Chicken Plate)",
+    platedImageUrl: "/assets/items/lifeskills/lifeskills_22.webp",
+    namSticker: "/assets/nam-stickers/nam-eat-chicken.webp",
+    cookActionLabel: "🍳 Chiên Đĩa Gà Rán!",
+    platedLabel: "🍗 Đĩa Gà Rán Giòn & Salad",
     ingredients: [
       {
         id: "drumstick",
-        name: "Bột chiên giòn thơm",
-        englishName: "Crispy Flour",
-        emoji: "🌾",
-        imageUrl: "/assets/items/lifeskills/lifeskills_05.png",
+        name: "Bột chiên gà",
+        imageUrl: "/assets/items/lifeskills/lifeskills_05.webp",
         isCorrect: true,
-        prepActionLabel: "🥣 Áo lớp bột chiên giòn trong tô",
-        prepDoneLabel: "Đã tẩm bột gà",
-        preppedEmoji: "🥣",
-        preppedImageUrl: "/assets/items/lifeskills/lifeskills_02.png",
+        prepActionLabel: "Tẩm bột",
+        prepDoneLabel: "Đã tẩm bột",
+        preppedImageUrl: "/assets/items/lifeskills/lifeskills_02.webp",
       },
       {
         id: "tomato",
-        name: "Rổ cà chua & xà lách",
-        englishName: "Vegetable Basket",
-        emoji: "🍅",
-        imageUrl: "/assets/items/lifeskills/lifeskills_06.png",
+        name: "Rau salad",
+        imageUrl: "/assets/items/lifeskills/lifeskills_06.webp",
         isCorrect: true,
-        prepActionLabel: "🪵 Rửa & bày rau trên thớt",
-        prepDoneLabel: "Đã soạn salad tươi",
-        preppedEmoji: "🪵",
-        preppedImageUrl: "/assets/items/lifeskills/lifeskills_01.png",
+        prepActionLabel: "Rửa rau",
+        prepDoneLabel: "Đã rửa rau",
+        preppedImageUrl: "/assets/items/lifeskills/lifeskills_01.webp",
       },
       {
         id: "corn",
-        name: "Cam & Chanh vàng tươi",
-        englishName: "Yellow Lemon",
-        emoji: "🍋",
-        imageUrl: "/assets/items/fruits/fruit_09.png",
+        name: "Cam tươi",
+        imageUrl: "/assets/items/fruits/fruit_09.webp",
         isCorrect: true,
-        prepActionLabel: "🍊 Pha thêm ly nước cam đá",
-        prepDoneLabel: "Đã có nước cam mát",
-        preppedEmoji: "🍊",
-        preppedImageUrl: "/assets/items/lifeskills/lifeskills_23.png",
+        prepActionLabel: "Vắt nước cam",
+        prepDoneLabel: "Đã vắt cam",
+        preppedImageUrl: "/assets/items/lifeskills/lifeskills_23.webp",
       },
       {
         id: "clock",
-        name: "Đồng hồ báo thức",
-        englishName: "Alarm Clock",
-        emoji: "⏰",
-        imageUrl: "/assets/items/home/home_05.png",
+        name: "Đồng hồ",
+        imageUrl: "/assets/items/home/home_05.webp",
         isCorrect: false,
       },
       {
         id: "hat",
-        name: "Cây chổi quét nhà",
-        englishName: "Broom",
-        emoji: "🧹",
-        imageUrl: "/assets/items/home/home_14.png",
+        name: "Cây chổi",
+        imageUrl: "/assets/items/home/home_14.webp",
         isCorrect: false,
       },
     ],
   },
   {
     id: "recipe-icecream",
-    title: "Bánh Kem Dâu Tây & Kem Sữa Tươi",
     shortTitle: "🍰 Bánh Kem Dâu",
     emoji: "🍰",
-    platedImageUrl: "/assets/items/lifeskills/lifeskills_16.png",
-    namSticker: "/assets/nam-stickers/nam-eat-icecream.png",
-    companionSticker: "/assets/nam-stickers/nam-hug-kitty.png",
-    companionName: "Hello Kitty",
-    introLine:
-      "Cùng Hello Kitty làm Bánh Kem Dâu Tây & Kem Sữa mát lạnh nào! Bước 1: Chọn đúng 3 nguyên liệu làm bánh kem đưa lên bảng nhé!",
-    prepPromptLine:
-      "Đủ 3 món rồi! Bước 2: Con bấm đong sữa tươi, đánh bông kem bằng máy và cắt dâu tây chín đỏ nhé!",
-    cookPromptLine:
-      "Sơ chế xong rồi! Bước 3: Bấm Phết Kem & Bày Bánh Dâu Tây Lên Đĩa nào!",
-    successLine:
-      "Ngọt mát quá đi! Đĩa Bánh Kem Dâu Tây Cắt Lát của đầu bếp Nấm đẹp xuất sắc!",
-    cookActionLabel: "🎂 Phết Kem Bông & Bày Bánh Dâu Tây Lên Đĩa!",
-    platedLabel: "🍰 Bánh Kem Dâu Tây Cắt Lát (Strawberry Shortcake)",
+    platedImageUrl: "/assets/items/lifeskills/lifeskills_16.webp",
+    namSticker: "/assets/nam-stickers/nam-eat-icecream.webp",
+    cookActionLabel: "🎂 Phết Kem Bày Đĩa!",
+    platedLabel: "🍰 Bánh Kem Dâu Tây",
     ingredients: [
       {
         id: "milk",
-        name: "Hộp sữa bò tươi",
-        englishName: "Fresh Milk Carton",
-        emoji: "🥛",
-        imageUrl: "/assets/items/lifeskills/lifeskills_03.png",
+        name: "Sữa tươi",
+        imageUrl: "/assets/items/lifeskills/lifeskills_03.webp",
         isCorrect: true,
-        prepActionLabel: "🎛️ Đánh bông kem sữa bằng máy",
-        prepDoneLabel: "Đã đánh bông kem",
-        preppedEmoji: "🎛️",
-        preppedImageUrl: "/assets/items/lifeskills/lifeskills_18.png",
+        prepActionLabel: "Đánh kem",
+        prepDoneLabel: "Đã đánh kem",
+        preppedImageUrl: "/assets/items/lifeskills/lifeskills_18.webp",
       },
       {
         id: "strawberry",
-        name: "Quả dâu tây chín đỏ",
-        englishName: "Strawberry",
-        emoji: "🍓",
-        imageUrl: "/assets/items/fruits/fruit_01.png",
+        name: "Dâu tây",
+        imageUrl: "/assets/items/fruits/fruit_01.webp",
         isCorrect: true,
-        prepActionLabel: "🪵 Cắt lát dâu tây trên thớt",
-        prepDoneLabel: "Đã rửa & thái dâu",
-        preppedEmoji: "🪵",
-        preppedImageUrl: "/assets/items/lifeskills/lifeskills_01.png",
+        prepActionLabel: "Cắt dâu",
+        prepDoneLabel: "Đã cắt dâu",
+        preppedImageUrl: "/assets/items/lifeskills/lifeskills_01.webp",
       },
       {
         id: "cone",
-        name: "Cốt bánh bông lan",
-        englishName: "Strawberry Cupcake",
-        emoji: "🧁",
-        imageUrl: "/assets/items/lifeskills/lifeskills_15.png",
+        name: "Cốt bánh",
+        imageUrl: "/assets/items/lifeskills/lifeskills_15.webp",
         isCorrect: true,
-        prepActionLabel: "🥣 Trộn kem & phết cốt bánh",
-        prepDoneLabel: "Cốt bánh thơm mềm",
-        preppedEmoji: "🥣",
-        preppedImageUrl: "/assets/items/lifeskills/lifeskills_02.png",
+        prepActionLabel: "Phết bánh",
+        prepDoneLabel: "Đã phết bánh",
+        preppedImageUrl: "/assets/items/lifeskills/lifeskills_02.webp",
       },
       {
         id: "pencil",
-        name: "Bút chì vàng",
-        englishName: "Yellow Pencil",
-        emoji: "✏️",
-        imageUrl: "/assets/items/school/school_04.png",
+        name: "Bút chì",
+        imageUrl: "/assets/items/school/school_04.webp",
         isCorrect: false,
       },
       {
         id: "sock",
-        name: "Ghế sofa xanh",
-        englishName: "Blue Sofa",
-        emoji: "🛋️",
-        imageUrl: "/assets/items/home/home_06.png",
+        name: "Ghế sofa",
+        imageUrl: "/assets/items/home/home_06.webp",
+        isCorrect: false,
+      },
+    ],
+  },
+  {
+    id: "recipe-pizza",
+    shortTitle: "🍕 Bánh Pizza",
+    emoji: "🍕",
+    platedImageUrl: "/assets/nam-stickers/nam-eat-pizza.webp",
+    namSticker: "/assets/nam-stickers/nam-eat-pizza.webp",
+    cookActionLabel: "🔥 Nướng Bánh Pizza!",
+    platedLabel: "🍕 Bánh Pizza Phô Mai Nóng Hổi",
+    ingredients: [
+      {
+        id: "pz-dough",
+        name: "Bột đế bánh",
+        imageUrl: "/assets/items/lifeskills/lifeskills_05.webp",
+        isCorrect: true,
+        prepActionLabel: "Cán đế bánh",
+        prepDoneLabel: "Đã cán đế",
+        preppedImageUrl: "/assets/items/lifeskills/lifeskills_13.webp",
+      },
+      {
+        id: "pz-cheese",
+        name: "Phô mai & Xúc xích",
+        imageUrl: "/assets/items/lifeskills/lifeskills_07.webp",
+        isCorrect: true,
+        prepActionLabel: "Rắc phô mai",
+        prepDoneLabel: "Đã rắc phô mai",
+        preppedImageUrl: "/assets/items/lifeskills/lifeskills_09.webp",
+      },
+      {
+        id: "pz-veggie",
+        name: "Cà chua & Ớt chuông",
+        imageUrl: "/assets/items/lifeskills/lifeskills_06.webp",
+        isCorrect: true,
+        prepActionLabel: "Thái lát mỏng",
+        prepDoneLabel: "Đã thái lát",
+        preppedImageUrl: "/assets/items/lifeskills/lifeskills_01.webp",
+      },
+      {
+        id: "pz-wrong-bag",
+        name: "Cặp sách",
+        imageUrl: "/assets/items/school/school_01.webp",
+        isCorrect: false,
+      },
+      {
+        id: "pz-wrong-broom",
+        name: "Cây chổi",
+        imageUrl: "/assets/items/home/home_14.webp",
+        isCorrect: false,
+      },
+    ],
+  },
+  {
+    id: "recipe-fries",
+    shortTitle: "🍟 Khoai Tây Chiên",
+    emoji: "🍟",
+    platedImageUrl: "/assets/nam-stickers/nam-eat-fries.webp",
+    namSticker: "/assets/nam-stickers/nam-eat-fries.webp",
+    cookActionLabel: "🍳 Chiên Khoai Tây Vàng Giòn!",
+    platedLabel: "🍟 Hộp Khoai Tây Chiên Giòn Rụm",
+    ingredients: [
+      {
+        id: "fr-potato",
+        name: "Khoai tây tươi",
+        imageUrl: "/assets/items/lifeskills/lifeskills_06.webp",
+        isCorrect: true,
+        prepActionLabel: "Thái thanh dài",
+        prepDoneLabel: "Đã thái khoai",
+        preppedImageUrl: "/assets/items/lifeskills/lifeskills_01.webp",
+      },
+      {
+        id: "fr-crispy-flour",
+        name: "Bột chiên giòn",
+        imageUrl: "/assets/items/lifeskills/lifeskills_05.webp",
+        isCorrect: true,
+        prepActionLabel: "Áo lớp bột",
+        prepDoneLabel: "Đã áo bột",
+        preppedImageUrl: "/assets/items/lifeskills/lifeskills_02.webp",
+      },
+      {
+        id: "fr-pan-oil",
+        name: "Chảo chiên nóng",
+        imageUrl: "/assets/items/lifeskills/lifeskills_07.webp",
+        isCorrect: true,
+        prepActionLabel: "Làm nóng chảo",
+        prepDoneLabel: "Chảo đã nóng",
+        preppedImageUrl: "/assets/items/lifeskills/lifeskills_09.webp",
+      },
+      {
+        id: "fr-wrong-pillow",
+        name: "Chiếc gối",
+        imageUrl: "/assets/items/home/home_07.webp",
+        isCorrect: false,
+      },
+      {
+        id: "fr-wrong-ruler",
+        name: "Thước kẻ",
+        imageUrl: "/assets/items/school/school_06.webp",
         isCorrect: false,
       },
     ],
   },
 ];
 
+// ============================================================================
+// 6 BÀI BÉ TỰ LẬP: NHÃN NGẮN GỌN 2-4 CHỮ, HÌNH TRỰC QUAN
+// ============================================================================
 const DAILY_HABITS: DailyHabitQuest[] = [
   {
-    id: "habit-water",
-    title: "Chăm Sóc & Tưới Cây Xanh",
-    shortTitle: "🌱 Tưới Cây",
-    emoji: "🌱",
-    namSticker: "/assets/nam-stickers/nam-study-water.png",
-    companionSticker: "/assets/nam-stickers/nam-hug-capybara.png",
-    companionName: "Capybara & Doraemon",
-    introLine:
-      "Cùng Capybara và Doraemon chăm sóc chậu cây xanh mỗi sáng nhé! Con hãy bấm lần lượt Bước 1, Bước 2, Bước 3 theo đúng thứ tự nào!",
-    successLine:
-      "Hoan hô bé Nấm! Nhờ Nấm tưới nước và đặt cây ra nắng ấm mà chậu cây nở hoa xanh tươi rồi!",
+    id: "habit-dishes",
+    shortTitle: "🍽️ Rửa Bát Đĩa",
+    emoji: "🍽️",
+    heroImageUrl: "/assets/items/home/home_04.webp",
+    namSticker: "/assets/nam-stickers/nam-eat-rice.webp",
+    prepTools: [
+      {
+        id: "dish-bowl",
+        name: "Bát đĩa bẩn",
+        imageUrl: "/assets/items/lifeskills/lifeskills_19.webp",
+        isCorrect: true,
+      },
+      {
+        id: "dish-soap",
+        name: "Nước rửa bát",
+        imageUrl: "/assets/items/home/home_09.webp",
+        isCorrect: true,
+      },
+      {
+        id: "dish-rack",
+        name: "Kệ úp đĩa",
+        imageUrl: "/assets/items/home/home_04.webp",
+        isCorrect: true,
+      },
+      {
+        id: "dish-wrong-car",
+        name: "Ô tô",
+        imageUrl: "/assets/items/vehicles/vehicle_01.webp",
+        isCorrect: false,
+      },
+      {
+        id: "dish-wrong-ball",
+        name: "Quả bóng",
+        imageUrl: "/assets/english/items/shop_16_ball_green.webp",
+        isCorrect: false,
+      },
+    ],
     steps: [
       {
-        id: "w1",
+        id: "d-step-1",
         order: 1,
-        label: "Lấy bình tưới nước sạch",
-        englishLabel: "Watering Can",
-        emoji: "🚿",
-        imageUrl: "/assets/items/home/home_15.png",
+        label: "Chà xà phòng",
+        imageUrl: "/assets/items/home/home_09.webp",
       },
       {
-        id: "w2",
+        id: "d-step-2",
         order: 2,
-        label: "Tưới nước nhẹ vào chậu cây",
-        englishLabel: "Green Plant",
-        emoji: "🪴",
-        imageUrl: "/assets/items/home/home_11.png",
+        label: "Tráng nước sạch",
+        imageUrl: "/assets/items/home/home_08.webp",
       },
       {
-        id: "w3",
+        id: "d-step-3",
         order: 3,
-        label: "Thu hoạch rau quả tươi ngon",
-        englishLabel: "Vegetable Basket",
-        emoji: "🥦",
-        imageUrl: "/assets/items/lifeskills/lifeskills_06.png",
+        label: "Úp lên kệ",
+        imageUrl: "/assets/items/home/home_04.webp",
       },
     ],
   },
   {
-    id: "habit-brush",
-    title: "Đánh Răng & Vệ Sinh Cá Nhân",
-    shortTitle: "🪥 Đánh Răng",
-    emoji: "🪥",
-    namSticker: "/assets/nam-stickers/nam-study-brush.png",
-    companionSticker: "/assets/nam-stickers/nam-hug-pochacco.png",
-    companionName: "Pochacco",
-    introLine:
-      "Để hàm răng trắng tinh và cơ thể thơm tho, Nấm cùng Pochacco thực hiện đúng 3 bước vệ sinh sạch sẽ nhé!",
-    successLine:
-      "Hàm răng của Nấm trắng bóng, thơm tho! Nấm là em bé tự giác số một luôn!",
+    id: "habit-laundry",
+    shortTitle: "👗 Gấp Quần Áo",
+    emoji: "👗",
+    heroImageUrl: "/assets/items/home/home_13.webp",
+    namSticker: "/assets/nam-stickers/nam-hug-mymelody.webp",
+    prepTools: [
+      {
+        id: "laundry-dress",
+        name: "Quần áo",
+        imageUrl: "/assets/english/items/shop_13_dress_pink.webp",
+        isCorrect: true,
+      },
+      {
+        id: "laundry-washer",
+        name: "Máy giặt",
+        imageUrl: "/assets/items/home/home_13.webp",
+        isCorrect: true,
+      },
+      {
+        id: "laundry-towel",
+        name: "Ngăn tủ",
+        imageUrl: "/assets/items/home/home_10.webp",
+        isCorrect: true,
+      },
+      {
+        id: "laundry-wrong-pan",
+        name: "Chảo rán",
+        imageUrl: "/assets/items/lifeskills/lifeskills_07.webp",
+        isCorrect: false,
+      },
+      {
+        id: "laundry-wrong-cake",
+        name: "Bánh kem",
+        imageUrl: "/assets/items/lifeskills/lifeskills_16.webp",
+        isCorrect: false,
+      },
+    ],
     steps: [
       {
-        id: "b1",
+        id: "l-step-1",
         order: 1,
-        label: "Lấy bàn chải & xà phòng thơm",
-        englishLabel: "Pink Soap",
-        emoji: "🧴",
-        imageUrl: "/assets/items/home/home_09.png",
+        label: "Giặt & phơi khô",
+        imageUrl: "/assets/items/home/home_13.webp",
       },
       {
-        id: "b2",
+        id: "l-step-2",
         order: 2,
-        label: "Đánh răng & rửa mặt sạch bọt",
-        englishLabel: "Bubble Wash",
-        emoji: "🛁",
-        imageUrl: "/assets/items/home/home_08.png",
+        label: "Gập hai tay áo",
+        imageUrl: "/assets/english/items/shop_13_dress_pink.webp",
       },
       {
-        id: "b3",
+        id: "l-step-3",
         order: 3,
-        label: "Lau khô bằng khăn bông êm ái",
-        englishLabel: "Mint Towel",
-        emoji: "🧖",
-        imageUrl: "/assets/items/home/home_10.png",
+        label: "Gập đôi cất tủ",
+        imageUrl: "/assets/items/home/home_10.webp",
+      },
+    ],
+  },
+  {
+    id: "habit-room",
+    shortTitle: "🛌 Dọn Phòng",
+    emoji: "🛌",
+    heroImageUrl: "/assets/items/home/home_07.webp",
+    namSticker: "/assets/nam-stickers/nam-study-read.webp",
+    prepTools: [
+      {
+        id: "room-pillow",
+        name: "Chăn gối",
+        imageUrl: "/assets/items/home/home_07.webp",
+        isCorrect: true,
+      },
+      {
+        id: "room-broom",
+        name: "Cây chổi",
+        imageUrl: "/assets/items/home/home_14.webp",
+        isCorrect: true,
+      },
+      {
+        id: "room-lamp",
+        name: "Đèn bàn học",
+        imageUrl: "/assets/items/home/home_01.webp",
+        isCorrect: true,
+      },
+      {
+        id: "room-wrong-ramen",
+        name: "Tô mì",
+        imageUrl: "/assets/items/lifeskills/lifeskills_20.webp",
+        isCorrect: false,
+      },
+      {
+        id: "room-wrong-bike",
+        name: "Xe đạp",
+        imageUrl: "/assets/items/vehicles/vehicle_03.webp",
+        isCorrect: false,
+      },
+    ],
+    steps: [
+      {
+        id: "r-step-1",
+        order: 1,
+        label: "Gấp chăn gối",
+        imageUrl: "/assets/items/home/home_07.webp",
+      },
+      {
+        id: "r-step-2",
+        order: 2,
+        label: "Quét sạch sàn",
+        imageUrl: "/assets/items/home/home_14.webp",
+      },
+      {
+        id: "r-step-3",
+        order: 3,
+        label: "Xếp gọn bàn học",
+        imageUrl: "/assets/items/home/home_01.webp",
       },
     ],
   },
   {
     id: "habit-school",
-    title: "Tự Soạn Cặp Sách Đi Học",
     shortTitle: "🎒 Soạn Cặp Sách",
     emoji: "🎒",
-    namSticker: "/assets/nam-stickers/nam-study-school.png",
-    companionSticker: "/assets/nam-stickers/nam-hug-kuromi.png",
-    companionName: "Kuromi",
-    introLine:
-      "Trước khi đến lớp, Nấm cùng Kuromi tự tay sắp xếp sách vở và hộp bút gọn gàng vào cặp nhé!",
-    successLine:
-      "Tuyệt quá! Cặp sách của Nấm đã gọn gàng ngăn nắp, sẵn sàng đến trường cùng các bạn rồi!",
+    heroImageUrl: "/assets/items/school/school_01.webp",
+    namSticker: "/assets/nam-stickers/nam-study-school.webp",
+    prepTools: [
+      {
+        id: "sch-book",
+        name: "Sách vở",
+        imageUrl: "/assets/items/school/school_03.webp",
+        isCorrect: true,
+      },
+      {
+        id: "sch-pencilcase",
+        name: "Hộp bút",
+        imageUrl: "/assets/items/school/school_12.webp",
+        isCorrect: true,
+      },
+      {
+        id: "sch-bag",
+        name: "Cặp sách",
+        imageUrl: "/assets/items/school/school_01.webp",
+        isCorrect: true,
+      },
+      {
+        id: "sch-wrong-bath",
+        name: "Bồn tắm",
+        imageUrl: "/assets/items/home/home_08.webp",
+        isCorrect: false,
+      },
+      {
+        id: "sch-wrong-sofa",
+        name: "Ghế sofa",
+        imageUrl: "/assets/items/home/home_06.webp",
+        isCorrect: false,
+      },
+    ],
     steps: [
       {
-        id: "s1",
+        id: "s-step-1",
         order: 1,
-        label: "Xếp sách vở ngay ngắn vào ngăn lớn",
-        englishLabel: "Open Book",
-        emoji: "📖",
-        imageUrl: "/assets/items/school/school_03.png",
+        label: "Cất bút vào hộp",
+        imageUrl: "/assets/items/school/school_12.webp",
       },
       {
-        id: "s2",
+        id: "s-step-2",
         order: 2,
-        label: "Cất hộp bút & thước vào ngăn nhỏ",
-        englishLabel: "Pencil Case",
-        emoji: "👝",
-        imageUrl: "/assets/items/school/school_12.png",
+        label: "Xếp sách vào cặp",
+        imageUrl: "/assets/items/school/school_03.webp",
       },
       {
-        id: "s3",
+        id: "s-step-3",
         order: 3,
-        label: "Kéo khóa cặp hồng & đeo lên vai",
-        englishLabel: "Pink Backpack",
-        emoji: "🎒",
-        imageUrl: "/assets/items/school/school_01.png",
+        label: "Kéo khóa đeo cặp",
+        imageUrl: "/assets/items/school/school_01.webp",
       },
     ],
   },
   {
-    id: "habit-rice",
-    title: "Mặc Tạp Dề & Phụ Mẹ Bữa Cơm Ngoan",
-    shortTitle: "🍚 Bữa Cơm Ngoan",
-    emoji: "🍚",
-    namSticker: "/assets/nam-stickers/nam-eat-rice.png",
-    companionSticker: "/assets/nam-stickers/nam-hug-doraemon.png",
-    companionName: "Doraemon",
-    introLine:
-      "Đến giờ ăn cơm gia đình rồi! Cùng Doraemon thực hiện 3 thói quen lễ phép và gọn gàng trong bữa ăn nhé!",
-    successLine:
-      "Nấm vừa lễ phép mời ba mẹ, vừa ăn hết suất và phụ dọn bát đĩa! Ba mẹ tự hào về Nấm lắm!",
+    id: "habit-brush",
+    shortTitle: "🪥 Đánh Răng",
+    emoji: "🪥",
+    heroImageUrl: "/assets/english/items/act_11_brush_teeth.webp",
+    namSticker: "/assets/nam-stickers/nam-study-brush.webp",
+    prepTools: [
+      {
+        id: "br-soap",
+        name: "Bàn chải & Kem",
+        imageUrl: "/assets/english/items/act_11_brush_teeth.webp",
+        isCorrect: true,
+      },
+      {
+        id: "br-water",
+        name: "Nước sạch",
+        imageUrl: "/assets/english/items/act_12_wash_hands.webp",
+        isCorrect: true,
+      },
+      {
+        id: "br-towel",
+        name: "Khăn mặt",
+        imageUrl: "/assets/items/home/home_10.webp",
+        isCorrect: true,
+      },
+      {
+        id: "br-wrong-crayon",
+        name: "Bút màu",
+        imageUrl: "/assets/items/school/school_08.webp",
+        isCorrect: false,
+      },
+      {
+        id: "br-wrong-plane",
+        name: "Máy bay",
+        imageUrl: "/assets/items/vehicles/vehicle_06.webp",
+        isCorrect: false,
+      },
+    ],
     steps: [
       {
-        id: "r1",
+        id: "b-step-1",
         order: 1,
-        label: "Mặc tạp dề hoa cúc phụ mẹ dọn bàn",
-        englishLabel: "Chef Apron",
-        emoji: "🎽",
-        imageUrl: "/assets/items/lifeskills/lifeskills_12.png",
+        label: "Chải sạch răng",
+        imageUrl: "/assets/english/items/act_11_brush_teeth.webp",
       },
       {
-        id: "r2",
+        id: "b-step-2",
         order: 2,
-        label: "Bưng bát cơm trắng & mời Ba Mẹ",
-        englishLabel: "Steamed Rice Bowl",
-        emoji: "🍚",
-        imageUrl: "/assets/items/lifeskills/lifeskills_19.png",
+        label: "Súc miệng rửa mặt",
+        imageUrl: "/assets/english/items/act_12_wash_hands.webp",
       },
       {
-        id: "r3",
+        id: "b-step-3",
         order: 3,
-        label: "Ăn gọn gàng & xếp đĩa sạch sẽ",
-        englishLabel: "Blue Plate",
-        emoji: "🍽️",
-        imageUrl: "/assets/items/home/home_04.png",
+        label: "Lau khô bằng khăn",
+        imageUrl: "/assets/items/home/home_10.webp",
+      },
+    ],
+  },
+  {
+    id: "habit-water",
+    shortTitle: "🌱 Tưới Cây",
+    emoji: "🌱",
+    heroImageUrl: "/assets/items/home/home_11.webp",
+    namSticker: "/assets/nam-stickers/nam-study-water.webp",
+    prepTools: [
+      {
+        id: "wt-can",
+        name: "Bình tưới",
+        imageUrl: "/assets/items/home/home_15.webp",
+        isCorrect: true,
+      },
+      {
+        id: "wt-plant",
+        name: "Chậu cây",
+        imageUrl: "/assets/items/home/home_11.webp",
+        isCorrect: true,
+      },
+      {
+        id: "wt-basket",
+        name: "Rổ thu hoạch",
+        imageUrl: "/assets/items/lifeskills/lifeskills_06.webp",
+        isCorrect: true,
+      },
+      {
+        id: "wt-wrong-clock",
+        name: "Đồng hồ",
+        imageUrl: "/assets/items/home/home_05.webp",
+        isCorrect: false,
+      },
+      {
+        id: "wt-wrong-mitt",
+        name: "Găng tay",
+        imageUrl: "/assets/items/lifeskills/lifeskills_17.webp",
+        isCorrect: false,
+      },
+    ],
+    steps: [
+      {
+        id: "w-step-1",
+        order: 1,
+        label: "Lấy nước vào bình",
+        imageUrl: "/assets/items/home/home_15.webp",
+      },
+      {
+        id: "w-step-2",
+        order: 2,
+        label: "Tưới gốc cây",
+        imageUrl: "/assets/items/home/home_11.webp",
+      },
+      {
+        id: "w-step-3",
+        order: 3,
+        label: "Thu hoạch rau quả",
+        imageUrl: "/assets/items/lifeskills/lifeskills_06.webp",
+      },
+    ],
+  },
+  {
+    id: "habit-wakeup",
+    shortTitle: "⏰ Thức Dậy Sớm",
+    emoji: "⏰",
+    heroImageUrl: "/assets/nam-stickers/nam-routine-wakeup.webp",
+    namSticker: "/assets/nam-stickers/nam-routine-wakeup.webp",
+    prepTools: [
+      {
+        id: "wk-clock",
+        name: "Đồng hồ báo thức",
+        imageUrl: "/assets/items/home/home_05.webp",
+        isCorrect: true,
+      },
+      {
+        id: "wk-pillow",
+        name: "Chăn gối gọn",
+        imageUrl: "/assets/items/home/home_07.webp",
+        isCorrect: true,
+      },
+      {
+        id: "wk-towel",
+        name: "Khăn mặt sạch",
+        imageUrl: "/assets/items/home/home_10.webp",
+        isCorrect: true,
+      },
+      {
+        id: "wk-wrong-pan",
+        name: "Chảo rán",
+        imageUrl: "/assets/items/lifeskills/lifeskills_07.webp",
+        isCorrect: false,
+      },
+      {
+        id: "wk-wrong-car",
+        name: "Xe ô tô",
+        imageUrl: "/assets/items/vehicles/vehicle_01.webp",
+        isCorrect: false,
+      },
+    ],
+    steps: [
+      {
+        id: "wk-step-1",
+        order: 1,
+        label: "Tắt chuông & vươn vai",
+        imageUrl: "/assets/nam-stickers/nam-routine-wakeup.webp",
+      },
+      {
+        id: "wk-step-2",
+        order: 2,
+        label: "Gấp gọn chăn gối",
+        imageUrl: "/assets/items/home/home_07.webp",
+      },
+      {
+        id: "wk-step-3",
+        order: 3,
+        label: "Đánh răng rửa mặt",
+        imageUrl: "/assets/nam-stickers/nam-study-brush.webp",
+      },
+    ],
+  },
+  {
+    id: "habit-exercise",
+    shortTitle: "🤸 Tập Thể Dục",
+    emoji: "🤸",
+    heroImageUrl: "/assets/nam-stickers/nam-routine-exercise.webp",
+    namSticker: "/assets/nam-stickers/nam-routine-exercise.webp",
+    prepTools: [
+      {
+        id: "ex-shoes",
+        name: "Giày thể thao",
+        imageUrl: "/assets/english/items/shop_16_shoes_blue.webp",
+        isCorrect: true,
+      },
+      {
+        id: "ex-ball",
+        name: "Quả bóng",
+        imageUrl: "/assets/english/items/shop_16_ball_green.webp",
+        isCorrect: true,
+      },
+      {
+        id: "ex-water",
+        name: "Bình nước ấm",
+        imageUrl: "/assets/items/home/home_02.webp",
+        isCorrect: true,
+      },
+      {
+        id: "ex-wrong-cake",
+        name: "Bánh kem",
+        imageUrl: "/assets/items/lifeskills/lifeskills_16.webp",
+        isCorrect: false,
+      },
+      {
+        id: "ex-wrong-scissors",
+        name: "Cây kéo",
+        imageUrl: "/assets/items/school/school_09.webp",
+        isCorrect: false,
+      },
+    ],
+    steps: [
+      {
+        id: "ex-step-1",
+        order: 1,
+        label: "Vươn tay khởi động",
+        imageUrl: "/assets/nam-stickers/nam-routine-exercise.webp",
+      },
+      {
+        id: "ex-step-2",
+        order: 2,
+        label: "Vận động đá bóng",
+        imageUrl: "/assets/nam-stickers/nam-sub-soccer.webp",
+      },
+      {
+        id: "ex-step-3",
+        order: 3,
+        label: "Lau mồ hôi & uống nước",
+        imageUrl: "/assets/items/home/home_02.webp",
+      },
+    ],
+  },
+  {
+    id: "habit-desk",
+    shortTitle: "✂️ Gọn Gàng Bàn Học",
+    emoji: "✂️",
+    heroImageUrl: "/assets/nam-stickers/nam-routine-craft.webp",
+    namSticker: "/assets/nam-stickers/nam-routine-craft.webp",
+    prepTools: [
+      {
+        id: "dk-holder",
+        name: "Ống đựng bút",
+        imageUrl: "/assets/items/school/school_12.webp",
+        isCorrect: true,
+      },
+      {
+        id: "dk-books",
+        name: "Sách vở",
+        imageUrl: "/assets/items/school/school_03.webp",
+        isCorrect: true,
+      },
+      {
+        id: "dk-lamp",
+        name: "Đèn bàn học",
+        imageUrl: "/assets/items/home/home_01.webp",
+        isCorrect: true,
+      },
+      {
+        id: "dk-wrong-ramen",
+        name: "Tô mì",
+        imageUrl: "/assets/items/lifeskills/lifeskills_20.webp",
+        isCorrect: false,
+      },
+      {
+        id: "dk-wrong-washer",
+        name: "Máy giặt",
+        imageUrl: "/assets/items/home/home_13.webp",
+        isCorrect: false,
+      },
+    ],
+    steps: [
+      {
+        id: "dk-step-1",
+        order: 1,
+        label: "Cắm bút gọn vào ống",
+        imageUrl: "/assets/nam-stickers/nam-routine-craft.webp",
+      },
+      {
+        id: "dk-step-2",
+        order: 2,
+        label: "Xếp sách vở ngay ngắn",
+        imageUrl: "/assets/nam-stickers/nam-routine-homework.webp",
+      },
+      {
+        id: "dk-step-3",
+        order: 3,
+        label: "Lau sạch mặt bàn",
+        imageUrl: "/assets/items/home/home_01.webp",
+      },
+    ],
+  },
+  {
+    id: "habit-bedtime",
+    shortTitle: "🌙 Đi Ngủ Đúng Giờ",
+    emoji: "🌙",
+    heroImageUrl: "/assets/nam-stickers/nam-routine-sleep.webp",
+    namSticker: "/assets/nam-stickers/nam-routine-sleep.webp",
+    prepTools: [
+      {
+        id: "bt-brush",
+        name: "Bàn chải răng",
+        imageUrl: "/assets/english/items/act_11_brush_teeth.webp",
+        isCorrect: true,
+      },
+      {
+        id: "bt-book",
+        name: "Truyện cổ tích",
+        imageUrl: "/assets/items/school/school_03.webp",
+        isCorrect: true,
+      },
+      {
+        id: "bt-pillow",
+        name: "Chăn gối êm",
+        imageUrl: "/assets/items/home/home_07.webp",
+        isCorrect: true,
+      },
+      {
+        id: "bt-wrong-ball",
+        name: "Quả bóng",
+        imageUrl: "/assets/english/items/shop_16_ball_green.webp",
+        isCorrect: false,
+      },
+      {
+        id: "bt-wrong-fries",
+        name: "Khoai tây chiên",
+        imageUrl: "/assets/nam-stickers/nam-eat-fries.webp",
+        isCorrect: false,
+      },
+    ],
+    steps: [
+      {
+        id: "bt-step-1",
+        order: 1,
+        label: "Đánh răng sạch buổi tối",
+        imageUrl: "/assets/nam-stickers/nam-study-brush.webp",
+      },
+      {
+        id: "bt-step-2",
+        order: 2,
+        label: "Đọc sách cùng mẹ",
+        imageUrl: "/assets/nam-stickers/nam-study-read.webp",
+      },
+      {
+        id: "bt-step-3",
+        order: 3,
+        label: "Tắt đèn ngủ ngon giấc",
+        imageUrl: "/assets/nam-stickers/nam-routine-sleep.webp",
       },
     ],
   },
 ];
 
+// ============================================================================
+// TAB 3: THƯỜNG THỨC & AN TOÀN CƠ BẢN (25 CÂU HỎI TÌNH HUỐNG THỰC TẾ — RÚT 5 CÂU/LƯỢT)
+// ============================================================================
+interface SafetyChoice {
+  id: string;
+  label: string;
+  emoji: string;
+  isCorrect: boolean;
+}
+
+interface SafetyCommonSenseQuestion {
+  id: string;
+  categoryBadge: string;
+  question: string;
+  heroImage: string;
+  explainSuccess: string;
+  choices: SafetyChoice[];
+}
+
+const SAFETY_QUESTIONS_PER_ROUND = 5;
+
+const SAFETY_COMMON_SENSE_POOL: SafetyCommonSenseQuestion[] = [
+  // --- CHỦ ĐỀ 1: PHÒNG CHÁY CHỮA CHÁY (PCCC & KHI CÓ CHÁY) ---
+  {
+    id: "sf-fire-1",
+    categoryBadge: "🔥 PCCC · Khi Có Cháy",
+    question: "Khi thấy khói hoặc lửa bốc lên trong nhà, Nấm cần làm gì ngay lập tức?",
+    heroImage: "/assets/items/vehicles/vehicle_11.webp",
+    explainSuccess: "Đúng rồi! Thấy khói lửa phải hô to báo người lớn và chạy nhanh ra ngoài, tuyệt đối không trốn vào tủ kín nhé!",
+    choices: [
+      {
+        id: "a",
+        label: "Hô to báo người lớn và chạy nhanh ra ngoài nơi thoáng",
+        emoji: "🏃‍♂️",
+        isCorrect: true,
+      },
+      {
+        id: "b",
+        label: "Chui vào tủ quần áo hoặc gầm giường trốn kỹ",
+        emoji: "🚪",
+        isCorrect: false,
+      },
+      {
+        id: "c",
+        label: "Ngồi yên trong phòng chơi đồ chơi tiếp",
+        emoji: "🧸",
+        isCorrect: false,
+      },
+    ],
+  },
+  {
+    id: "sf-fire-2",
+    categoryBadge: "🔥 PCCC · Thoát Khỏi Đám Khói",
+    question: "Khi phải đi qua chỗ có khói để thoát ra ngoài, Nấm nên đi như thế nào?",
+    heroImage: "/assets/nam-stickers/nam-study-think.webp",
+    explainSuccess: "Giỏi lắm! Khói bay lên cao nên mình lấy khăn ướt che mũi miệng và cúi thấp người men theo tường ra ngoài nhé!",
+    choices: [
+      {
+        id: "a",
+        label: "Dùng khăn ướt che mũi miệng và cúi thấp người đi ra",
+        emoji: "😷",
+        isCorrect: true,
+      },
+      {
+        id: "b",
+        label: "Đứng thẳng cao đầu và hít thở thật sâu",
+        emoji: "🧍",
+        isCorrect: false,
+      },
+      {
+        id: "c",
+        label: "Nhắm mắt chạy lung tung vào chỗ tối",
+        emoji: "🙈",
+        isCorrect: false,
+      },
+    ],
+  },
+  {
+    id: "sf-fire-3",
+    categoryBadge: "🚒 Số Điện Thoại Cứu Hỏa",
+    question: "Đố Nấm: Số điện thoại khẩn cấp để gọi các chú Lính Cứu Hỏa khi có cháy là số mấy?",
+    heroImage: "/assets/items/vehicles/vehicle_11.webp",
+    explainSuccess: "Chính xác! Số 114 là số gọi Xe Cứu Hỏa khi có đám cháy nhé!",
+    choices: [
+      {
+        id: "a",
+        label: "Số 114 — Gọi Xe Cứu Hỏa chữa cháy",
+        emoji: "🚒",
+        isCorrect: true,
+      },
+      {
+        id: "b",
+        label: "Số 999 — Gọi tiệm bánh kem",
+        emoji: "🎂",
+        isCorrect: false,
+      },
+      {
+        id: "c",
+        label: "Số 000 — Không cần gọi ai cả",
+        emoji: "📵",
+        isCorrect: false,
+      },
+    ],
+  },
+  {
+    id: "sf-fire-4",
+    categoryBadge: "🔥 PCCC · Thoát Hiểm Nhà Cao Tầng",
+    question: "Khi chuông báo cháy kêu vang ở tòa nhà cao tầng, mình đi lối nào để xuống đất an toàn?",
+    heroImage: "/assets/nam-stickers/nam-routine-school-run.webp",
+    explainSuccess: "Chuẩn luôn! Khi có cháy có thể mất điện nên tuyệt đối không đi thang máy, phải đi cầu thang bộ thoát hiểm cùng người lớn!",
+    choices: [
+      {
+        id: "a",
+        label: "Đi theo lối Cầu Thang Bộ thoát hiểm cùng người lớn",
+        emoji: "🪜",
+        isCorrect: true,
+      },
+      {
+        id: "b",
+        label: "Chui vào Thang Máy bấm nút một mình",
+        emoji: "🛗",
+        isCorrect: false,
+      },
+      {
+        id: "c",
+        label: "Trèo ra ban công nhảy xuống",
+        emoji: "⚠️",
+        isCorrect: false,
+      },
+    ],
+  },
+  {
+    id: "sf-fire-5",
+    categoryBadge: "🔥 PCCC · Xử Lý Khi Quần Áo Bén Lửa",
+    question: "Nếu chẳng may vạt áo bị bén lửa nhỏ, mình cần làm gì ngay để lửa tắt?",
+    heroImage: "/assets/stickers/careers/career_16.webp",
+    explainSuccess: "Tuyệt vời! Dừng lại, nằm xuống đất, hai tay che mặt và lăn qua lăn lại sẽ làm lửa tắt ngay!",
+    choices: [
+      {
+        id: "a",
+        label: "Dừng lại, nằm xuống đất lấy tay che mặt rồi lăn qua lăn lại",
+        emoji: "🛡️",
+        isCorrect: true,
+      },
+      {
+        id: "b",
+        label: "Chạy thật nhanh quanh sân cho gió thổi bùng lửa to hơn",
+        emoji: "💨",
+        isCorrect: false,
+      },
+      {
+        id: "c",
+        label: "Giấu không nói cho người lớn biết",
+        emoji: "🤫",
+        isCorrect: false,
+      },
+    ],
+  },
+
+  // --- CHỦ ĐỀ 2: KHI BỊ THƯƠNG / CHẢY MÁU / BỎNG NHẸ & SƠ CỨU ---
+  {
+    id: "sf-aid-1",
+    categoryBadge: "🩹 Sơ Cứu · Khi Bị Trầy Xước Tay Chân",
+    question: "Khi Nấm chẳng may bị ngã trầy xước da hoặc đứt tay chảy máu nhẹ, Nấm nên làm gì?",
+    heroImage: "/assets/stickers/careers/career_02.webp",
+    explainSuccess: "Đúng rồi! Báo ngay cho bố mẹ hoặc cô giáo để rửa vết thương bằng nước sạch, sát khuẩn nhẹ và dán băng cá nhân nhé!",
+    choices: [
+      {
+        id: "a",
+        label: "Báo bố mẹ/cô giáo rửa bằng nước sạch và dán băng cá nhân",
+        emoji: "🩹",
+        isCorrect: true,
+      },
+      {
+        id: "b",
+        label: "Lấy đất cát hoặc tay bẩn chà lên vết thương",
+        emoji: "🦠",
+        isCorrect: false,
+      },
+      {
+        id: "c",
+        label: "Giấu đi không nói với ai cả",
+        emoji: "🙈",
+        isCorrect: false,
+      },
+    ],
+  },
+  {
+    id: "sf-aid-2",
+    categoryBadge: "🩹 Sơ Cứu · Khi Bị Bỏng Nước Nóng Nhẹ",
+    question: "Nếu tay vô tình chạm vào bát canh nóng bị đỏ rát nhẹ, việc đầu tiên cần làm ngay là gì?",
+    heroImage: "/assets/stickers/careers/career_15.webp",
+    explainSuccess: "Chính xác! Xả ngay vết bỏng dưới vòi nước mát sạch khoảng 10–15 phút để làm dịu vết bỏng và báo cho người lớn nhé!",
+    choices: [
+      {
+        id: "a",
+        label: "Xả ngay tay dưới vòi nước mát sạch và gọi bố mẹ",
+        emoji: "🚰",
+        isCorrect: true,
+      },
+      {
+        id: "b",
+        label: "Lấy kem đánh răng hoặc nước mắm bôi lên vết bỏng",
+        emoji: "❌",
+        isCorrect: false,
+      },
+      {
+        id: "c",
+        label: "Chà mạnh vào chỗ bị bỏng",
+        emoji: "😖",
+        isCorrect: false,
+      },
+    ],
+  },
+  {
+    id: "sf-aid-3",
+    categoryBadge: "🩹 Sơ Cứu · Khi Bị Chảy Máu Cam",
+    question: "Khi tự nhiên bị chảy máu cam ở mũi, Nấm nên ngồi như thế nào cho đúng cách?",
+    heroImage: "/assets/stickers/careers/career_15.webp",
+    explainSuccess: "Rất chuẩn! Khi chảy máu cam, mình ngồi hơi cúi đầu về phía trước và bóp nhẹ hai cánh mũi, không ngửa cổ ra sau nhé!",
+    choices: [
+      {
+        id: "a",
+        label: "Ngồi hơi cúi đầu về trước, bóp nhẹ hai cánh mũi và báo người lớn",
+        emoji: "👩‍⚕️",
+        isCorrect: true,
+      },
+      {
+        id: "b",
+        label: "Ngửa cổ thật cao ra sau cho máu chảy xuống họng",
+        emoji: "🚫",
+        isCorrect: false,
+      },
+      {
+        id: "c",
+        label: "Vừa chạy nhảy vừa ngoáy mũi mạnh",
+        emoji: "🏃",
+        isCorrect: false,
+      },
+    ],
+  },
+  {
+    id: "sf-aid-4",
+    categoryBadge: "🚑 Số Điện Thoại Cấp Cứu Y Tế",
+    question: "Khi có người bị thương nặng hoặc ốm ngất xỉu cần gọi Xe Cứu Thương & Bác Sĩ, mình gọi số mấy?",
+    heroImage: "/assets/items/vehicles/vehicle_13.webp",
+    explainSuccess: "Hoan hô Nấm! Số 115 là số gọi Xe Cứu Thương và Bác Sĩ cấp cứu y tế!",
+    choices: [
+      {
+        id: "a",
+        label: "Số 115 — Gọi Xe Cứu Thương & Bác Sĩ",
+        emoji: "🚑",
+        isCorrect: true,
+      },
+      {
+        id: "b",
+        label: "Số 123 — Gọi cửa hàng đồ chơi",
+        emoji: "🧸",
+        isCorrect: false,
+      },
+      {
+        id: "c",
+        label: "Không gọi cho ai hết",
+        emoji: "😶",
+        isCorrect: false,
+      },
+    ],
+  },
+  {
+    id: "sf-aid-5",
+    categoryBadge: "🩹 Sơ Cứu · Khi Bị Muỗi Hoặc Côn Trùng Đốt",
+    question: "Khi bị muỗi hoặc kiến đốt sưng ngứa trên tay, Nấm nên làm gì?",
+    heroImage: "/assets/stickers/careers/career_02.webp",
+    explainSuccess: "Đúng rồi! Không dùng móng tay gãi trầy da, hãy rửa sạch và nhờ mẹ bôi kem dịu vết đốt nhé!",
+    choices: [
+      {
+        id: "a",
+        label: "Rửa sạch bằng nước mát và nhờ mẹ bôi thuốc dịu vết đốt",
+        emoji: "🧴",
+        isCorrect: true,
+      },
+      {
+        id: "b",
+        label: "Dùng móng tay cào gãi thật mạnh cho chảy máu",
+        emoji: "💅",
+        isCorrect: false,
+      },
+      {
+        id: "c",
+        label: "Lấy bút mực tô kín lên nốt muỗi đốt",
+        emoji: "🖊️",
+        isCorrect: false,
+      },
+    ],
+  },
+
+  // --- CHỦ ĐỀ 3: AN TOÀN ĐIỆN, BẾP NÓNG & ĐỒ SẮC NHỌN ---
+  {
+    id: "sf-home-1",
+    categoryBadge: "⚡ An Toàn Điện Trong Nhà",
+    question: "Khi nhìn thấy ổ cắm điện trên tường, Nấm cần nhớ quy tắc an toàn nào?",
+    heroImage: "/assets/nam-stickers/nam-study-think.webp",
+    explainSuccess: "Tuyệt đối nhớ nhé! Điện rất nguy hiểm, không bao giờ thọc ngón tay hay que sắt, đồ chơi vào ổ điện!",
+    choices: [
+      {
+        id: "a",
+        label: "Tuyệt đối không chạm hay thọc ngón tay, đồ vật vào ổ điện",
+        emoji: "⚡",
+        isCorrect: true,
+      },
+      {
+        id: "b",
+        label: "Cầm que sắt hoặc đũa chọc thử vào lỗ ổ điện",
+        emoji: "🚫",
+        isCorrect: false,
+      },
+      {
+        id: "c",
+        label: "Đổ nước vào ổ cắm điện",
+        emoji: "💧",
+        isCorrect: false,
+      },
+    ],
+  },
+  {
+    id: "sf-home-2",
+    categoryBadge: "⚡ Tay Ướt & Thiết Bị Điện",
+    question: "Khi hai bàn tay vừa rửa xong còn đang ướt sũng nước, Nấm có được cắm hoặc rút phích điện không?",
+    heroImage: "/assets/items/home/home_10.webp",
+    explainSuccess: "Chuẩn xác! Nước dẫn điện rất nguy hiểm, phải lau thật khô tay và nhờ bố mẹ cắm điện giúp nhé!",
+    choices: [
+      {
+        id: "a",
+        label: "Không chạm tay ướt vào ổ điện; phải lau khô tay và nhờ bố mẹ",
+        emoji: "🧻",
+        isCorrect: true,
+      },
+      {
+        id: "b",
+        label: "Cứ để tay ướt sũng tự rút dây điện",
+        emoji: "💦",
+        isCorrect: false,
+      },
+      {
+        id: "c",
+        label: "Vẩy nước vào quạt điện đang quay",
+        emoji: "🪭",
+        isCorrect: false,
+      },
+    ],
+  },
+  {
+    id: "sf-home-3",
+    categoryBadge: "✂️ An Toàn Khi Dùng Kéo & Đũa",
+    question: "Khi Nấm dùng kéo cắt giấy thủ công hoặc cầm đũa, thìa, Nấm cần ngồi như thế nào?",
+    heroImage: "/assets/nam-stickers/nam-routine-craft.webp",
+    explainSuccess: "Đúng rồi! Khi cầm kéo hay đũa phải ngồi ngay ngắn tại bàn, tuyệt đối không vừa cầm vật nhọn vừa chạy nhảy nhé!",
+    choices: [
+      {
+        id: "a",
+        label: "Ngồi ngay ngắn tại bàn, không cầm kéo hay đũa vừa đi vừa chạy",
+        emoji: "🪑",
+        isCorrect: true,
+      },
+      {
+        id: "b",
+        label: "Cầm kéo nhọn chạy đuổi nhau quanh phòng",
+        emoji: "🏃",
+        isCorrect: false,
+      },
+      {
+        id: "c",
+        label: "Dùng kéo cắt quần áo và rèm cửa",
+        emoji: "✂️",
+        isCorrect: false,
+      },
+    ],
+  },
+  {
+    id: "sf-home-4",
+    categoryBadge: "🍲 An Toàn Trong Nhà Bếp",
+    question: "Khi mẹ đang đun nồi canh sôi hoặc ấm nước nóng trên bếp, Nấm nên làm gì?",
+    heroImage: "/assets/stickers/careers/career_18.webp",
+    explainSuccess: "Giỏi lắm! Nồi nước đang sôi rất bỏng, Nấm phải đứng tránh xa bếp nóng và không tự ý chạm vào nồi nhé!",
+    choices: [
+      {
+        id: "a",
+        label: "Đứng tránh xa bếp nóng và không tự ý chạm vào nồi đang sôi",
+        emoji: "🛡️",
+        isCorrect: true,
+      },
+      {
+        id: "b",
+        label: "Kiễng chân thò tay mở vung nồi nước đang sôi",
+        emoji: "♨️",
+        isCorrect: false,
+      },
+      {
+        id: "c",
+        label: "Tự ý vặn bật bếp ga nghịch lửa",
+        emoji: "🔥",
+        isCorrect: false,
+      },
+    ],
+  },
+  {
+    id: "sf-home-5",
+    categoryBadge: "🧸 An Toàn Với Vật Nhỏ (Bi, Đồng Xu, Hạt)",
+    question: "Khi chơi các viên bi nhỏ, đồng xu hoặc mảnh ghép đồ chơi tí hon, điều gì tuyệt đối không được làm?",
+    heroImage: "/assets/nam-stickers/nam-routine-game.webp",
+    explainSuccess: "Chính xác! Không bao giờ ngậm đồ chơi nhỏ vào miệng hay nhét vào mũi, tai vì rất dễ bị hóc nghẹn!",
+    choices: [
+      {
+        id: "a",
+        label: "Không ngậm vào miệng hay nhét vào mũi, tai để tránh bị hóc",
+        emoji: "✅",
+        isCorrect: true,
+      },
+      {
+        id: "b",
+        label: "Cho viên bi vào miệng ngậm như kẹo",
+        emoji: "🚫",
+        isCorrect: false,
+      },
+      {
+        id: "c",
+        label: "Nhét hạt nhỏ vào lỗ mũi hoặc lỗ tai",
+        emoji: "⚠️",
+        isCorrect: false,
+      },
+    ],
+  },
+
+  // --- CHỦ ĐỀ 4: PHÒNG CHỐNG NGƯỜI LẠ & XỬ LÝ KHI ĐI LẠC ---
+  {
+    id: "sf-stranger-1",
+    categoryBadge: "🚨 Cảnh Giác Với Người Lạ",
+    question: "Nếu một người lạ mặt cho Nấm kẹo và rủ: 'Đi theo chú/cô ra xe lấy đồ chơi nhé!', Nấm làm gì?",
+    heroImage: "/assets/stickers/careers/career_06.webp",
+    explainSuccess: "Nấm thông minh lắm! Tuyệt đối không nhận quà hay đi theo người lạ, hãy lắc đầu từ chối và chạy về phía bố mẹ/cô giáo!",
+    choices: [
+      {
+        id: "a",
+        label: "Lắc đầu từ chối 'Cháu không đi đâu ạ!' và chạy về phía bố mẹ, cô giáo",
+        emoji: "🙅‍♂️",
+        isCorrect: true,
+      },
+      {
+        id: "b",
+        label: "Cầm kẹo rồi đi theo người lạ ra chỗ vắng",
+        emoji: "🍬",
+        isCorrect: false,
+      },
+      {
+        id: "c",
+        label: "Leo lên xe của người lạ ngay",
+        emoji: "🚗",
+        isCorrect: false,
+      },
+    ],
+  },
+  {
+    id: "sf-stranger-2",
+    categoryBadge: "🛍️ Xử Lý Khi Bị Lạc Ở Siêu Thị",
+    question: "Nếu chẳng may bị lạc bố mẹ trong siêu thị hoặc trung tâm thương mại, Nấm nên làm gì?",
+    heroImage: "/assets/stickers/careers/career_06.webp",
+    explainSuccess: "Đúng rồi! Bình tĩnh đứng yên ở quầy sáng và nhờ chú bảo vệ hoặc cô thu ngân mặc đồng phục gọi điện cho bố mẹ!",
+    choices: [
+      {
+        id: "a",
+        label: "Đứng yên và nhờ chú bảo vệ hoặc cô thu ngân gọi điện cho bố mẹ",
+        emoji: "👮",
+        isCorrect: true,
+      },
+      {
+        id: "b",
+        label: "Chạy một mình ra ngoài đường lớn tìm bố mẹ",
+        emoji: "🛣️",
+        isCorrect: false,
+      },
+      {
+        id: "c",
+        label: "Đi theo một người lạ mặt ra bãi để xe",
+        emoji: "🚫",
+        isCorrect: false,
+      },
+    ],
+  },
+  {
+    id: "sf-stranger-3",
+    categoryBadge: "🏠 An Toàn Khi Ở Nhà",
+    question: "Khi ở trong nhà mà có người lạ gõ cửa bảo 'Mở cửa cho chú vào nhờ một chút', Nấm làm gì?",
+    heroImage: "/assets/nam-stickers/nam-routine-hello.webp",
+    explainSuccess: "Chính xác! Tuyệt đối không tự ý mở cửa cho người lạ, hãy giữ cửa khóa và vào báo ngay cho bố mẹ/ông bà!",
+    choices: [
+      {
+        id: "a",
+        label: "Không tự mở cửa cho người lạ, vào báo ngay cho bố mẹ/người lớn trong nhà",
+        emoji: "🔒",
+        isCorrect: true,
+      },
+      {
+        id: "b",
+        label: "Mở toang cửa mời người lạ vào nhà ngay",
+        emoji: "🚪",
+        isCorrect: false,
+      },
+      {
+        id: "c",
+        label: "Đưa chìa khóa nhà cho người lạ",
+        emoji: "🔑",
+        isCorrect: false,
+      },
+    ],
+  },
+  {
+    id: "sf-stranger-4",
+    categoryBadge: "🚓 Số Điện Thoại Công An Cảnh Sát",
+    question: "Số điện thoại khẩn cấp để gọi các chú Công An / Cảnh Sát khi gặp kẻ xấu hoặc nguy hiểm là số mấy?",
+    heroImage: "/assets/items/vehicles/vehicle_12.webp",
+    explainSuccess: "Giỏi quá! Số 113 là số gọi các chú Công An Cảnh Sát bảo vệ an ninh!",
+    choices: [
+      {
+        id: "a",
+        label: "Số 113 — Gọi các chú Công An / Cảnh Sát",
+        emoji: "🚓",
+        isCorrect: true,
+      },
+      {
+        id: "b",
+        label: "Số 555 — Gọi rạp chiếu phim",
+        emoji: "🎬",
+        isCorrect: false,
+      },
+      {
+        id: "c",
+        label: "Số 888 — Gọi tiệm kem",
+        emoji: "🍦",
+        isCorrect: false,
+      },
+    ],
+  },
+  {
+    id: "sf-stranger-5",
+    categoryBadge: "📞 Thông Tin Quan Trọng Bé Cần Nhớ",
+    question: "Để các chú công an hoặc bảo vệ giúp Nấm liên lạc với gia đình khi đi lạc, Nấm cần thuộc lòng điều gì?",
+    heroImage: "/assets/nam-stickers/nam-study-100pts.webp",
+    explainSuccess: "Chuẩn luôn! Thuộc lòng họ tên của mình, tên bố mẹ và số điện thoại của bố mẹ là kỹ năng cực kỳ quan trọng!",
+    choices: [
+      {
+        id: "a",
+        label: "Thuộc họ tên của con, tên bố mẹ và số điện thoại của bố mẹ",
+        emoji: "📱",
+        isCorrect: true,
+      },
+      {
+        id: "b",
+        label: "Chỉ cần nhớ tên bộ phim hoạt hình yêu thích",
+        emoji: "📺",
+        isCorrect: false,
+      },
+      {
+        id: "c",
+        label: "Chỉ cần nhớ màu sắc của đôi giày đang đi",
+        emoji: "👟",
+        isCorrect: false,
+      },
+    ],
+  },
+
+  // --- CHỦ ĐỀ 5: AN TOÀN GIAO THÔNG & THƯỜNG THỨC SỨC KHỎE ---
+  {
+    id: "sf-traffic-1",
+    categoryBadge: "🚦 An Toàn Khi Qua Đường",
+    question: "Khi đi bộ qua đường ở ngã tư, Nấm cần đi như thế nào để an toàn nhất?",
+    heroImage: "/assets/nam-stickers/nam-routine-school-run.webp",
+    explainSuccess: "Đúng rồi! Luôn nắm tay người lớn, chờ đèn Xanh cho người đi bộ bật sáng và đi trên vạch kẻ trắng qua đường nhé!",
+    choices: [
+      {
+        id: "a",
+        label: "Nắm tay người lớn, đợi đèn Xanh và đi đúng trên vạch kẻ trắng",
+        emoji: "🟢",
+        isCorrect: true,
+      },
+      {
+        id: "b",
+        label: "Vừa đá bóng vừa tự chạy băng qua đường khi đèn Đỏ",
+        emoji: "🔴",
+        isCorrect: false,
+      },
+      {
+        id: "c",
+        label: "Nhắm mắt chạy vọt qua trước đầu xe đang đi",
+        emoji: "⚠️",
+        isCorrect: false,
+      },
+    ],
+  },
+  {
+    id: "sf-traffic-2",
+    categoryBadge: "🛵 Đội Mũ Bảo Hiểm Khi Đi Xe",
+    question: "Khi ngồi trên xe máy hoặc xe đạp điện cùng bố mẹ, Nấm cần làm gì để bảo vệ vùng đầu?",
+    heroImage: "/assets/items/vehicles/vehicle_04.webp",
+    explainSuccess: "Chính xác! Đội mũ bảo hiểm vừa vặn và cài quai chắc chắn mỗi khi ngồi trên xe máy nhé!",
+    choices: [
+      {
+        id: "a",
+        label: "Đội mũ bảo hiểm vừa vặn, cài quai chắc chắn và ngồi ngay ngắn",
+        emoji: "ヘルメット",
+        isCorrect: true,
+      },
+      {
+        id: "b",
+        label: "Đứng nhún nhảy trên yên xe máy",
+        emoji: "🚫",
+        isCorrect: false,
+      },
+      {
+        id: "c",
+        label: "Treo mũ bảo hiểm ở tay lái, không cần đội",
+        emoji: "❌",
+        isCorrect: false,
+      },
+    ],
+  },
+  {
+    id: "sf-traffic-3",
+    categoryBadge: "🚗 An Toàn Khi Ngồi Ô Tô & Xe Buýt",
+    question: "Khi đang ngồi trong xe ô tô hoặc xe buýt đang chạy trên đường, Nấm cần nhớ quy tắc nào?",
+    heroImage: "/assets/items/vehicles/vehicle_02.webp",
+    explainSuccess: "Rất giỏi! Ngồi yên thắt dây an toàn, tuyệt đối không thò đầu hay thò tay ra ngoài cửa sổ xe đang chạy!",
+    choices: [
+      {
+        id: "a",
+        label: "Thắt dây an toàn, không bao giờ thò đầu hay tay ra ngoài cửa sổ xe",
+        emoji: "💺",
+        isCorrect: true,
+      },
+      {
+        id: "b",
+        label: "Thò cả đầu và hai tay ra ngoài cửa sổ ô tô hóng gió",
+        emoji: "🪟",
+        isCorrect: false,
+      },
+      {
+        id: "c",
+        label: "Mở chốt cửa xe khi xe đang chạy nhanh",
+        emoji: "⚠️",
+        isCorrect: false,
+      },
+    ],
+  },
+  {
+    id: "sf-traffic-4",
+    categoryBadge: "⛈️ An Toàn Khi Trời Mưa Giông Sấm Chớp",
+    question: "Khi đang chơi ngoài sân mà trời nổi cơn giông, có sấm chớp đùng đoàng, mình cần làm gì?",
+    heroImage: "/assets/nam-stickers/nam-sub-nature.webp",
+    explainSuccess: "Đúng rồi! Khi có giông sét phải đi ngay vào trong nhà an toàn, không đứng trú dưới gốc cây to đơn độc ngoài bãi trống!",
+    choices: [
+      {
+        id: "a",
+        label: "Đi ngay vào trong nhà kiên cố, không đứng dưới gốc cây to ngoài bãi trống",
+        emoji: "🏠",
+        isCorrect: true,
+      },
+      {
+        id: "b",
+        label: "Đứng dưới cái cây cao nhất giữa cánh đồng cầm que sắt",
+        emoji: "⚡",
+        isCorrect: false,
+      },
+      {
+        id: "c",
+        label: "Nhảy xuống hồ bơi tắm khi trời đang sấm sét",
+        emoji: "🏊",
+        isCorrect: false,
+      },
+    ],
+  },
+  {
+    id: "sf-traffic-5",
+    categoryBadge: "🧼 Vệ Sinh Phòng Bệnh Hàng Ngày",
+    question: "Để đôi bàn tay sạch vi khuẩn và bụng không bị đau, Nấm cần rửa tay bằng xà phòng vào lúc nào?",
+    heroImage: "/assets/stickers/careers/career_01.webp",
+    explainSuccess: "Hoan hô Nấm ngoan! Luôn rửa tay bằng xà phòng trước khi ăn, sau khi đi vệ sinh và sau khi chơi đồ chơi nhé!",
+    choices: [
+      {
+        id: "a",
+        label: "Trước khi ăn, sau khi đi vệ sinh và sau khi đi chơi về",
+        emoji: "🧼",
+        isCorrect: true,
+      },
+      {
+        id: "b",
+        label: "Vừa nghịch đất cát xong bốc bánh ăn luôn không cần rửa",
+        emoji: "🦠",
+        isCorrect: false,
+      },
+      {
+        id: "c",
+        label: "Chỉ cần lau tay vào quần áo là sạch",
+        emoji: "👕",
+        isCorrect: false,
+      },
+    ],
+  },
+];
+
+function shuffleWithoutNaturalOrder<
+  T extends { isCorrect?: boolean; order?: number },
+>(items: T[]): T[] {
+  const base = [...items];
+  for (let attempt = 0; attempt < 16; attempt++) {
+    for (let i = base.length - 1; i > 0; i--) {
+      const j = Math.floor(Math.random() * (i + 1));
+      [base[i], base[j]] = [base[j], base[i]];
+    }
+    if (
+      base.length === 5 &&
+      base[0]?.isCorrect &&
+      base[1]?.isCorrect &&
+      base[2]?.isCorrect
+    ) {
+      continue;
+    }
+    if (
+      base.length === 3 &&
+      base[0]?.order === 1 &&
+      base[1]?.order === 2 &&
+      base[2]?.order === 3
+    ) {
+      continue;
+    }
+    break;
+  }
+  return base;
+}
+
 export function LifeSkillsActivity({
   soundEnabled,
   onComplete,
-  onReaction,
   onLessonIndexChange,
 }: ActivityProps) {
   const speech = useSpeech(soundEnabled);
-  const [mode, setMode] = useState<"cooking" | "habits">("cooking");
+
+  const [viewMode, setViewMode] = useState<"menu" | "game">("menu");
+  const [mode, setMode] = useState<"cooking" | "habits" | "safety">("cooking");
   const [recipeIdx, setRecipeIdx] = useState(0);
   const [habitIdx, setHabitIdx] = useState(0);
+  const [completedIds, setCompletedIds] = useState<string[]>([]);
 
-  // Trạng thái Cooking Studio 3 bước:
-  // Bước 1: Chọn 3/5 nguyên liệu (hiện trực tiếp lên bảng bên phải)
-  // Bước 2: Rửa hoặc sơ chế (thái, gọt, đập trứng...) từng nguyên liệu đã chọn
-  // Bước 3: Nấu chín & bày lên đĩa
+  // Trạng thái Cooking Studio 3 bước
   const [cookingStep, setCookingStep] = useState<1 | 2 | 3>(1);
   const [selectedIngIds, setSelectedIngIds] = useState<string[]>([]);
   const [preppedIngIds, setPreppedIngIds] = useState<string[]>([]);
   const [wrongIngId, setWrongIngId] = useState<string | null>(null);
   const [dishCooked, setDishCooked] = useState(false);
+
+  // Trạng thái Bé Tự Lập 2 Chặng
+  const [habitStage, setHabitStage] = useState<1 | 2>(1);
+  const [pickedToolIds, setPickedToolIds] = useState<string[]>([]);
+  const [wrongToolId, setWrongToolId] = useState<string | null>(null);
+  const [completedStepOrders, setCompletedStepOrders] = useState<number[]>([]);
+  const [wrongStepId, setWrongStepId] = useState<string | null>(null);
+
+  // Trạng thái Thường Thức & An Toàn (5 câu / lượt không trùng lặp)
+  const [safetyDeck, setSafetyDeck] = useState<SafetyCommonSenseQuestion[]>(() =>
+    drawNonRepeatingItems(
+      "lifeskills:safety:v1",
+      SAFETY_COMMON_SENSE_POOL,
+      SAFETY_QUESTIONS_PER_ROUND,
+      (q) => q.id,
+    ),
+  );
+  const [safetyIdx, setSafetyIdx] = useState(0);
+  const [safetyAnswered, setSafetyAnswered] = useState(false);
+  const [wrongSafetyChoiceId, setWrongSafetyChoiceId] = useState<string | null>(
+    null,
+  );
+
   const [attempts, setAttempts] = useState(1);
   const [shuffleSeed, setShuffleSeed] = useState(0);
-
-  // Trạng thái Daily Habits
-  const [completedStepOrders, setCompletedStepOrders] = useState<number[]>([]);
+  const [showDoraemonClockClip, setShowDoraemonClockClip] = useState(false);
 
   const currentRecipe = COOKING_RECIPES[recipeIdx] || COOKING_RECIPES[0];
   const currentHabit = DAILY_HABITS[habitIdx] || DAILY_HABITS[0];
+  const currentSafetyQ = safetyDeck[safetyIdx] || safetyDeck[0] || SAFETY_COMMON_SENSE_POOL[0];
 
-  // Xáo trộn vị trí 5 nguyên liệu mỗi khi đổi món hoặc bấm Làm lại
-  // Đảm bảo không bao giờ cả 3 nguyên liệu đúng cùng nằm ở 3 vị trí đầu tiên (0, 1, 2)
-  const shuffledIngredients = useMemo(() => {
-    const base = [...currentRecipe.ingredients];
-    for (let attempt = 0; attempt < 12; attempt++) {
-      for (let i = base.length - 1; i > 0; i--) {
-        const j = Math.floor(Math.random() * (i + 1));
-        [base[i], base[j]] = [base[j], base[i]];
-      }
-      const firstThreeAllCorrect =
-        base[0]?.isCorrect && base[1]?.isCorrect && base[2]?.isCorrect;
-      if (!firstThreeAllCorrect) {
-        break;
-      }
-    }
-    return base;
-  }, [currentRecipe, shuffleSeed]);
+  const shuffledSafetyChoices = useMemo(
+    () => shuffleWithoutNaturalOrder(currentSafetyQ.choices),
+    [currentSafetyQ, shuffleSeed],
+  );
+
+  const shuffledIngredients = useMemo(
+    () => shuffleWithoutNaturalOrder(currentRecipe.ingredients),
+    [currentRecipe, shuffleSeed],
+  );
+
+  const shuffledHabitTools = useMemo(
+    () => shuffleWithoutNaturalOrder(currentHabit.prepTools),
+    [currentHabit, shuffleSeed],
+  );
+
+  const shuffledHabitSteps = useMemo(
+    () => shuffleWithoutNaturalOrder(currentHabit.steps),
+    [currentHabit, shuffleSeed],
+  );
 
   useEffect(() => {
     onLessonIndexChange?.(1);
   }, [onLessonIndexChange]);
+
+  // Nạp sẵn 6 câu lệnh ngắn phổ quát vào RAM ngay khi mở môn Kỹ năng sống
+  useEffect(() => {
+    if (!soundEnabled) return;
+    Object.values(UNIVERSAL_PROMPTS).forEach((line) => {
+      void prefetchSpeech(line, "vi-VN");
+    });
+  }, [soundEnabled]);
 
   const resetCookingState = () => {
     setCookingStep(1);
@@ -818,368 +1948,729 @@ export function LifeSkillsActivity({
     setPreppedIngIds([]);
     setWrongIngId(null);
     setDishCooked(false);
+    setAttempts(1);
     setShuffleSeed((s) => s + 1);
   };
 
-  useEffect(() => {
-    resetCookingState();
-  }, [recipeIdx, mode]);
-
-  useEffect(() => {
+  const resetHabitState = () => {
+    setHabitStage(1);
+    setPickedToolIds([]);
+    setWrongToolId(null);
     setCompletedStepOrders([]);
-  }, [habitIdx, mode]);
+    setWrongStepId(null);
+    setAttempts(1);
+    setShuffleSeed((s) => s + 1);
+  };
+
+  const startNewSafetyRound = (firstQuestionId?: string) => {
+    const drawn = drawNonRepeatingItems(
+      "lifeskills:safety:v1",
+      SAFETY_COMMON_SENSE_POOL,
+      SAFETY_QUESTIONS_PER_ROUND,
+      (q) => q.id,
+    );
+    let finalDeck = drawn;
+    if (firstQuestionId) {
+      const targetQ = SAFETY_COMMON_SENSE_POOL.find(
+        (q) => q.id === firstQuestionId,
+      );
+      if (targetQ) {
+        const others = drawn.filter((q) => q.id !== targetQ.id);
+        finalDeck = [targetQ, ...others].slice(0, SAFETY_QUESTIONS_PER_ROUND);
+      }
+    }
+    setSafetyDeck(finalDeck);
+    setSafetyIdx(0);
+    setSafetyAnswered(false);
+    setWrongSafetyChoiceId(null);
+    setAttempts(1);
+    setShuffleSeed((s) => s + 1);
+    setMode("safety");
+    setViewMode("game");
+    if (finalDeck[0]) {
+      speech.speak(finalDeck[0].question, "vi-VN");
+    }
+  };
+
+  const handleOpenCookingRecipe = (idx: number) => {
+    setMode("cooking");
+    setRecipeIdx(idx);
+    resetCookingState();
+    setViewMode("game");
+    speech.speak(UNIVERSAL_PROMPTS.cookStep1, "vi-VN");
+  };
+
+  const handleOpenHabitQuest = (idx: number) => {
+    setMode("habits");
+    setHabitIdx(idx);
+    resetHabitState();
+    setViewMode("game");
+    speech.speak(UNIVERSAL_PROMPTS.habitStage1, "vi-VN");
+  };
+
+  const handleSelectSafetyChoice = (choice: SafetyChoice) => {
+    if (safetyAnswered) return;
+    if (!choice.isCorrect) {
+      setAttempts((a) => a + 1);
+      setWrongSafetyChoiceId(choice.id);
+      playWrongBuzzSound();
+      window.setTimeout(() => setWrongSafetyChoiceId(null), 650);
+      return;
+    }
+    playCorrectDingSound();
+    playRewardTone();
+    setSafetyAnswered(true);
+    setCompletedIds((prev) =>
+      prev.includes(currentSafetyQ.id) ? prev : [...prev, currentSafetyQ.id],
+    );
+    speech.speak(currentSafetyQ.explainSuccess, "vi-VN");
+  };
+
+  const handleNextSafetyQuestion = () => {
+    if (safetyIdx + 1 < safetyDeck.length) {
+      const nextIdx = safetyIdx + 1;
+      setSafetyIdx(nextIdx);
+      setSafetyAnswered(false);
+      setWrongSafetyChoiceId(null);
+      setShuffleSeed((s) => s + 1);
+      if (safetyDeck[nextIdx]) {
+        speech.speak(safetyDeck[nextIdx].question, "vi-VN");
+      }
+    }
+  };
+
+  const isSafetyRoundFinished =
+    mode === "safety" &&
+    safetyIdx === safetyDeck.length - 1 &&
+    safetyAnswered;
 
   const pickedIngredients = selectedIngIds
     .map((id) => currentRecipe.ingredients.find((ing) => ing.id === id))
     .filter((ing): ing is IngredientOption => Boolean(ing));
 
-  // Bước 1: Chọn 3/5 nguyên liệu -> hiện ngay lên bảng bên phải
+  const pickedHabitTools = pickedToolIds
+    .map((id) => currentHabit.prepTools.find((t) => t.id === id))
+    .filter((t): t is HabitPrepTool => Boolean(t));
+
+  // ==========================================================================
+  // HANDLERS: ĐẦU BẾP NHÍ (CHỈ DÙNG TIẾNG "TINH!" / "TÈNG!" 0ms)
+  // ==========================================================================
   const handleSelectIngredient = (ing: IngredientOption) => {
     if (dishCooked) return;
 
     if (!ing.isCorrect) {
       setAttempts((a) => a + 1);
       setWrongIngId(ing.id);
-      const msg = `Hihi, ${ing.name} không nấu ăn được đâu! Nấm chọn thực phẩm tươi ngon nhé!`;
-      onReaction?.("sad", msg);
-      speech.speak(msg, "vi-VN");
-      window.setTimeout(() => setWrongIngId(null), 850);
+      playWrongBuzzSound();
+      window.setTimeout(() => setWrongIngId(null), 650);
       return;
     }
 
     if (selectedIngIds.includes(ing.id)) return;
-    playCardPlaceSound();
+    playCorrectDingSound();
     const next = [...selectedIngIds, ing.id];
     setSelectedIngIds(next);
-    const assetMeta = getSharedAssetByImage(ing.imageUrl);
 
     if (next.length === 3) {
       playRewardTone();
-      onReaction?.("happy", currentRecipe.prepPromptLine);
-      speech.speak(currentRecipe.prepPromptLine, "vi-VN");
+      speech.speak(UNIVERSAL_PROMPTS.cookStep2, "vi-VN");
       window.setTimeout(() => {
         setCookingStep(2);
-      }, 450);
-    } else {
-      speech.speak(
-        assetMeta
-          ? `Đã đặt ${ing.name} lên bảng! Tiếng Anh là ${assetMeta.englishName}!`
-          : `Đã đặt ${ing.name} lên bảng!`,
-        "vi-VN",
-      );
+      }, 420);
     }
   };
 
-  // Bước 2: Rửa hoặc sơ chế (thái, gọt, đập trứng...)
   const handlePrepIngredient = (ing: IngredientOption) => {
     if (preppedIngIds.includes(ing.id)) return;
-    playCardPlaceSound();
+    playCorrectDingSound();
     const next = [...preppedIngIds, ing.id];
     setPreppedIngIds(next);
-    const preppedMeta = getSharedAssetByImage(
-      ing.preppedImageUrl || ing.imageUrl,
-    );
 
     if (next.length === 3) {
       playRewardTone();
-      onReaction?.("happy", currentRecipe.cookPromptLine);
-      speech.speak(currentRecipe.cookPromptLine, "vi-VN");
+      speech.speak(UNIVERSAL_PROMPTS.cookStep3, "vi-VN");
       window.setTimeout(() => {
         setCookingStep(3);
-      }, 450);
-    } else {
-      const soundLine = preppedMeta ? `${preppedMeta.soundLabelVi} ` : "";
-      onReaction?.(
-        "happy",
-        `${soundLine}${ing.prepDoneLabel || "Đã sơ chế"} ${ing.name}!`,
-      );
-      speech.speak(
-        `${soundLine}${ing.prepDoneLabel || "Đã sơ chế"} ${ing.name}!`,
-        "vi-VN",
-      );
+      }, 420);
     }
   };
 
-  // Bước 3: Nấu và bày lên đĩa
   const handleCookAndPlateDish = () => {
     if (selectedIngIds.length < 3 || preppedIngIds.length < 3 || dishCooked)
       return;
     playRewardTone();
     setDishCooked(true);
-    onReaction?.("happy", currentRecipe.successLine);
-    speech.speak(currentRecipe.successLine, "vi-VN");
+    setCompletedIds((prev) =>
+      prev.includes(currentRecipe.id) ? prev : [...prev, currentRecipe.id],
+    );
+    speech.speak(UNIVERSAL_PROMPTS.completed, "vi-VN");
   };
 
-  const handleHabitStepTap = (stepOrder: number, label: string) => {
-    const expectedOrder = completedStepOrders.length + 1;
-    if (stepOrder === expectedOrder) {
-      playCardPlaceSound();
-      const next = [...completedStepOrders, stepOrder];
-      setCompletedStepOrders(next);
-      if (next.length === currentHabit.steps.length) {
-        playRewardTone();
-        onReaction?.("happy", currentHabit.successLine);
-        speech.speak(currentHabit.successLine, "vi-VN");
-      } else {
-        speech.speak(`Bước ${stepOrder}: ${label}`, "vi-VN");
-      }
-    } else if (!completedStepOrders.includes(stepOrder)) {
+  // ==========================================================================
+  // HANDLERS: BÉ TỰ LẬP (CHỈ DÙNG TIẾNG "TINH!" / "TÈNG!" 0ms)
+  // ==========================================================================
+  const handleSelectHabitTool = (tool: HabitPrepTool) => {
+    if (!tool.isCorrect) {
       setAttempts((a) => a + 1);
-      const hint = `Nấm ơi, mình làm Bước ${expectedOrder} trước nhé!`;
-      onReaction?.("idle", hint);
-      speech.speak(hint, "vi-VN");
+      setWrongToolId(tool.id);
+      playWrongBuzzSound();
+      window.setTimeout(() => setWrongToolId(null), 650);
+      return;
+    }
+
+    if (pickedToolIds.includes(tool.id)) return;
+    playCorrectDingSound();
+    const next = [...pickedToolIds, tool.id];
+    setPickedToolIds(next);
+
+    if (next.length === 3) {
+      playRewardTone();
+      speech.speak(UNIVERSAL_PROMPTS.habitStage2, "vi-VN");
+      window.setTimeout(() => {
+        setHabitStage(2);
+      }, 450);
+    }
+  };
+
+  const handleSelectHabitSequenceStep = (step: HabitSequenceStep) => {
+    if (completedStepOrders.includes(step.order)) return;
+
+    const expectedOrder = completedStepOrders.length + 1;
+    if (step.order === expectedOrder) {
+      playCorrectDingSound();
+      const next = [...completedStepOrders, step.order];
+      setCompletedStepOrders(next);
+
+      if (next.length === 3) {
+        playRewardTone();
+        setCompletedIds((prev) =>
+          prev.includes(currentHabit.id) ? prev : [...prev, currentHabit.id],
+        );
+        speech.speak(UNIVERSAL_PROMPTS.completed, "vi-VN");
+      }
+    } else {
+      setAttempts((a) => a + 1);
+      setWrongStepId(step.id);
+      playWrongBuzzSound();
+      window.setTimeout(() => setWrongStepId(null), 650);
     }
   };
 
   const isHabitFinished =
-    completedStepOrders.length === currentHabit.steps.length;
+    habitStage === 2 && completedStepOrders.length === currentHabit.steps.length;
 
-  return (
-    <div className="lifeskills-studio-stage">
-      {/* Thanh chuyển đổi 2 chế độ + danh sách món ăn / thói quen (1 hàng gọn trên cả điện thoại) */}
-      <div className="lifeskills-top-toolbar">
-        <div className="lifeskills-mode-tabs">
-          <button
-            type="button"
-            className={`lifeskills-mode-btn ${mode === "cooking" ? "active" : ""}`}
-            onClick={() => setMode("cooking")}
-          >
-            <ChefHat size={15} /> 🍳 Nấu Ăn
-          </button>
-          <button
-            type="button"
-            className={`lifeskills-mode-btn ${mode === "habits" ? "active" : ""}`}
-            onClick={() => setMode("habits")}
-          >
-            🌱 Tự Lập
-          </button>
+  const currentUniversalPrompt =
+    mode === "safety"
+      ? safetyAnswered
+        ? currentSafetyQ.explainSuccess
+        : currentSafetyQ.question
+      : mode === "cooking"
+        ? cookingStep === 1
+          ? UNIVERSAL_PROMPTS.cookStep1
+          : cookingStep === 2
+            ? UNIVERSAL_PROMPTS.cookStep2
+            : dishCooked
+              ? UNIVERSAL_PROMPTS.completed
+              : UNIVERSAL_PROMPTS.cookStep3
+        : habitStage === 1
+          ? UNIVERSAL_PROMPTS.habitStage1
+          : isHabitFinished
+            ? UNIVERSAL_PROMPTS.completed
+            : UNIVERSAL_PROMPTS.habitStage2;
+
+  // ==========================================================================
+  // MÀN HÌNH 1: MENU CHỌN BÀI (TRỰC QUAN, ÍT CHỮ)
+  // ==========================================================================
+  if (viewMode === "menu") {
+    return (
+      <div className="lifeskills-studio-stage lifeskills-open-board">
+        <div className="reading-level-header single-row-level-bar">
+          <div className="level-tabs-group">
+            <button
+              type="button"
+              className={`level-tab-btn ${mode === "cooking" ? "active" : ""}`}
+              onClick={() => setMode("cooking")}
+            >
+              <ChefHat size={15} />
+              <strong>🍳 Đầu Bếp Nhí ({COOKING_RECIPES.length})</strong>
+            </button>
+            <button
+              type="button"
+              className={`level-tab-btn ${mode === "habits" ? "active" : ""}`}
+              onClick={() => setMode("habits")}
+            >
+              <Sparkles size={15} />
+              <strong>🌱 Bé Tự Lập ({DAILY_HABITS.length})</strong>
+            </button>
+            <button
+              type="button"
+              className={`level-tab-btn ${mode === "safety" ? "active" : ""}`}
+              onClick={() => setMode("safety")}
+            >
+              <ShieldCheck size={15} />
+              <strong>
+                🛡️ Thường Thức &amp; An Toàn ({SAFETY_COMMON_SENSE_POOL.length})
+              </strong>
+            </button>
+            <button
+              type="button"
+              className="level-tab-btn active"
+              style={{
+                background: "linear-gradient(135deg, #0284C7 0%, #38BDF8 100%)",
+                color: "#FFFFFF",
+                border: "2px solid #FFFFFF",
+                boxShadow: "0 6px 16px rgba(2, 132, 199, 0.32)",
+              }}
+              onClick={() => {
+                speech.stop();
+                setShowDoraemonClockClip(true);
+              }}
+            >
+              <strong>🎬 Doraemon Dạy Xem Đồng Hồ</strong>
+            </button>
+          </div>
         </div>
 
-        <div className="lifeskills-sub-pills">
+        {mode === "safety" && (
+          <div
+            style={{
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "space-between",
+              gap: 12,
+              background: "linear-gradient(135deg, #FEF3C7 0%, #FDE68A 100%)",
+              border: "3px solid #F59E0B",
+              borderRadius: 20,
+              padding: "10px 16px",
+              marginBottom: 8,
+            }}
+          >
+            <div>
+              <strong style={{ fontSize: 16, color: "#92400E" }}>
+                🛡️ Thử Thách 5 Tình Huống An Toàn &amp; Thường Thức (Không Trùng Lặp)
+              </strong>
+              <p style={{ margin: "2px 0 0", fontSize: 13, color: "#B45309", fontWeight: 700 }}>
+                Cháy nổ PCCC (114) · Bị thương &amp; Sơ cứu (115) · Người lạ (113) · An toàn điện &amp; Giao thông
+              </p>
+            </div>
+            <button
+              type="button"
+              className="chunky-btn chunky-gold btn-sm"
+              onClick={() => startNewSafetyRound()}
+            >
+              🎲 Bắt Đầu 5 Câu Mới!
+            </button>
+          </div>
+        )}
+
+        <div className="lifeskills-menu-grid">
           {mode === "cooking"
-            ? COOKING_RECIPES.map((rcp, idx) => (
-                <button
-                  key={rcp.id}
-                  type="button"
-                  className={`lifeskills-recipe-pill ${recipeIdx === idx ? "active" : ""}`}
-                  onClick={() => setRecipeIdx(idx)}
-                >
-                  {rcp.shortTitle}
-                </button>
-              ))
-            : DAILY_HABITS.map((hb, idx) => (
-                <button
-                  key={hb.id}
-                  type="button"
-                  className={`lifeskills-recipe-pill ${habitIdx === idx ? "active" : ""}`}
-                  onClick={() => setHabitIdx(idx)}
-                >
-                  {hb.shortTitle}
-                </button>
-              ))}
+            ? COOKING_RECIPES.map((rcp, idx) => {
+                const isDone = completedIds.includes(rcp.id);
+                return (
+                  <button
+                    key={rcp.id}
+                    type="button"
+                    className={`lifeskills-menu-card ${isDone ? "done" : ""}`}
+                    onClick={() => handleOpenCookingRecipe(idx)}
+                  >
+                    <div className="ls-menu-card-visual">
+                      <img
+                        src={rcp.platedImageUrl}
+                        alt={rcp.shortTitle}
+                        className="ls-menu-3d-img"
+                        draggable={false}
+                      />
+                    </div>
+                    <strong className="ls-menu-card-title">
+                      {rcp.shortTitle}
+                    </strong>
+                    {isDone && <span className="ls-menu-done-badge">✓</span>}
+                  </button>
+                );
+              })
+            : mode === "habits"
+              ? DAILY_HABITS.map((hb, idx) => {
+                  const isDone = completedIds.includes(hb.id);
+                  return (
+                    <button
+                      key={hb.id}
+                      type="button"
+                      className={`lifeskills-menu-card habit-variant ${
+                        isDone ? "done" : ""
+                      }`}
+                      onClick={() => handleOpenHabitQuest(idx)}
+                    >
+                      <div className="ls-menu-card-visual">
+                        <img
+                          src={hb.heroImageUrl}
+                          alt={hb.shortTitle}
+                          className="ls-menu-3d-img"
+                          draggable={false}
+                        />
+                      </div>
+                      <strong className="ls-menu-card-title">
+                        {hb.shortTitle}
+                      </strong>
+                      {isDone && <span className="ls-menu-done-badge">✓</span>}
+                    </button>
+                  );
+                })
+              : SAFETY_COMMON_SENSE_POOL.map((sq) => {
+                  const isDone = completedIds.includes(sq.id);
+                  return (
+                    <button
+                      key={sq.id}
+                      type="button"
+                      className={`lifeskills-menu-card habit-variant ${
+                        isDone ? "done" : ""
+                      }`}
+                      onClick={() => startNewSafetyRound(sq.id)}
+                    >
+                      <div className="ls-menu-card-visual">
+                        <img
+                          src={sq.heroImage}
+                          alt={sq.categoryBadge}
+                          className="ls-menu-3d-img"
+                          draggable={false}
+                        />
+                      </div>
+                      <strong className="ls-menu-card-title">
+                        {sq.categoryBadge}
+                      </strong>
+                      {isDone && <span className="ls-menu-done-badge">✓</span>}
+                    </button>
+                  );
+                })}
         </div>
 
+        {showDoraemonClockClip && (
+          <div
+            style={{
+              position: "fixed",
+              inset: 0,
+              zIndex: 9999,
+              background: "rgba(15, 23, 42, 0.82)",
+              backdropFilter: "blur(8px)",
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center",
+              padding: 20,
+            }}
+            onClick={() => setShowDoraemonClockClip(false)}
+          >
+            <div
+              style={{
+                width: "min(980px, 95vw)",
+                background: "#F8FAFC",
+                borderRadius: 28,
+                border: "4px solid #38BDF8",
+                boxShadow: "0 24px 60px rgba(0, 0, 0, 0.45)",
+                padding: 18,
+                display: "flex",
+                flexDirection: "column",
+                gap: 12,
+              }}
+              onClick={(e) => e.stopPropagation()}
+            >
+              <div
+                style={{
+                  display: "flex",
+                  alignItems: "center",
+                  justifyContent: "space-between",
+                  gap: 12,
+                }}
+              >
+                <strong style={{ fontSize: 20, color: "#0369A1" }}>
+                  ⏰ Bài Giảng: Doraemon Dạy Bé Xem Đồng Hồ (Giờ Đúng &amp; Giờ Rưỡi)
+                </strong>
+                <button
+                  type="button"
+                  className="chunky-btn chunky-blue btn-sm"
+                  onClick={() => setShowDoraemonClockClip(false)}
+                >
+                  ✕ Đóng &amp; Vào Học
+                </button>
+              </div>
+              <video
+                src="/videos/doraemon-clock-lesson.mp4"
+                controls
+                autoPlay
+                playsInline
+                style={{
+                  width: "100%",
+                  maxHeight: "74vh",
+                  borderRadius: 18,
+                  background: "#000",
+                }}
+              />
+            </div>
+          </div>
+        )}
+      </div>
+    );
+  }
+
+  // ==========================================================================
+  // MÀN HÌNH 2: 1 MẶT BẢNG LỚN TRỰC QUAN (BỎ HƯỚNG DẪN DÀI DÒNG)
+  // ==========================================================================
+  return (
+    <div className="lifeskills-studio-stage lifeskills-open-board">
+      {/* Thanh trên cùng: Chọn bài + Tên ngắn + Các bước + 3 ô đồ đã nhặt + Loa */}
+      <div className="lifeskills-top-toolbar">
         <button
           type="button"
-          className="chunky-btn chunky-blue btn-sm lifeskills-speak-btn"
-          onClick={() =>
-            speech.speak(
-              mode === "cooking"
-                ? cookingStep === 1
-                  ? currentRecipe.introLine
-                  : cookingStep === 2
-                    ? currentRecipe.prepPromptLine
-                    : dishCooked
-                      ? currentRecipe.successLine
-                      : currentRecipe.cookPromptLine
-                : currentHabit.introLine,
-              "vi-VN",
-            )
-          }
+          className="back-to-menu-pill"
+          onClick={() => setViewMode("menu")}
         >
-          <Volume2 size={14} /> Nghe
+          <ArrowLeft size={14} /> Chọn bài
         </button>
+
+        <div className="lifeskills-active-title-pill">
+          <strong>
+            {mode === "cooking"
+              ? currentRecipe.shortTitle
+              : mode === "habits"
+                ? currentHabit.shortTitle
+                : `🛡️ Câu ${safetyIdx + 1}/${safetyDeck.length} · ${currentSafetyQ.categoryBadge}`}
+          </strong>
+        </div>
+
+        {mode === "cooking" ? (
+          <div className="cooking-wizard-tabs">
+            <button
+              type="button"
+              className={`cooking-wizard-tab ${
+                cookingStep === 1
+                  ? "active"
+                  : selectedIngIds.length === 3
+                    ? "done"
+                    : ""
+              }`}
+              onClick={() => setCookingStep(1)}
+            >
+              <span>1. Chọn ({selectedIngIds.length}/3)</span>
+              {selectedIngIds.length === 3 && <Check size={12} />}
+            </button>
+            <button
+              type="button"
+              disabled={selectedIngIds.length < 3}
+              className={`cooking-wizard-tab ${
+                cookingStep === 2
+                  ? "active"
+                  : preppedIngIds.length === 3
+                    ? "done"
+                    : ""
+              }`}
+              onClick={() => selectedIngIds.length === 3 && setCookingStep(2)}
+            >
+              <span>2. Sơ chế ({preppedIngIds.length}/3)</span>
+              {preppedIngIds.length === 3 && <Check size={12} />}
+            </button>
+            <button
+              type="button"
+              disabled={preppedIngIds.length < 3}
+              className={`cooking-wizard-tab ${
+                cookingStep === 3 ? "active" : dishCooked ? "done" : ""
+              }`}
+              onClick={() => preppedIngIds.length === 3 && setCookingStep(3)}
+            >
+              <span>3. Nấu</span>
+              {dishCooked && <Check size={12} />}
+            </button>
+          </div>
+        ) : mode === "habits" ? (
+          <div className="cooking-wizard-tabs">
+            <button
+              type="button"
+              className={`cooking-wizard-tab ${
+                habitStage === 1
+                  ? "active"
+                  : pickedToolIds.length === 3
+                    ? "done"
+                    : ""
+              }`}
+              onClick={() => setHabitStage(1)}
+            >
+              <span>1. Chuẩn bị ({pickedToolIds.length}/3)</span>
+              {pickedToolIds.length === 3 && <Check size={12} />}
+            </button>
+            <button
+              type="button"
+              disabled={pickedToolIds.length < 3}
+              className={`cooking-wizard-tab ${
+                habitStage === 2 ? "active" : isHabitFinished ? "done" : ""
+              }`}
+              onClick={() => pickedToolIds.length === 3 && setHabitStage(2)}
+            >
+              <span>2. Thứ tự ({completedStepOrders.length}/3)</span>
+              {isHabitFinished && <Check size={12} />}
+            </button>
+          </div>
+        ) : (
+          <div className="cooking-wizard-tabs">
+            {safetyDeck.map((sq, idx) => {
+              const isDone =
+                idx < safetyIdx || (idx === safetyIdx && safetyAnswered);
+              const isCurrent = idx === safetyIdx;
+              return (
+                <span
+                  key={sq.id}
+                  className={`cooking-wizard-tab ${
+                    isCurrent ? "active" : isDone ? "done" : ""
+                  }`}
+                >
+                  <span>Câu {idx + 1}</span>
+                  {isDone && <Check size={12} />}
+                </span>
+              );
+            })}
+          </div>
+        )}
+
+        {/* 3 Ô đồ vật vừa chọn hiển thị trực tiếp trên thanh trên cùng */}
+        {((mode === "cooking" && !dishCooked) ||
+          (mode === "habits" && habitStage === 1)) && (
+          <div className="ls-inline-slots-row">
+            {[0, 1, 2].map((slotIdx) => {
+              if (mode === "cooking") {
+                const ing = pickedIngredients[slotIdx];
+                const isPrepped = ing && preppedIngIds.includes(ing.id);
+                return (
+                  <div
+                    key={slotIdx}
+                    className={`ls-mini-slot ${ing ? "filled" : "empty"}`}
+                  >
+                    {ing ? (
+                      <img
+                        src={
+                          isPrepped
+                            ? ing.preppedImageUrl || ing.imageUrl
+                            : ing.imageUrl
+                        }
+                        alt={ing.name}
+                        draggable={false}
+                      />
+                    ) : (
+                      <span>{slotIdx + 1}</span>
+                    )}
+                  </div>
+                );
+              }
+              const tool = pickedHabitTools[slotIdx];
+              return (
+                <div
+                  key={slotIdx}
+                  className={`ls-mini-slot ${tool ? "filled" : "empty"}`}
+                >
+                  {tool ? (
+                    <img src={tool.imageUrl} alt={tool.name} draggable={false} />
+                  ) : (
+                    <span>{slotIdx + 1}</span>
+                  )}
+                </div>
+              );
+            })}
+          </div>
+        )}
+
+        <div style={{ display: "flex", gap: 8 }}>
+          <button
+            type="button"
+            className="chunky-btn chunky-pink btn-sm"
+            onClick={() => {
+              speech.stop();
+              setShowDoraemonClockClip(true);
+            }}
+            title="Xem Clip Doraemon Dạy Xem Đồng Hồ"
+          >
+            🎬 Clip Xem Giờ
+          </button>
+          <button
+            type="button"
+            className="chunky-btn chunky-blue btn-sm lifeskills-speak-btn"
+            onClick={() => speech.speak(currentUniversalPrompt, "vi-VN")}
+            title="Đọc yêu cầu"
+          >
+            <Volume2 size={14} />
+          </button>
+        </div>
       </div>
 
-      {/* NỘI DUNG CHẾ ĐỘ 1: ĐẦU BẾP NHÍ NẤM (COOKING STUDIO 3 BƯỚC) */}
-      {mode === "cooking" ? (
-        <div className="lifeskills-cooking-grid">
-          {/* Cột Trái: Chuyển từng bước gọn gàng, không bao giờ bị khuất trên điện thoại */}
-          <div className="lifeskills-steps-panel">
-            {/* Header tên món + Thanh 3 bước */}
-            <div className="lifeskills-header-and-stepper">
-              <div className="lifeskills-dish-header">
-                <span className="dish-badge-emoji">{currentRecipe.emoji}</span>
-                <h3>{currentRecipe.title}</h3>
+      {/* Mặt bảng lớn 100% hình ảnh trực quan + nhãn 2-4 chữ */}
+      <div className="lifeskills-fullboard-stage">
+        {mode === "cooking" ? (
+          <>
+            {cookingStep === 1 && (
+              <div className="cooking-ingredients-grid fullboard-5-cols">
+                {shuffledIngredients.map((ing) => {
+                  const isPicked = selectedIngIds.includes(ing.id);
+                  const isWrong = wrongIngId === ing.id;
+                  return (
+                    <button
+                      key={ing.id}
+                      type="button"
+                      className={`ingredient-card-btn ${
+                        isPicked ? "picked" : ""
+                      } ${isWrong ? "wrong-shake" : ""}`}
+                      onClick={() => handleSelectIngredient(ing)}
+                    >
+                      <div className="ing-visual-wrap">
+                        <img
+                          src={ing.imageUrl}
+                          alt={ing.name}
+                          className="ing-3d-img"
+                          draggable={false}
+                        />
+                      </div>
+                      <span className="ing-name">{ing.name}</span>
+                      {isPicked && <span className="ing-check">✓</span>}
+                    </button>
+                  );
+                })}
               </div>
+            )}
 
-              <div className="cooking-wizard-tabs">
-                <button
-                  type="button"
-                  className={`cooking-wizard-tab ${
-                    cookingStep === 1
-                      ? "active"
-                      : selectedIngIds.length === 3
-                        ? "done"
-                        : ""
-                  }`}
-                  onClick={() => setCookingStep(1)}
-                >
-                  <span>1. Chọn ({selectedIngIds.length}/3)</span>
-                  {selectedIngIds.length === 3 && <Check size={12} />}
-                </button>
-
-                <button
-                  type="button"
-                  disabled={selectedIngIds.length < 3}
-                  className={`cooking-wizard-tab ${
-                    cookingStep === 2
-                      ? "active"
-                      : preppedIngIds.length === 3
-                        ? "done"
-                        : ""
-                  }`}
-                  onClick={() =>
-                    selectedIngIds.length === 3 && setCookingStep(2)
-                  }
-                >
-                  <span>
-                    {currentRecipe.step2TabLabel || "2. Sơ chế"} (
-                    {preppedIngIds.length}/3)
-                  </span>
-                  {preppedIngIds.length === 3 && <Check size={12} />}
-                </button>
-
-                <button
-                  type="button"
-                  disabled={preppedIngIds.length < 3}
-                  className={`cooking-wizard-tab ${
-                    cookingStep === 3 ? "active" : dishCooked ? "done" : ""
-                  }`}
-                  onClick={() =>
-                    preppedIngIds.length === 3 && setCookingStep(3)
-                  }
-                >
-                  <span>
-                    {currentRecipe.step3TabLabel || "3. Nấu & Bày đĩa"}
-                  </span>
-                  {dishCooked && <Check size={12} />}
-                </button>
+            {cookingStep === 2 && (
+              <div className="cooking-prep-cards-grid fullboard-3-cols">
+                {pickedIngredients.map((ing) => {
+                  const isPrepped = preppedIngIds.includes(ing.id);
+                  const visualSrc = isPrepped
+                    ? ing.preppedImageUrl || ing.imageUrl
+                    : ing.imageUrl;
+                  return (
+                    <button
+                      key={ing.id}
+                      type="button"
+                      className={`prep-action-card-btn ${
+                        isPrepped ? "prepped-done" : "prep-ready"
+                      }`}
+                      onClick={() => handlePrepIngredient(ing)}
+                    >
+                      <div className="prep-card-visual">
+                        <img
+                          src={visualSrc}
+                          alt={ing.name}
+                          className="prep-3d-img"
+                          draggable={false}
+                        />
+                      </div>
+                      <strong className="prep-ing-name">{ing.name}</strong>
+                      <span className="prep-action-pill">
+                        {isPrepped
+                          ? `✓ ${ing.prepDoneLabel || "Xong"}`
+                          : ing.prepActionLabel || "Sơ chế"}
+                      </span>
+                    </button>
+                  );
+                })}
               </div>
-            </div>
+            )}
 
-            {/* Vùng nội dung Bước hiện tại (chiếm trọn khung, rõ ràng trên cả điện thoại) */}
-            <div className="cooking-active-step-stage">
-              {cookingStep === 1 && (
-                <div className="cooking-step-card step-active full-step-box">
-                  <div className="cooking-step-title">
-                    <span className="step-num-badge">Bước 1</span>
-                    <strong>
-                      🥗 Chọn 3/5 nguyên liệu đưa lên bảng ({selectedIngIds.length}
-                      /3)
-                    </strong>
-                  </div>
-                  <div className="cooking-ingredients-grid">
-                    {shuffledIngredients.map((ing) => {
-                      const isPicked = selectedIngIds.includes(ing.id);
-                      const isWrong = wrongIngId === ing.id;
-                      return (
-                        <button
-                          key={ing.id}
-                          type="button"
-                          className={`ingredient-card-btn ${
-                            isPicked ? "picked" : ""
-                          } ${isWrong ? "wrong-shake" : ""}`}
-                          onClick={() => handleSelectIngredient(ing)}
-                        >
-                          <div className="ing-visual-wrap">
-                            <img
-                              src={ing.imageUrl}
-                              alt={ing.name}
-                              className="ing-3d-img"
-                              draggable={false}
-                            />
-                            <span className="ing-mini-icon">{ing.emoji}</span>
-                          </div>
-                          <span className="ing-name">{ing.name}</span>
-                          <span className="ing-en-name">{ing.englishName}</span>
-                          {isPicked && <span className="ing-check">✅</span>}
-                        </button>
-                      );
-                    })}
-                  </div>
-                </div>
-              )}
-
-              {cookingStep === 2 && (
-                <div className="cooking-step-card step-active full-step-box">
-                  <div className="cooking-step-title">
-                    <span className="step-num-badge">Bước 2</span>
-                    <strong>
-                      {currentRecipe.step2Title ||
-                        "🔪 Bấm rửa & sơ chế 3 nguyên liệu"}{" "}
-                      ({preppedIngIds.length}/3)
-                    </strong>
-                  </div>
-                  <div className="cooking-prep-cards-grid">
-                    {pickedIngredients.map((ing) => {
-                      const isPrepped = preppedIngIds.includes(ing.id);
-                      const visualSrc = isPrepped
-                        ? ing.preppedImageUrl || ing.imageUrl
-                        : ing.imageUrl;
-                      return (
-                        <button
-                          key={ing.id}
-                          type="button"
-                          className={`prep-action-card-btn ${
-                            isPrepped ? "prepped-done" : "prep-ready"
-                          }`}
-                          onClick={() => handlePrepIngredient(ing)}
-                        >
-                          <div className="prep-card-visual">
-                            <img
-                              src={visualSrc}
-                              alt={ing.name}
-                              className="prep-3d-img"
-                              draggable={false}
-                            />
-                            <span className="prep-mini-icon">
-                              {isPrepped
-                                ? ing.preppedEmoji || ing.emoji
-                                : ing.emoji}
-                            </span>
-                            {isPrepped && (
-                              <span className="prep-done-check">✨</span>
-                            )}
-                          </div>
-                          <strong className="prep-ing-name">{ing.name}</strong>
-                          <span className="prep-ing-en">{ing.englishName}</span>
-                          <span className="prep-action-pill">
-                            {isPrepped
-                              ? `✅ ${ing.prepDoneLabel || "Đã sơ chế"}`
-                              : ing.prepActionLabel || "🚿 Rửa & sơ chế"}
-                          </span>
-                        </button>
-                      );
-                    })}
-                  </div>
-                </div>
-              )}
-
-              {cookingStep === 3 && (
-                <div className="cooking-step-card step-active full-step-box step-cook-plate-box">
-                  <div className="cooking-step-title">
-                    <span className="step-num-badge">Bước 3</span>
-                    <strong>
-                      {dishCooked
-                        ? currentRecipe.step3DoneTitle ||
-                          "🍽️ Đã nấu chín & bày lên đĩa!"
-                        : currentRecipe.step3Title ||
-                          "🍳 Nấu chín & Bày món ăn lên đĩa"}
-                    </strong>
-                  </div>
-
-                  <div className="cook-plate-interactive-area">
+            {cookingStep === 3 && (
+              <div className="cook-plate-interactive-area fullboard-center-stage">
+                {!dishCooked ? (
+                  <>
                     <div className="cook-prepped-summary-row">
                       {pickedIngredients.map((ing) => (
                         <div key={ing.id} className="cook-ready-chip">
@@ -1194,287 +2685,447 @@ export function LifeSkillsActivity({
                       ))}
                     </div>
 
-                    {!dishCooked ? (
-                      <button
-                        type="button"
-                        className="cook-big-stove-btn"
-                        onClick={handleCookAndPlateDish}
-                      >
-                        <Utensils size={18} />
-                        <span>{currentRecipe.cookActionLabel}</span>
-                      </button>
-                    ) : (
-                      <div className="cooked-dish-plated-banner">
-                        <img
-                          src={currentRecipe.platedImageUrl}
-                          alt={currentRecipe.platedLabel}
-                          className="plated-dish-3d-img"
-                          draggable={false}
-                        />
-                        <div className="plated-dish-texts">
-                          <strong>{currentRecipe.platedLabel}</strong>
-                          <span>
-                            {currentRecipe.platedSubtitle ||
-                              "Món ngon đã bày ra đĩa cho Nấm!"}
-                          </span>
-                        </div>
-                      </div>
-                    )}
-                  </div>
-                </div>
-              )}
-            </div>
-
-            {/* Hàng nút dưới cùng */}
-            <div className="cooking-bottom-cta-row">
-              <button
-                type="button"
-                className="chunky-btn chunky-orange btn-sm"
-                onClick={resetCookingState}
-              >
-                <RotateCcw size={14} /> Làm lại
-              </button>
-
-              {cookingStep === 1 && selectedIngIds.length === 3 && (
-                <button
-                  type="button"
-                  className="chunky-btn chunky-pink lifeskills-primary-cta"
-                  onClick={() => setCookingStep(2)}
-                >
-                  Sang {currentRecipe.step2TabLabel || "Bước 2: Sơ chế"} ▶
-                </button>
-              )}
-
-              {cookingStep === 2 && preppedIngIds.length === 3 && (
-                <button
-                  type="button"
-                  className="chunky-btn chunky-pink lifeskills-primary-cta"
-                  onClick={() => setCookingStep(3)}
-                >
-                  Sang {currentRecipe.step3TabLabel || "Bước 3: Nấu & Bày đĩa"}{" "}
-                  ▶
-                </button>
-              )}
-
-              {cookingStep === 3 && !dishCooked && (
-                <button
-                  type="button"
-                  className="chunky-btn chunky-pink lifeskills-primary-cta"
-                  onClick={handleCookAndPlateDish}
-                >
-                  <Utensils size={15} /> {currentRecipe.cookActionLabel} ✨
-                </button>
-              )}
-
-              {dishCooked && (
-                <button
-                  type="button"
-                  className="chunky-btn chunky-gold lifeskills-primary-cta"
-                  onClick={() =>
-                    onComplete({
-                      attempts,
-                      answers: [currentRecipe.id, ...selectedIngIds],
-                      activityId: currentRecipe.id,
-                      skillIds: ["lifeskills-cooking", "food-hygiene"],
-                      independentResult: attempts <= 2 ? "passed" : "assisted",
-                      completionSource: "system-checked",
-                    })
-                  }
-                >
-                  <Sparkles size={15} /> Nhận Sao! ⭐
-                </button>
-              )}
-            </div>
-          </div>
-
-          {/* Cột Phải: Bảng Bếp & Đĩa Bày Món Ăn (Hiện trực tiếp từng món lúc chọn -> sơ chế -> bày đĩa) */}
-          <div
-            className={`lifeskills-showcase-panel ${dishCooked ? "is-cooked" : ""}`}
-          >
-            <div className="showcase-status-pill">
-              {dishCooked
-                ? `✨ ${currentRecipe.platedLabel}`
-                : cookingStep === 1
-                  ? `📋 Bảng nguyên liệu (${selectedIngIds.length}/3)`
-                  : cookingStep === 2
-                    ? `🥣 Bàn chế biến (${preppedIngIds.length}/3)`
-                    : "✨ Sẵn sàng hoàn thành món ngon!"}
-            </div>
-
-            <div className="showcase-sticker-stage">
-              <img
-                src={
-                  dishCooked
-                    ? currentRecipe.namSticker
-                    : currentRecipe.companionSticker
-                }
-                alt={currentRecipe.title}
-                className={`showcase-main-sticker ${dishCooked ? "pop-celebrate" : ""}`}
-              />
-            </div>
-
-            {/* Bảng 3 ô nguyên liệu trực quan: Chọn tới đâu hiện lên bảng tới đó, sơ chế đổi hình, nấu xong thành đĩa */}
-            <div className="showcase-board-slots">
-              {[0, 1, 2].map((slotIdx) => {
-                const ing = pickedIngredients[slotIdx];
-                if (!ing) {
-                  return (
-                    <div
-                      key={`empty-${slotIdx}`}
-                      className="board-ing-slot empty"
+                    <button
+                      type="button"
+                      className="cook-big-stove-btn"
+                      onClick={handleCookAndPlateDish}
                     >
-                      <span className="slot-placeholder-plus">
-                        Ô {slotIdx + 1}
-                      </span>
-                    </div>
-                  );
-                }
-                const isPrepped = preppedIngIds.includes(ing.id);
-                const slotImgSrc = dishCooked
-                  ? currentRecipe.platedImageUrl
-                  : isPrepped
-                    ? ing.preppedImageUrl || ing.imageUrl
-                    : ing.imageUrl;
-                return (
-                  <div
-                    key={ing.id}
-                    className={`board-ing-slot filled ${
-                      dishCooked
-                        ? "plated"
-                        : isPrepped
-                          ? "prepped"
-                          : "raw-picked"
-                    }`}
-                  >
+                      <Utensils size={20} />
+                      <span>{currentRecipe.cookActionLabel}</span>
+                    </button>
+                  </>
+                ) : (
+                  <div className="cooked-dish-plated-banner">
                     <img
-                      src={slotImgSrc}
-                      alt={ing.name}
-                      className="board-slot-3d-img"
+                      src={currentRecipe.platedImageUrl}
+                      alt={currentRecipe.platedLabel}
+                      className="plated-dish-3d-img"
                       draggable={false}
                     />
-                    <span className="board-slot-name">
-                      {dishCooked
-                        ? ing.name
-                        : isPrepped
-                          ? ing.prepDoneLabel || ing.name
-                          : ing.name}
-                    </span>
+                    <div className="plated-dish-texts">
+                      <strong>{currentRecipe.platedLabel}</strong>
+                    </div>
+                    <img
+                      src={currentRecipe.namSticker}
+                      alt="Bé Nấm"
+                      className="plated-nam-sticker"
+                      draggable={false}
+                    />
                   </div>
-                );
-              })}
-            </div>
-          </div>
-        </div>
-      ) : (
-        /* NỘI DUNG CHẾ ĐỘ 2: BÉ TỰ LẬP MỖI NGÀY (DAILY HABITS) */
-        <div className="lifeskills-cooking-grid">
-          <div className="lifeskills-steps-panel">
-            <div className="lifeskills-dish-header">
-              <span className="dish-badge-emoji">{currentHabit.emoji}</span>
-              <h3>{currentHabit.title}</h3>
+                )}
+              </div>
+            )}
+          </>
+        ) : mode === "habits" ? (
+          /* CHẾ ĐỘ 2: BÉ TỰ LẬP (CHẶNG 1 CHUẨN BỊ -> CHẶNG 2 THỨ TỰ 1-2-3) */
+          <>
+            {habitStage === 1 ? (
+              <div className="cooking-ingredients-grid fullboard-5-cols">
+                {shuffledHabitTools.map((tool) => {
+                  const isPicked = pickedToolIds.includes(tool.id);
+                  const isWrong = wrongToolId === tool.id;
+                  return (
+                    <button
+                      key={tool.id}
+                      type="button"
+                      className={`ingredient-card-btn ${
+                        isPicked ? "picked" : ""
+                      } ${isWrong ? "wrong-shake" : ""}`}
+                      onClick={() => handleSelectHabitTool(tool)}
+                    >
+                      <div className="ing-visual-wrap">
+                        <img
+                          src={tool.imageUrl}
+                          alt={tool.name}
+                          className="ing-3d-img"
+                          draggable={false}
+                        />
+                      </div>
+                      <span className="ing-name">{tool.name}</span>
+                      {isPicked && <span className="ing-check">✓</span>}
+                    </button>
+                  );
+                })}
+              </div>
+            ) : (
+              <div className="habit-sequence-stage">
+                {/* Hàng trên: 3 Ô Thứ Tự 1 -> 2 -> 3 */}
+                <div className="habit-target-slots-row">
+                  {[1, 2, 3].map((orderNum) => {
+                    const isFilled = completedStepOrders.includes(orderNum);
+                    const isCurrentTarget =
+                      completedStepOrders.length + 1 === orderNum;
+                    const matchedStep = currentHabit.steps.find(
+                      (s) => s.order === orderNum,
+                    );
+                    return (
+                      <div
+                        key={orderNum}
+                        className={`habit-sequence-slot ${
+                          isFilled
+                            ? "slot-filled"
+                            : isCurrentTarget
+                              ? "slot-active-target"
+                              : "slot-waiting"
+                        }`}
+                      >
+                        <span className="habit-slot-badge">
+                          Bước {orderNum}
+                        </span>
+                        {isFilled && matchedStep ? (
+                          <div className="habit-slot-content">
+                            <img
+                              src={matchedStep.imageUrl}
+                              alt={matchedStep.label}
+                              className="habit-slot-img"
+                              draggable={false}
+                            />
+                            <strong>{matchedStep.label}</strong>
+                          </div>
+                        ) : (
+                          <span className="habit-slot-placeholder">
+                            {isCurrentTarget ? "?" : "..."}
+                          </span>
+                        )}
+                      </div>
+                    );
+                  })}
+                </div>
+
+                {/* Hàng dưới: 3 Thẻ Hành Động Xáo Trộn (Hình 3D lớn + Nhãn 2-4 chữ) */}
+                <div className="habit-shuffled-cards-grid">
+                  {shuffledHabitSteps.map((step) => {
+                    const isPlaced = completedStepOrders.includes(step.order);
+                    const isWrong = wrongStepId === step.id;
+                    return (
+                      <button
+                        key={step.id}
+                        type="button"
+                        disabled={isPlaced}
+                        className={`habit-shuffled-card-btn ${
+                          isPlaced ? "placed-done" : ""
+                        } ${isWrong ? "wrong-shake" : ""}`}
+                        onClick={() => handleSelectHabitSequenceStep(step)}
+                      >
+                        <div className="habit-card-img-wrap">
+                          <img
+                            src={step.imageUrl}
+                            alt={step.label}
+                            className="habit-card-3d-img"
+                            draggable={false}
+                          />
+                        </div>
+                        <p className="habit-card-desc">{step.label}</p>
+                        {isPlaced && (
+                          <span className="habit-card-order-tag">
+                            ✓ Bước {step.order}
+                          </span>
+                        )}
+                      </button>
+                    );
+                  })}
+                </div>
+              </div>
+            )}
+          </>
+        ) : (
+          /* CHẾ ĐỘ 3: THƯỜNG THỨC & AN TOÀN (5 CÂU HỎI TÌNH HUỐNG TRỰC QUAN) */
+          <div
+            style={{
+              display: "flex",
+              flexDirection: "column",
+              gap: 14,
+              width: "100%",
+              maxWidth: 920,
+              margin: "0 auto",
+            }}
+          >
+            {/* Khung câu hỏi + Hình minh họa Bé Nấm / Bác Sĩ / Cảnh Sát */}
+            <div
+              style={{
+                display: "flex",
+                alignItems: "center",
+                gap: 16,
+                background: "linear-gradient(135deg, #EFF6FF 0%, #DBEAFE 100%)",
+                border: "3px solid #60A5FA",
+                borderRadius: 24,
+                padding: "14px 18px",
+                boxShadow: "0 8px 20px rgba(59, 130, 246, 0.14)",
+              }}
+            >
+              <img
+                src={currentSafetyQ.heroImage}
+                alt={currentSafetyQ.categoryBadge}
+                style={{
+                  width: 96,
+                  height: 96,
+                  objectFit: "contain",
+                  background: "#FFFFFF",
+                  borderRadius: 20,
+                  padding: 6,
+                  border: "2px solid #93C5FD",
+                  flexShrink: 0,
+                }}
+                draggable={false}
+              />
+              <div style={{ flex: 1 }}>
+                <span
+                  style={{
+                    display: "inline-block",
+                    background: "#2563EB",
+                    color: "#FFFFFF",
+                    fontSize: 12,
+                    fontWeight: 800,
+                    padding: "3px 10px",
+                    borderRadius: 999,
+                    marginBottom: 6,
+                  }}
+                >
+                  {currentSafetyQ.categoryBadge}
+                </span>
+                <div
+                  style={{
+                    fontSize: 19,
+                    fontWeight: 900,
+                    color: "#1E3A8A",
+                    lineHeight: 1.35,
+                  }}
+                >
+                  {currentSafetyQ.question}
+                </div>
+              </div>
+              <button
+                type="button"
+                className="chunky-btn chunky-blue btn-sm"
+                onClick={() => speech.speak(currentSafetyQ.question, "vi-VN")}
+                title="Nghe câu hỏi"
+              >
+                <Volume2 size={16} /> Nghe
+              </button>
             </div>
 
-            <div className="habit-steps-list">
-              {currentHabit.steps.map((st) => {
-                const isDone = completedStepOrders.includes(st.order);
-                const isNext = completedStepOrders.length + 1 === st.order;
+            {/* 3 Phương án lựa chọn */}
+            <div
+              style={{
+                display: "grid",
+                gridTemplateColumns: "repeat(auto-fit, minmax(250px, 1fr))",
+                gap: 12,
+              }}
+            >
+              {shuffledSafetyChoices.map((ch) => {
+                const isSelectedCorrect = safetyAnswered && ch.isCorrect;
+                const isWrong = wrongSafetyChoiceId === ch.id;
                 return (
                   <button
-                    key={st.id}
+                    key={ch.id}
                     type="button"
-                    className={`habit-step-row-btn ${
-                      isDone ? "done" : isNext ? "next-active" : ""
-                    }`}
-                    onClick={() => handleHabitStepTap(st.order, st.label)}
+                    className={`habit-shuffled-card-btn ${
+                      isSelectedCorrect ? "placed-done" : ""
+                    } ${isWrong ? "wrong-shake" : ""}`}
+                    style={{
+                      display: "flex",
+                      flexDirection: "column",
+                      alignItems: "center",
+                      justifyContent: "space-between",
+                      padding: "16px 14px",
+                      minHeight: 138,
+                      borderRadius: 22,
+                      border: isSelectedCorrect
+                        ? "4px solid #16A34A"
+                        : "3px solid #CBD5E1",
+                      background: isSelectedCorrect ? "#DCFCE7" : "#FFFFFF",
+                      cursor: safetyAnswered ? "default" : "pointer",
+                    }}
+                    onClick={() => handleSelectSafetyChoice(ch)}
                   >
-                    <span className="habit-order-pill">Bước {st.order}</span>
-                    {st.imageUrl ? (
-                      <img
-                        src={st.imageUrl}
-                        alt={st.label}
-                        className="habit-step-3d-img"
-                        draggable={false}
-                      />
-                    ) : (
-                      <span className="habit-step-emoji">{st.emoji}</span>
-                    )}
-                    <div className="habit-step-text-wrap">
-                      <strong className="habit-step-text">{st.label}</strong>
-                      {st.englishLabel && (
-                        <span className="habit-step-en">
-                          {st.emoji} {st.englishLabel}
-                        </span>
-                      )}
-                    </div>
-                    <span className="habit-step-status">
-                      {isDone ? "✅" : isNext ? "👆" : "⏳"}
+                    <span style={{ fontSize: 38, lineHeight: 1 }}>
+                      {ch.emoji}
                     </span>
+                    <strong
+                      style={{
+                        fontSize: 16,
+                        color: "#0F172A",
+                        textAlign: "center",
+                        lineHeight: 1.35,
+                        marginTop: 8,
+                      }}
+                    >
+                      {ch.label}
+                    </strong>
+                    {isSelectedCorrect && (
+                      <span className="habit-card-order-tag">✓ Chính xác!</span>
+                    )}
                   </button>
                 );
               })}
             </div>
 
-            <div className="cooking-bottom-cta-row">
-              <button
-                type="button"
-                className="chunky-btn chunky-orange btn-sm"
-                onClick={() => setCompletedStepOrders([])}
+            {/* Hộp giải thích ấm áp khi Nấm chọn đúng */}
+            {safetyAnswered && (
+              <div
+                style={{
+                  display: "flex",
+                  alignItems: "center",
+                  justifyContent: "space-between",
+                  gap: 14,
+                  background: "linear-gradient(135deg, #DCFCE7 0%, #BBF7D0 100%)",
+                  border: "3px solid #22C55E",
+                  borderRadius: 20,
+                  padding: "12px 18px",
+                }}
               >
-                <RotateCcw size={14} /> Làm lại
-              </button>
-
-              <button
-                type="button"
-                disabled={!isHabitFinished}
-                className="chunky-btn chunky-gold lifeskills-primary-cta"
-                onClick={() =>
-                  onComplete({
-                    attempts,
-                    answers: [currentHabit.id],
-                    activityId: currentHabit.id,
-                    skillIds: ["lifeskills-habit"],
-                    independentResult: attempts <= 2 ? "passed" : "assisted",
-                    completionSource: "system-checked",
-                  })
-                }
-              >
-                <Sparkles size={15} /> Nhận Sao! ⭐
-              </button>
-            </div>
+                <strong style={{ fontSize: 16, color: "#14532D", flex: 1 }}>
+                  💡 {currentSafetyQ.explainSuccess}
+                </strong>
+                {safetyIdx + 1 < safetyDeck.length && (
+                  <button
+                    type="button"
+                    className="chunky-btn chunky-gold btn-sm"
+                    onClick={handleNextSafetyQuestion}
+                  >
+                    Câu Tiếp Theo ({safetyIdx + 2}/{safetyDeck.length}) ➔
+                  </button>
+                )}
+              </div>
+            )}
           </div>
+        )}
+      </div>
 
-          <div
-            className={`lifeskills-showcase-panel ${
-              isHabitFinished ? "is-cooked" : ""
-            }`}
+      {/* Hàng nút dưới cùng */}
+      <div className="cooking-bottom-cta-row">
+        <button
+          type="button"
+          className="chunky-btn chunky-orange btn-sm"
+          onClick={
+            mode === "cooking"
+              ? resetCookingState
+              : mode === "habits"
+                ? resetHabitState
+                : () => startNewSafetyRound()
+          }
+        >
+          <RotateCcw size={14} /> Làm lại
+        </button>
+
+        {mode === "cooking" && dishCooked && (
+          <button
+            type="button"
+            className="chunky-btn chunky-gold lifeskills-primary-cta"
+            onClick={() =>
+              onComplete({
+                attempts,
+                answers: [currentRecipe.id, ...selectedIngIds],
+                activityId: currentRecipe.id,
+                skillIds: ["lifeskills-cooking", "food-hygiene"],
+                independentResult: attempts <= 2 ? "passed" : "assisted",
+                completionSource: "system-checked",
+              })
+            }
           >
-            <div className="showcase-status-pill">
-              {isHabitFinished
-                ? "🌟 NẤM ĐÃ HOÀN THÀNH!"
-                : `🌱 Bước ${completedStepOrders.length}/3 cùng ${currentHabit.companionName}`}
-            </div>
+            <Sparkles size={15} /> Nhận Sao! ⭐
+          </button>
+        )}
 
-            <div className="showcase-sticker-stage">
-              <img
-                src={
-                  isHabitFinished
-                    ? currentHabit.namSticker
-                    : currentHabit.companionSticker
-                }
-                alt={currentHabit.title}
-                className={`showcase-main-sticker ${
-                  isHabitFinished ? "pop-celebrate" : ""
-                }`}
-              />
-            </div>
+        {mode === "habits" && isHabitFinished && (
+          <button
+            type="button"
+            className="chunky-btn chunky-gold lifeskills-primary-cta"
+            onClick={() =>
+              onComplete({
+                attempts,
+                answers: [currentHabit.id, ...pickedToolIds],
+                activityId: currentHabit.id,
+                skillIds: ["lifeskills-habit"],
+                independentResult: attempts <= 2 ? "passed" : "assisted",
+                completionSource: "system-checked",
+              })
+            }
+          >
+            <Sparkles size={15} /> Nhận Sao! ⭐
+          </button>
+        )}
 
-            <div className="showcase-pot-tray">
-              <span className="pot-empty-hint">
-                {isHabitFinished
-                  ? currentHabit.successLine
-                  : "Chạm lần lượt Bước 1 ➔ Bước 2 ➔ Bước 3"}
-              </span>
+        {mode === "safety" && isSafetyRoundFinished && (
+          <button
+            type="button"
+            className="chunky-btn chunky-gold lifeskills-primary-cta"
+            onClick={() =>
+              onComplete({
+                attempts,
+                answers: safetyDeck.map((q) => q.id),
+                activityId: `safety-round-${safetyDeck[0]?.id || "general"}`,
+                skillIds: ["lifeskills-safety", "emergency-response"],
+                independentResult: attempts <= 2 ? "passed" : "assisted",
+                completionSource: "system-checked",
+              })
+            }
+          >
+            <Sparkles size={15} /> Đủ 5/5 Câu! Nhận Sao! ⭐
+          </button>
+        )}
+      </div>
+
+      {showDoraemonClockClip && (
+        <div
+          style={{
+            position: "fixed",
+            inset: 0,
+            zIndex: 9999,
+            background: "rgba(15, 23, 42, 0.82)",
+            backdropFilter: "blur(8px)",
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+            padding: 20,
+          }}
+          onClick={() => setShowDoraemonClockClip(false)}
+        >
+          <div
+            style={{
+              width: "min(980px, 95vw)",
+              background: "#F8FAFC",
+              borderRadius: 28,
+              border: "4px solid #38BDF8",
+              boxShadow: "0 24px 60px rgba(0, 0, 0, 0.45)",
+              padding: 18,
+              display: "flex",
+              flexDirection: "column",
+              gap: 12,
+            }}
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div
+              style={{
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "space-between",
+                gap: 12,
+              }}
+            >
+              <strong style={{ fontSize: 20, color: "#0369A1" }}>
+                ⏰ Bài Giảng: Doraemon Dạy Bé Xem Đồng Hồ (Giờ Đúng &amp; Giờ Rưỡi)
+              </strong>
+              <button
+                type="button"
+                className="chunky-btn chunky-blue btn-sm"
+                onClick={() => setShowDoraemonClockClip(false)}
+              >
+                ✕ Đóng &amp; Vào Học
+              </button>
             </div>
+            <video
+              src="/videos/doraemon-clock-lesson.mp4"
+              controls
+              autoPlay
+              playsInline
+              style={{
+                width: "100%",
+                maxHeight: "74vh",
+                borderRadius: 18,
+                background: "#000",
+              }}
+            />
           </div>
         </div>
       )}

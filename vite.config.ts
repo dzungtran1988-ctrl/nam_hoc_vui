@@ -66,6 +66,9 @@ function collectKaraokeSongs() {
   if (!fs.existsSync(KARAOKE_DIR)) return songs;
 
   const preferredOrder = [
+    "Những Ngày Trời Bao La.mp3",
+    "SUNNY SUNNY.mp3",
+    "TIẾNG RU CỘI NGUỒN.mp3",
     "ÁNH SÁNG CỦA ĐỜI TÔI.mp3",
     "LET ME GO - THƠM (Da LAB), VƯƠNG ANH TÚ, HOÀNG ROB, HOÀNG DŨNG, CHENG - ATVNCG 2026.mp3",
     "EM TÔI.mp3",
@@ -111,6 +114,9 @@ function collectKaraokeSongs() {
         thumbUrl: hasThumb
           ? `/api/karaoke-thumb?file=${encodeURIComponent(f)}`
           : undefined,
+        ...(songData.highlightMode
+          ? { highlightMode: songData.highlightMode }
+          : {}),
         lines: songData.lines,
       });
       continue;
@@ -274,6 +280,7 @@ const ENGLISH_VIDEO_FRIENDLY_NAMES: Record<string, string> = {
   "06 - Bài hát Tiếng Anh Vui Nhộn (Tập 2).mp4": "🪥 06 · Brush Your Teeth (Thói quen tốt)",
   "07 - Bài hát Tiếng Anh Vui Nhộn (Tập 3).mp4": "🐺 07 · Truyện: Open The Door! (Sói & Dê)",
   "08 - Kể chuyện Tiếng Anh Hay Cho Bé.mp4": "🐑 08 · Truyện: Do You Like Carrots? (Sói & Cừu)",
+  "09 - Bài hát Sunny Sunny Vui Nhộn.mp3": "☀️ 09 · Sunny, Sunny (Vui chơi ngoài trời)",
 };
 
 function collectEnglishVideos() {
@@ -718,16 +725,27 @@ function localMediaAndTtsPlugin() {
         if (!edgePythonPath) return null;
 
         const pyScript = [
-          "import sys, json, asyncio, edge_tts",
+          "import sys, os, json, asyncio, edge_tts",
           "sys.stdin.reconfigure(encoding='utf-8')",
           "sys.stdout.reconfigure(encoding='utf-8')",
           "async def handle(req, loop):",
           "    rid = req.get('id')",
+          "    out_path = req['out']",
+          "    tmp_path = out_path + '.tmp'",
           "    try:",
           "        comm = edge_tts.Communicate(req['text'], req['voice'], rate=req['rate'])",
-          "        await comm.save(req['out'])",
-          "        print(json.dumps({'id': rid, 'ok': True}), flush=True)",
+          "        await comm.save(tmp_path)",
+          "        if os.path.exists(tmp_path) and os.path.getsize(tmp_path) >= 200:",
+          "            os.replace(tmp_path, out_path)",
+          "            print(json.dumps({'id': rid, 'ok': True}), flush=True)",
+          "        else:",
+          "            if os.path.exists(tmp_path): os.remove(tmp_path)",
+          "            print(json.dumps({'id': rid, 'ok': False, 'err': 'Empty audio output'}), flush=True)",
           "    except Exception as e:",
+          "        try:",
+          "            if os.path.exists(tmp_path): os.remove(tmp_path)",
+          "        except Exception:",
+          "            pass",
           "        print(json.dumps({'id': rid, 'ok': False, 'err': str(e)}), flush=True)",
           "async def main():",
           "    loop = asyncio.get_running_loop()",
@@ -781,6 +799,26 @@ function localMediaAndTtsPlugin() {
         return proc;
       };
 
+      // Tự động dọn các file .mp3 rỗng (<200 bytes) hoặc .tmp bị kẹt trong public/tts-cache khi khởi động
+      const startupCacheDir = path.resolve(process.cwd(), "public", "tts-cache");
+      if (fs.existsSync(startupCacheDir)) {
+        try {
+          for (const f of fs.readdirSync(startupCacheDir)) {
+            const fp = path.join(startupCacheDir, f);
+            try {
+              const st = fs.statSync(fp);
+              if (st.isFile() && (f.endsWith(".tmp") || st.size < 200)) {
+                fs.unlinkSync(fp);
+              }
+            } catch {
+              // ignore
+            }
+          }
+        } catch {
+          // ignore
+        }
+      }
+
       // Khởi động sẵn worker ngay khi bật server để câu nói đầu tiên không mất thời gian import Python
       ensureTtsWorker();
 
@@ -794,6 +832,23 @@ function localMediaAndTtsPlugin() {
         if (existing) return existing;
 
         const job = (async () => {
+          if (voice === "vi-VN-North-Female") {
+            const gUrl =
+              "https://translate.google.com/translate_tts?ie=UTF-8&tl=vi&client=tw-ob&q=" +
+              encodeURIComponent(text);
+            const gRes = await fetch(gUrl, {
+              headers: { "User-Agent": "Mozilla/5.0" },
+            });
+            if (gRes.ok) {
+              const arrBuf = await gRes.arrayBuffer();
+              const buf = Buffer.from(arrBuf);
+              if (buf.length >= 200) {
+                fs.writeFileSync(filePath, buf);
+                return;
+              }
+            }
+          }
+
           const worker = ensureTtsWorker();
           if (worker && worker.stdin && !worker.killed) {
             try {
@@ -804,7 +859,7 @@ function localMediaAndTtsPlugin() {
                   JSON.stringify({ id, voice, rate, text, out: filePath }) + "\n",
                 );
               });
-              if (fs.existsSync(filePath) && fs.statSync(filePath).size >= 100) {
+              if (fs.existsSync(filePath) && fs.statSync(filePath).size >= 200) {
                 return;
               }
             } catch {
@@ -812,6 +867,7 @@ function localMediaAndTtsPlugin() {
             }
           }
 
+          const tmpPath = `${filePath}.tmp`;
           const uvPath = "C:\\Users\\Admin\\.local\\bin\\uv.exe";
           await new Promise<void>((resolve, reject) => {
             const proc = spawn(uvPath, [
@@ -827,11 +883,20 @@ function localMediaAndTtsPlugin() {
               "--text",
               text,
               "--write-media",
-              filePath,
+              tmpPath,
             ]);
             proc.on("close", (code) => {
-              if (code === 0 && fs.existsSync(filePath)) resolve();
-              else reject(new Error(`edge-tts exited with ${code}`));
+              if (code === 0 && fs.existsSync(tmpPath) && fs.statSync(tmpPath).size >= 200) {
+                fs.renameSync(tmpPath, filePath);
+                resolve();
+              } else {
+                try {
+                  if (fs.existsSync(tmpPath)) fs.unlinkSync(tmpPath);
+                } catch {
+                  // ignore
+                }
+                reject(new Error(`edge-tts exited with ${code}`));
+              }
             });
             proc.on("error", reject);
           });
@@ -855,10 +920,15 @@ function localMediaAndTtsPlugin() {
             return;
           }
 
-          const voice = lang.toLowerCase().startsWith("en")
+          const lowerLang = lang.toLowerCase();
+          const isEn = lowerLang.startsWith("en");
+          const isNorth = lowerLang.includes("north");
+          const voice = isEn
             ? "en-US-AnaNeural"
-            : "vi-VN-HoaiMyNeural";
-          const rate = lang.toLowerCase().startsWith("en") ? "-10%" : "-8%";
+            : isNorth
+              ? "vi-VN-North-Female"
+              : "vi-VN-HoaiMyNeural";
+          const rate = isEn ? "-10%" : isNorth ? "0%" : "-8%";
 
           const cacheDir = path.resolve(process.cwd(), "public", "tts-cache");
           if (!fs.existsSync(cacheDir)) {
@@ -887,6 +957,73 @@ function localMediaAndTtsPlugin() {
           res.statusCode = 500;
           res.end("TTS generation error");
         }
+      });
+
+      // 4. Phục vụ trực tiếp Game 3D "Cinnamoroll Island Race" tại /island-race/ và /assets/(islands|tiles|vehicles|props|toys|characters)
+      const ISLAND_RACE_DIST = path.join(PARENT_DIR, "cinnamoroll-island-race", "dist");
+      const ISLAND_RACE_PUBLIC = path.join(PARENT_DIR, "cinnamoroll-island-race", "public");
+
+      const getMimeType = (fp: string): string => {
+        if (/\.html$/i.test(fp)) return "text/html; charset=utf-8";
+        if (/\.js$/i.test(fp)) return "application/javascript; charset=utf-8";
+        if (/\.css$/i.test(fp)) return "text/css; charset=utf-8";
+        if (/\.png$/i.test(fp)) return "image/png";
+        if (/\.webp$/i.test(fp)) return "image/webp";
+        if (/\.svg$/i.test(fp)) return "image/svg+xml";
+        if (/\.json$/i.test(fp)) return "application/json; charset=utf-8";
+        return "application/octet-stream";
+      };
+
+      server.middlewares.use((req: any, res: any, next: any) => {
+        try {
+          const urlObj = new URL(req.url || "/", "http://localhost");
+          const pathname = decodeURIComponent(urlObj.pathname);
+
+          if (pathname === "/island-race" || pathname.startsWith("/island-race/")) {
+            let relPath = pathname.replace(/^\/island-race\/?/, "");
+            if (!relPath || relPath === "/") relPath = "index.html";
+            const candidateDist = path.join(ISLAND_RACE_DIST, relPath);
+            const candidatePub = path.join(ISLAND_RACE_PUBLIC, relPath);
+            const targetFile =
+              fs.existsSync(candidateDist) && fs.statSync(candidateDist).isFile()
+                ? candidateDist
+                : fs.existsSync(candidatePub) && fs.statSync(candidatePub).isFile()
+                  ? candidatePub
+                  : null;
+
+            if (targetFile) {
+              const st = fs.statSync(targetFile);
+              res.writeHead(200, {
+                "Content-Type": getMimeType(targetFile),
+                "Content-Length": st.size,
+              });
+              fs.createReadStream(targetFile).pipe(res);
+              return;
+            }
+          }
+
+          if (
+            /^\/assets\/(islands|tiles|vehicles|props|toys|characters|nav)\//i.test(pathname)
+          ) {
+            const localMainPublic = path.join(process.cwd(), "public", pathname);
+            if (!fs.existsSync(localMainPublic)) {
+              const islandAssetFile = path.join(ISLAND_RACE_PUBLIC, pathname);
+              if (fs.existsSync(islandAssetFile) && fs.statSync(islandAssetFile).isFile()) {
+                const st = fs.statSync(islandAssetFile);
+                res.writeHead(200, {
+                  "Content-Type": getMimeType(islandAssetFile),
+                  "Content-Length": st.size,
+                  "Cache-Control": "public, max-age=86400",
+                });
+                fs.createReadStream(islandAssetFile).pipe(res);
+                return;
+              }
+            }
+          }
+        } catch {
+          // fallback to next middleware
+        }
+        next();
       });
     },
   };

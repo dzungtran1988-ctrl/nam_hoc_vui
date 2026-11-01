@@ -178,8 +178,8 @@ test("Pochacco Memory Match generates paired high-contrast object decks across l
 
   assert.equal(
     MEMORY_OBJECT_POOL.length,
-    99,
-    "Should have 99 distinct 3D object icons excluding similar bunny pastries",
+    115,
+    "Should have 115 distinct 3D object icons excluding similar bunny pastries",
   );
 
   for (const level of [1, 2, 3] as const) {

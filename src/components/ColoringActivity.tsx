@@ -23,6 +23,7 @@ import {
 import { playCardPlaceSound, playRewardTone } from "../lib/sound";
 import { getCanvasPixelCoords } from "../lib/touchCoords";
 import type { ActivityProps } from "../types";
+import { ColorMixingStudio } from "./ColorMixingStudio";
 
 function hexToRgb(hex: string): [number, number, number] {
   const clean = hex.replace("#", "");
@@ -36,6 +37,7 @@ function rgbToHex(r: number, g: number, b: number): string {
 }
 
 export function ColoringActivity({ soundEnabled, onComplete }: ActivityProps) {
+  const [artMode, setArtMode] = useState<"coloring" | "mixing">("coloring");
   const [step, setStep] = useState<"gallery" | "paint">("gallery");
   const [activeGroup, setActiveGroup] = useState<ColoringGroupId>("all");
   const [selectedPic, setSelectedPic] = useState<ColoringPicture>(COLORING_PICTURES[0]);
@@ -338,9 +340,48 @@ export function ColoringActivity({ soundEnabled, onComplete }: ActivityProps) {
   return (
     <div className="wb-content coloring-wb">
       {/* =====================================================================
+          THANH CHUYỂN ĐỔI 2 CHẾ ĐỘ ĐỘC LẬP TRONG MỸ THUẬT: TÔ TRANH | TRỘN MÀU
+         ===================================================================== */}
+      <div className="art-studio-mode-switcher">
+        <button
+          type="button"
+          className={`art-mode-tab-btn ${artMode === "coloring" ? "active" : ""}`}
+          onClick={() => {
+            setArtMode("coloring");
+            if (soundEnabled) playCardPlaceSound(0);
+          }}
+        >
+          <span className="art-mode-emoji">🖼️</span>
+          <span>Tô Tranh Kawaii</span>
+        </button>
+
+        <button
+          type="button"
+          className={`art-mode-tab-btn mix-mode ${
+            artMode === "mixing" ? "active" : ""
+          }`}
+          onClick={() => {
+            setArtMode("mixing");
+            if (soundEnabled) playCardPlaceSound(2);
+          }}
+        >
+          <span className="art-mode-emoji">🧪</span>
+          <span>Trộn Màu Sáng Tạo</span>
+          <small className="art-mode-new-badge">Mới ✨</small>
+        </button>
+      </div>
+
+      {/* =====================================================================
+          CHẾ ĐỘ ĐỘC LẬP 2: PHÒNG THÍ NGHIỆM TRỘN MÀU SÁNG TẠO PASTEL
+         ===================================================================== */}
+      {artMode === "mixing" && (
+        <ColorMixingStudio soundEnabled={soundEnabled} onComplete={onComplete} />
+      )}
+
+      {/* =====================================================================
           MÀN HÌNH 1: THƯ VIỆN TRANH TÔ MÀU MỚI (SANRIO, CAPYBARA, VƯỜN HOA)
          ===================================================================== */}
-      {step === "gallery" && (
+      {artMode === "coloring" && step === "gallery" && (
         <div className="coloring-gallery-screen">
           <div className="coloring-gallery-topbar">
             <div className="coloring-category-tabs">
@@ -420,7 +461,7 @@ export function ColoringActivity({ soundEnabled, onComplete }: ActivityProps) {
       {/* =====================================================================
           MÀN HÌNH 2: XƯỞNG TÔ MÀU KAWAII (MẪU MÀU + TRANH LỚN + BẢNG 20 MÀU)
          ===================================================================== */}
-      {step === "paint" && (
+      {artMode === "coloring" && step === "paint" && (
         <div
           className={`coloring-workspace kawaii-paint-studio ${
             activeRefUrl && showSideBySideRef ? "with-side-ref" : "single-large-canvas"

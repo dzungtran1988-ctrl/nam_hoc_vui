@@ -16,8 +16,12 @@ import {
 } from "lucide-react";
 import {
   ALL_SUBJECT_IDS,
+  HALLOWEEN_SPECIAL_STICKERS,
   NAM_MASTER_CUP_IMAGE,
   NAM_SPECIAL_STICKERS,
+  SANRIO_CAREER_STICKERS,
+  SANRIO_COUNTRY_STICKERS,
+  SANRIO_INSTRUMENT_STICKERS,
   SUBJECT_CUPS,
   getCharacterStickerEarnedCount,
   getNamRankInfo,
@@ -25,9 +29,13 @@ import {
   getSubjectSetStickerEarnedCount,
   getSubjectStickerSet,
   getTotalUnlockedInBook,
+  getUnlockedHalloweenStickerCount,
   getUnlockedNamSpecialCount,
+  getUnlockedThemedStickerCount,
   loadBookPages,
+  loadHalloweenStickerInventory,
   loadNamSpecialInventory,
+  loadThemedStickerInventory,
   saveBookPages,
   type BookPagesStore,
   type DrawerTabId,
@@ -44,6 +52,11 @@ import {
   loadQuestItemInventory,
   type QuestItemInventory,
 } from "../data/dailyQuests";
+import {
+  SANRIO_CLAW_PLUSHIES,
+  getUnlockedClawPlushieIds,
+  loadClawPlushieInventory,
+} from "../data/goldCoinsEconomy";
 import type { SubjectId } from "../types";
 import {
   playCameraShutterSound,
@@ -71,7 +84,7 @@ export const STICKER_BOOK_PAGES: StickerBookPageConfig[] = [
     title: "Sân Khấu Pop Kỳ Ảo Ánh Sao — Ca Sĩ Nấm & Các Bạn",
     shortLabel: "🎤 Sân Khấu",
     icon: "🎤",
-    bgImage: "/assets/stickerbook/bg-nam-stage.png?v=starstage",
+    bgImage: "/assets/stickerbook/bg-nam-stage.webp?v=starstage",
     themeColor: "#FF477E",
     category: "character",
     defaultTab: "nam-special",
@@ -79,11 +92,35 @@ export const STICKER_BOOK_PAGES: StickerBookPageConfig[] = [
       "🎤 Ca Sĩ Nấm biểu diễn giữa Sân Khấu Ánh Sao! Chạm vào Sticker Nấm & các bạn Sanrio ở khay dưới để dán lên sân khấu nhé!",
   },
   {
+    id: "halloween-night",
+    title: "Lâu Đài Đêm Hội Halloween — Bé Nấm Phù Thủy & Hội Bạn Sanrio",
+    shortLabel: "🎃 Halloween",
+    icon: "🎃",
+    bgImage: "/assets/stickerbook/bg-halloween-night.webp",
+    themeColor: "#7C3AED",
+    category: "character",
+    defaultTab: "halloween-special",
+    emptyHint:
+      "🎃 Chạm vào Bé Nấm Phù Thủy, các bạn Sanrio hóa trang & Bánh kẹo Halloween ở khay bên phải để dán lên sân gạch lâu đài nhé!",
+  },
+  {
+    id: "plushie-shelf",
+    title: "Kệ Đựng Thú Bông Sanrio 3D — Gắp Thú Khu Vui Chơi",
+    shortLabel: "🧸 Kệ Thú Bông",
+    icon: "🧸",
+    bgImage: "/assets/stickerbook/bg-plushie-shelf.jpg?v=wide3d",
+    themeColor: "#FF6B9D",
+    category: "character",
+    defaultTab: "claw-plushies",
+    emptyHint:
+      "🧸 Chạm vào Bạn Thú Bông Sanrio 3D bé gắp được ở khay dưới để bày lên các tầng Kệ Thú Bông nhé!",
+  },
+  {
     id: "supermarket",
     title: "Kệ Siêu Thị & Tiệm Bánh Ngọt Pastel 3D (Kho Đồ Vật Nhiệm Vụ)",
     shortLabel: "🛒 Siêu Thị",
     icon: "🛒",
-    bgImage: "/assets/stickerbook/bg-supermarket.jpg?v=front3d",
+    bgImage: "/assets/stickerbook/bg-supermarket.jpg?v=front3d-restored",
     themeColor: "#EC4899",
     category: "quest-item",
     defaultTab: "quest-sweets",
@@ -92,15 +129,15 @@ export const STICKER_BOOK_PAGES: StickerBookPageConfig[] = [
   },
   {
     id: "fruits",
-    title: "Thùng Hoa Quả Nông Trại Nấm (Kho Đồ Vật Nhiệm Vụ)",
+    title: "Sạp Hoa Quả Nông Trại Nấm 3D (Kho Đồ Vật Nhiệm Vụ)",
     shortLabel: "🍎 Hoa Quả",
     icon: "🍎",
-    bgImage: "/assets/stickerbook/bg-fruit-crates.jpg?v=clay3d",
+    bgImage: "/assets/stickerbook/bg-fruit-crates.jpg?v=wide3d",
     themeColor: "#F97316",
     category: "quest-item",
     defaultTab: "quest-fruits",
     emptyHint:
-      "🍎 Chạm vào Trái cây tươi ngon ở khay dưới để xếp đầy vào 4 Giỏ & Thùng Gỗ 3D nhé!",
+      "🍎 Chạm vào Trái cây tươi ngon ở khay dưới để xếp đầy vào các Giỏ Mây & Thùng Gỗ 3D nhé!",
   },
   {
     id: "parking",
@@ -136,10 +173,10 @@ export const STICKER_BOOK_PAGES: StickerBookPageConfig[] = [
   },
   {
     id: "beach",
-    title: "Bãi Biển Mùa Hè Rực Rỡ (Kho Nhân Vật Bài Học)",
+    title: "Bãi Biển Mùa Hè Rực Rỡ 16:9 (Kho Nhân Vật Bài Học)",
     shortLabel: "🏖️ Bãi Biển",
     icon: "🏖️",
-    bgImage: "/assets/stickerbook/bg-beach.jpg",
+    bgImage: "/assets/stickerbook/bg-beach.jpg?v=wide3d",
     themeColor: "#0EA5E9",
     category: "character",
     defaultTab: "unlocked",
@@ -164,7 +201,12 @@ interface TrayStickerEntry {
   totalEarned: number;
   placedCount: number;
   availableCount: number;
-  sourceType: "character" | "quest-item" | "nam-special";
+  sourceType:
+    | "character"
+    | "quest-item"
+    | "nam-special"
+    | "halloween-special"
+    | "claw-plushie";
   subjectId?: SubjectId;
   categoryLabel?: string;
   namTier?: NamStickerTier;
@@ -179,6 +221,7 @@ interface StickerBookScreenProps {
   onGoHome: () => void;
   onGoTrophyRoom: () => void;
   onOpenDailyQuests?: () => void;
+  onOpenClawMachine?: () => void;
   onStartSubjectLesson: (subject: SubjectId) => void;
   onBurstAt: (x: number, y: number, theme?: "pink" | "gold" | "rainbow") => void;
   onSpeak: (text: string) => void;
@@ -192,24 +235,35 @@ export const StickerBookScreen: React.FC<StickerBookScreenProps> = ({
   onGoHome,
   onGoTrophyRoom,
   onOpenDailyQuests,
+  onOpenClawMachine,
   onStartSubjectLesson,
   onBurstAt,
   onSpeak,
 }) => {
   const resolvedInitialPage =
     initialPageId ||
-    (initialSubjectFilter === "nam-special"
-      ? "nam-stage"
-      : initialSubjectFilter.startsWith("quest-")
-        ? "supermarket"
-        : "nam-stage");
+    (initialSubjectFilter === "claw-plushies"
+      ? "plushie-shelf"
+      : initialSubjectFilter === "halloween-special"
+        ? "halloween-night"
+        : initialSubjectFilter === "nam-special"
+          ? "nam-stage"
+          : initialSubjectFilter.startsWith("quest-")
+            ? "supermarket"
+            : "nam-stage");
 
   const [activePageId, setActivePageId] = useState<string>(resolvedInitialPage);
   const [pagesStore, setPagesStore] = useState<BookPagesStore>(() =>
     loadBookPages(),
   );
   const [selectedUid, setSelectedUid] = useState<string | null>(null);
-  const [activeTab, setActiveTab] = useState<DrawerTabId>(initialSubjectFilter);
+  const [activeTab, setActiveTab] = useState<DrawerTabId>(
+    initialPageId === "plushie-shelf"
+      ? "claw-plushies"
+      : initialPageId === "halloween-night"
+        ? "halloween-special"
+        : initialSubjectFilter,
+  );
   const [photoMode, setPhotoMode] = useState(false);
   const [cameraFlash, setCameraFlash] = useState(false);
 
@@ -220,6 +274,38 @@ export const StickerBookScreen: React.FC<StickerBookScreenProps> = ({
   const namSpecialInv = React.useMemo(
     () => loadNamSpecialInventory(),
     [stickerStore],
+  );
+  const halloweenInv = React.useMemo(
+    () => loadHalloweenStickerInventory(),
+    [stickerStore, activePageId, activeTab],
+  );
+  const totalUnlockedHalloween = React.useMemo(
+    () => getUnlockedHalloweenStickerCount(halloweenInv),
+    [halloweenInv],
+  );
+  const clawPlushieInv = React.useMemo(
+    () => loadClawPlushieInventory(),
+    [stickerStore, activePageId, activeTab],
+  );
+  const totalUnlockedClawPlushies = React.useMemo(
+    () => getUnlockedClawPlushieIds(clawPlushieInv).length,
+    [clawPlushieInv],
+  );
+  const themedInv = React.useMemo(
+    () => loadThemedStickerInventory(),
+    [stickerStore, activePageId, activeTab],
+  );
+  const totalUnlockedCareers = React.useMemo(
+    () => getUnlockedThemedStickerCount("careers", themedInv),
+    [themedInv],
+  );
+  const totalUnlockedCountries = React.useMemo(
+    () => getUnlockedThemedStickerCount("countries", themedInv),
+    [themedInv],
+  );
+  const totalUnlockedInstruments = React.useMemo(
+    () => getUnlockedThemedStickerCount("instruments", themedInv),
+    [themedInv],
   );
 
   const canvasRef = useRef<HTMLDivElement | null>(null);
@@ -269,7 +355,12 @@ export const StickerBookScreen: React.FC<StickerBookScreenProps> = ({
       name: string;
       image: string;
       totalEarned: number;
-      sourceType: "character" | "quest-item" | "nam-special";
+      sourceType:
+        | "character"
+        | "quest-item"
+        | "nam-special"
+        | "halloween-special"
+        | "claw-plushie";
       subjectId?: SubjectId;
       categoryLabel?: string;
       namTier?: NamStickerTier;
@@ -284,6 +375,98 @@ export const StickerBookScreen: React.FC<StickerBookScreenProps> = ({
         availableCount,
       };
     };
+
+    // NHÁNH 0A: TAB BỘ SƯU TẬP STICKER LỄ HỘI HALLOWEEN (8 Nhân vật + 26 Vật phẩm/Bánh kẹo)
+    if (activeTab === "halloween-special") {
+      for (const hstk of HALLOWEEN_SPECIAL_STICKERS) {
+        const earned = halloweenInv[hstk.id] || 0;
+        list.push(
+          makeEntry({
+            id: hstk.id,
+            name: hstk.name,
+            image: hstk.image,
+            totalEarned: earned,
+            sourceType: "halloween-special",
+            categoryLabel: hstk.badgeLabel,
+          }),
+        );
+      }
+      list.sort((a, b) => {
+        if (a.availableCount > 0 && b.availableCount === 0) return -1;
+        if (a.availableCount === 0 && b.availableCount > 0) return 1;
+        if (a.unlocked && !b.unlocked) return -1;
+        if (!a.unlocked && b.unlocked) return 1;
+        return 0;
+      });
+      return list;
+    }
+
+    // NHÁNH 0B: 3 BỘ SƯU TẬP STICKER SANRIO 3D MỚI (NGHỀ NGHIỆP, QUỐC GIA, NHẠC CỤ)
+    if (
+      activeTab === "careers" ||
+      activeTab === "countries" ||
+      activeTab === "instruments"
+    ) {
+      const themedCatalog =
+        activeTab === "careers"
+          ? SANRIO_CAREER_STICKERS
+          : activeTab === "countries"
+            ? SANRIO_COUNTRY_STICKERS
+            : SANRIO_INSTRUMENT_STICKERS;
+      const defaultSid: SubjectId =
+        activeTab === "careers"
+          ? "reading"
+          : activeTab === "countries"
+            ? "english"
+            : "music";
+      for (const tstk of themedCatalog) {
+        const earned = themedInv[tstk.id] || 0;
+        list.push(
+          makeEntry({
+            id: tstk.id,
+            name: tstk.name,
+            image: tstk.image,
+            totalEarned: earned,
+            sourceType: "character",
+            subjectId: defaultSid,
+            categoryLabel: tstk.badgeLabel,
+          }),
+        );
+      }
+      list.sort((a, b) => {
+        if (a.availableCount > 0 && b.availableCount === 0) return -1;
+        if (a.availableCount === 0 && b.availableCount > 0) return 1;
+        if (a.unlocked && !b.unlocked) return -1;
+        if (!a.unlocked && b.unlocked) return 1;
+        return 0;
+      });
+      return list;
+    }
+
+    // NHÁNH 0: TAB THÚ BÔNG SANRIO 3D GẮP ĐƯỢC Ở KHU VUI CHƠI (72 bạn thú 3D)
+    if (activeTab === "claw-plushies") {
+      for (const plush of SANRIO_CLAW_PLUSHIES) {
+        const earned = clawPlushieInv[plush.id] || 0;
+        list.push(
+          makeEntry({
+            id: plush.id,
+            name: plush.label,
+            image: plush.imageSrc,
+            totalEarned: earned,
+            sourceType: "claw-plushie",
+            categoryLabel: plush.seriesLabel,
+          }),
+        );
+      }
+      list.sort((a, b) => {
+        if (a.availableCount > 0 && b.availableCount === 0) return -1;
+        if (a.availableCount === 0 && b.availableCount > 0) return 1;
+        if (a.unlocked && !b.unlocked) return -1;
+        if (!a.unlocked && b.unlocked) return 1;
+        return 0;
+      });
+      return list;
+    }
 
     // NHÁNH 1: CÁC TAB ĐỒ VẬT NHIỆM VỤ NGÀY (115 món Kawaii)
     if (activeTab.startsWith("quest-")) {
@@ -449,6 +632,41 @@ export const StickerBookScreen: React.FC<StickerBookScreenProps> = ({
           );
         }
       }
+      if (sid === "storybook") {
+        for (const stk2 of getSubjectStickerSet("storybook", 2)) {
+          const earned2 = getSubjectSetStickerEarnedCount(
+            stickerStore,
+            "storybook",
+            2,
+            stk2.index,
+          );
+          if (activeTab === "unlocked") {
+            if (earned2 > 0 && !list.some((x) => x.id === stk2.id)) {
+              list.push(
+                makeEntry({
+                  id: stk2.id,
+                  name: stk2.name,
+                  image: stk2.image,
+                  totalEarned: earned2,
+                  sourceType: "halloween-special",
+                  subjectId: sid,
+                }),
+              );
+            }
+          } else if (!list.some((x) => x.id === stk2.id)) {
+            list.push(
+              makeEntry({
+                id: stk2.id,
+                name: stk2.name,
+                image: stk2.image,
+                totalEarned: earned2,
+                sourceType: "halloween-special",
+                subjectId: sid,
+              }),
+            );
+          }
+        }
+      }
       if (sid === "lifeskills") {
         for (const setNum of [2, 3, 4] as const) {
           for (const stkN of getSubjectStickerSet("lifeskills", setNum)) {
@@ -485,6 +703,40 @@ export const StickerBookScreen: React.FC<StickerBookScreenProps> = ({
             }
           }
         }
+      } else if (sid !== "storybook") {
+        for (const stk2 of getSubjectStickerSet(sid, 2)) {
+          const earned2 = getSubjectSetStickerEarnedCount(
+            stickerStore,
+            sid,
+            2,
+            stk2.index,
+          );
+          if (activeTab === "unlocked") {
+            if (earned2 > 0 && !list.some((x) => x.id === stk2.id)) {
+              list.push(
+                makeEntry({
+                  id: stk2.id,
+                  name: stk2.name,
+                  image: stk2.image,
+                  totalEarned: earned2,
+                  sourceType: "character",
+                  subjectId: sid,
+                }),
+              );
+            }
+          } else if (!list.some((x) => x.id === stk2.id)) {
+            list.push(
+              makeEntry({
+                id: stk2.id,
+                name: stk2.name,
+                image: stk2.image,
+                totalEarned: earned2,
+                sourceType: "character",
+                subjectId: sid,
+              }),
+            );
+          }
+        }
       }
     }
 
@@ -494,7 +746,7 @@ export const StickerBookScreen: React.FC<StickerBookScreenProps> = ({
         makeEntry({
           id: "reading-1",
           name: "Kitty Cúp Vàng",
-          image: "/assets/rewards/sticker-reading-1.png",
+          image: "/assets/rewards/sticker-reading-1.webp",
           totalEarned: 1,
           sourceType: "character",
           subjectId: "reading",
@@ -502,7 +754,7 @@ export const StickerBookScreen: React.FC<StickerBookScreenProps> = ({
         makeEntry({
           id: "math-1",
           name: "My Melody Cúp Vàng",
-          image: "/assets/rewards/sticker-math-1.png",
+          image: "/assets/rewards/sticker-math-1.webp",
           totalEarned: 1,
           sourceType: "character",
           subjectId: "math",
@@ -511,7 +763,16 @@ export const StickerBookScreen: React.FC<StickerBookScreenProps> = ({
     }
 
     return list;
-  }, [activeTab, stickerStore, itemInv, namSpecialInv, placedCountsMap]);
+  }, [
+    activeTab,
+    stickerStore,
+    itemInv,
+    namSpecialInv,
+    halloweenInv,
+    themedInv,
+    clawPlushieInv,
+    placedCountsMap,
+  ]);
 
   // Dán 1 sticker mới lên trang vở hiện tại (kiểm tra số lượng khả dụng > 0)
   const handleAddStickerToPage = (
@@ -519,17 +780,17 @@ export const StickerBookScreen: React.FC<StickerBookScreenProps> = ({
     e: React.MouseEvent<HTMLElement>,
   ) => {
     if (!item.unlocked) {
-      if (item.sourceType === "nam-special") {
-        if (item.namTier === "food") {
-          onSpeak(
-            `Sticker hiếm ${item.name} đang khóa! Đây là phần thưởng Độ Khó Cao: Nấm hãy thắp sáng đủ 6 nhãn môn học và mở từ Cúp Vàng thứ 2 trở lên (tối thiểu 12 bài học) để mở khóa Sticker Nấm Ăn kèm Phiếu Mẹ Mua Đồ Ăn Thật nhé!`,
-          );
-        } else {
-          onSpeak(
-            `Sticker ${item.name} đang khóa! Nấm hãy thắp sáng đủ 6 nhãn của 1 môn học và bấm Mở Cúp Vàng để nhận nhé!`,
-          );
-        }
+      if (item.sourceType === "claw-plushie") {
+        if (onOpenClawMachine) onOpenClawMachine();
+      } else if (item.sourceType === "nam-special") {
+        onSpeak(
+          `Sticker ${item.name} đang khóa! Nấm hãy thắp sáng đủ 6 nhãn của 1 môn học và bấm Mở Cúp Vàng để nhận nhé!`,
+        );
         onGoTrophyRoom();
+      } else if (item.sourceType === "halloween-special") {
+        onSpeak(
+          `Sticker Halloween ${item.name} đang khóa! Nấm vào Khám Phá Phòng Ngủ chọn Đêm Hội Halloween và thu thập đủ 5 Viên Kẹo để mở Giỏ Bí Ngô nhận nhé!`,
+        );
       } else if (item.sourceType === "quest-item") {
         onSpeak(
           `Đồ vật ${item.name} đang khóa. Nấm hoàn thành 3 Nhiệm Vụ Ngày và mở Rương Kho Báu để nhận nhé!`,
@@ -545,9 +806,15 @@ export const StickerBookScreen: React.FC<StickerBookScreenProps> = ({
     }
 
     if (item.availableCount <= 0) {
-      if (item.sourceType === "nam-special") {
+      if (item.sourceType === "claw-plushie") {
+        return;
+      } else if (item.sourceType === "nam-special") {
         onSpeak(
           `Nấm đã dán hết ${item.totalEarned} hình ${item.name} lên vở rồi! Nấm mở thêm Cúp Vàng 6 nhãn môn học để nhận thêm, hoặc bóc hình trên vở ra dán lại nhé!`,
+        );
+      } else if (item.sourceType === "halloween-special") {
+        onSpeak(
+          `Nấm đã dán hết ${item.totalEarned} hình ${item.name} rồi! Nấm vào Map Đêm Hội Halloween thu thập thêm 5 Viên Kẹo để mở Giỏ Bí Ngô, hoặc bóc hình trên vở ra dán lại nhé!`,
         );
       } else if (item.sourceType === "quest-item") {
         onSpeak(
@@ -568,8 +835,8 @@ export const StickerBookScreen: React.FC<StickerBookScreenProps> = ({
 
     // Đặt ở vị trí thoáng tự nhiên ở giữa sân khấu (38%..72% chiều dọc)
     const count = currentStickers.length;
-    const spreadX = 22 + ((count * 17) % 58);
-    const spreadY = 44 + ((count * 13) % 30);
+    const spreadX = 20 + ((count * 15) % 60);
+    const spreadY = 36 + ((count * 14) % 38);
 
     const newItem: PlacedSticker = {
       uid: `stk-${Date.now()}-${Math.random().toString(36).slice(2, 6)}`,
@@ -578,7 +845,12 @@ export const StickerBookScreen: React.FC<StickerBookScreenProps> = ({
       image: item.image,
       x: spreadX,
       y: spreadY,
-      scale: item.sourceType === "quest-item" ? 0.92 : 1.0,
+      scale:
+        item.sourceType === "claw-plushie"
+          ? 1.08
+          : item.sourceType === "quest-item"
+            ? 0.92
+            : 1.0,
       rotation: 0,
       flipX: false,
     };
@@ -837,46 +1109,26 @@ export const StickerBookScreen: React.FC<StickerBookScreenProps> = ({
             ))}
           </div>
 
-          {/* Nhãn tên trang vở + Huy hiệu tiến độ sưu tầm */}
-          <div className="sticker-page-corner-badge">
-            <span>{currentPageCfg.title}</span>
-            <span
-              className="nam-rank-pill"
-              style={{
-                borderColor: rankInfo.color,
-                color: rankInfo.color,
-                padding: "1px 8px",
-                fontSize: "11px",
-              }}
-            >
-              {rankInfo.icon} NV:{totalUnlockedChars}/42 · Đồ:{totalUnlockedQuestTypes}/{KAWAII_PASTRY_CATALOG.length}
-            </span>
-            {photoMode && (
+          {/* Chỉ hiện dấu đóng mộc tác phẩm khi Chụp Ảnh Khoe Bố Mẹ, bình thường bức tranh sạch 100% không dính thẻ */}
+          {photoMode && (
+            <div className="sticker-page-corner-badge">
+              <span>{currentPageCfg.title}</span>
               <strong className="photo-author-stamp">
                 👑 Tác Phẩm Của Bé Nấm ({rankInfo.title})
               </strong>
-            )}
-          </div>
-
-          {/* Gợi ý khi trang vở chưa dán hình nào */}
-          {currentStickers.length === 0 && !photoMode && (
-            <div className="sticker-empty-page-hint">
-              <span>
-                {currentPageCfg.emptyHint ||
-                  "👇 Chạm vào Sticker còn lượt (x1, x2...) ở khay bên dưới để bóc & dán lên trang vở nhé!"}
-              </span>
             </div>
           )}
 
           {/* Các Sticker đã dán trên trang vở */}
           {currentStickers.map((stk) => {
             const isSelected = stk.uid === selectedUid && !photoMode;
+            const is3dPlushie = stk.stickerId.startsWith("claw-");
             return (
               <div
                 key={stk.uid}
                 className={`placed-sticker-node ${
                   isSelected ? "selected" : ""
-                }`}
+                } ${is3dPlushie ? "is-3d-plushie" : ""}`}
                 style={{
                   left: `${stk.x}%`,
                   top: `${stk.y}%`,
@@ -1009,6 +1261,102 @@ export const StickerBookScreen: React.FC<StickerBookScreenProps> = ({
                 👦 Sticker Nấm ({totalUnlockedNamSpecial}/{NAM_SPECIAL_STICKERS.length})
               </button>
 
+              <button
+                type="button"
+                className={`drawer-tab-btn ${
+                  activeTab === "halloween-special" ? "active" : ""
+                }`}
+                style={{
+                  background:
+                    activeTab === "halloween-special"
+                      ? "linear-gradient(135deg, #7C3AED 0%, #F97316 100%)"
+                      : "#F5F3FF",
+                  color:
+                    activeTab === "halloween-special" ? "#FFFFFF" : "#6D28D9",
+                  borderColor: "#A78BFA",
+                  fontWeight: 900,
+                }}
+                onClick={() => setActiveTab("halloween-special")}
+              >
+                🎃 Halloween ({totalUnlockedHalloween}/{HALLOWEEN_SPECIAL_STICKERS.length})
+              </button>
+
+              <button
+                type="button"
+                className={`drawer-tab-btn ${
+                  activeTab === "careers" ? "active" : ""
+                }`}
+                style={{
+                  background:
+                    activeTab === "careers"
+                      ? "linear-gradient(135deg, #0284C7 0%, #38BDF8 100%)"
+                      : "#F0F9FF",
+                  color: activeTab === "careers" ? "#FFFFFF" : "#0369A1",
+                  borderColor: "#7DD3FC",
+                  fontWeight: 900,
+                }}
+                onClick={() => setActiveTab("careers")}
+              >
+                👩‍⚕️ Nghề Nghiệp ({totalUnlockedCareers}/{SANRIO_CAREER_STICKERS.length})
+              </button>
+
+              <button
+                type="button"
+                className={`drawer-tab-btn ${
+                  activeTab === "countries" ? "active" : ""
+                }`}
+                style={{
+                  background:
+                    activeTab === "countries"
+                      ? "linear-gradient(135deg, #059669 0%, #34D399 100%)"
+                      : "#ECFDF5",
+                  color: activeTab === "countries" ? "#FFFFFF" : "#047857",
+                  borderColor: "#6EE7B7",
+                  fontWeight: 900,
+                }}
+                onClick={() => setActiveTab("countries")}
+              >
+                🌍 Quốc Gia ({totalUnlockedCountries}/{SANRIO_COUNTRY_STICKERS.length})
+              </button>
+
+              <button
+                type="button"
+                className={`drawer-tab-btn ${
+                  activeTab === "instruments" ? "active" : ""
+                }`}
+                style={{
+                  background:
+                    activeTab === "instruments"
+                      ? "linear-gradient(135deg, #D97706 0%, #FBBF24 100%)"
+                      : "#FFFBEB",
+                  color: activeTab === "instruments" ? "#FFFFFF" : "#B45309",
+                  borderColor: "#FCD34D",
+                  fontWeight: 900,
+                }}
+                onClick={() => setActiveTab("instruments")}
+              >
+                🎸 Nhạc Cụ ({totalUnlockedInstruments}/{SANRIO_INSTRUMENT_STICKERS.length})
+              </button>
+
+              <button
+                type="button"
+                className={`drawer-tab-btn ${
+                  activeTab === "claw-plushies" ? "active" : ""
+                }`}
+                style={{
+                  background:
+                    activeTab === "claw-plushies"
+                      ? "linear-gradient(135deg, #FF6B9D 0%, #A855F7 100%)"
+                      : "#FDF2F8",
+                  color: activeTab === "claw-plushies" ? "#FFFFFF" : "#9D174D",
+                  borderColor: "#F472B6",
+                  fontWeight: 900,
+                }}
+                onClick={() => setActiveTab("claw-plushies")}
+              >
+                🧸 Thú Bông ({totalUnlockedClawPlushies}/72)
+              </button>
+
               <span className="drawer-tab-divider" aria-hidden="true">
                 |
               </span>
@@ -1117,9 +1465,7 @@ export const StickerBookScreen: React.FC<StickerBookScreenProps> = ({
                     title={
                       !item.unlocked
                         ? item.sourceType === "nam-special"
-                          ? item.namTier === "food"
-                            ? `🔒 Phần thưởng Độ Khó Cao: Thắp sáng 6 nhãn môn học & mở từ Cúp Vàng thứ 2 trở lên (>=12 bài học) để mở khóa ${item.name} kèm Phiếu Mẹ Mua Đồ Ăn Thật!`
-                            : `🔒 Thắp sáng đủ 6 nhãn môn học và bấm Mở Cúp Vàng để nhận ${item.name}!`
+                          ? `🔒 Thắp sáng đủ 6 nhãn môn học và bấm Mở Cúp Vàng để nhận ${item.name}!`
                           : item.sourceType === "quest-item"
                             ? `Chưa mở — Làm 3 Nhiệm Vụ Ngày mở Rương Kho Báu để nhận ${item.name}!`
                             : `Chưa mở khóa — Bấm để vào học môn của ${
@@ -1156,17 +1502,23 @@ export const StickerBookScreen: React.FC<StickerBookScreenProps> = ({
                       ) : (
                         <span className="drawer-lock-badge">
                           <Lock size={12} />{" "}
-                          {item.sourceType === "nam-special"
-                            ? item.namTier === "food"
-                              ? "Khó: 2+ Cúp"
-                              : "Mở Cúp 6/6"
-                            : item.sourceType === "quest-item"
-                              ? "3 NV Ngày"
-                              : "Học mở"}
+                          {item.sourceType === "claw-plushie"
+                            ? "Gắp 10 Xu"
+                            : item.sourceType === "halloween-special"
+                              ? "5🍬 Halloween"
+                              : item.sourceType === "nam-special"
+                                ? item.namTier === "food"
+                                  ? "Khó: 2+ Cúp"
+                                  : "Mở Cúp 6/6"
+                                : item.sourceType === "quest-item"
+                                  ? "3 NV Ngày"
+                                  : "Học mở"}
                         </span>
                       )}
                     </div>
-                    <span className="drawer-sticker-label">{item.name}</span>
+                    {item.sourceType !== "claw-plushie" && (
+                      <span className="drawer-sticker-label">{item.name}</span>
+                    )}
                   </button>
                 );
               })}

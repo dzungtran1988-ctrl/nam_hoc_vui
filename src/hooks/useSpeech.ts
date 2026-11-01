@@ -103,9 +103,15 @@ function md5Utf8(input: string): string {
 }
 
 export function buildTtsUrl(cleanedText: string, lang = "vi-VN"): string {
-  const isEn = lang.toLowerCase().startsWith("en");
-  const voice = isEn ? "en-US-AnaNeural" : "vi-VN-HoaiMyNeural";
-  const rate = isEn ? "-10%" : "-8%";
+  const lower = lang.toLowerCase();
+  const isEn = lower.startsWith("en");
+  const isNorth = lower.includes("north");
+  const voice = isEn
+    ? "en-US-AnaNeural"
+    : isNorth
+      ? "vi-VN-North-Female"
+      : "vi-VN-HoaiMyNeural";
+  const rate = isEn ? "-10%" : isNorth ? "0%" : "-8%";
   const hash = md5Utf8(`${voice}|${rate}|${cleanedText}`);
   return `/tts-cache/${hash}.mp3`;
 }
@@ -173,6 +179,18 @@ export function prefetchSpeech(text: string, lang = "vi-VN"): Promise<string | n
 
   inFlightAudioFetch.set(ttsUrl, req);
   return req;
+}
+
+/**
+ * Tải trước hàng loạt câu thoại quan trọng (tuần tự nhẹ nhàng để không nghẽn băng thông điện thoại).
+ */
+export async function prefetchSpeechBatch(
+  items: Array<{ text: string; lang?: string }>,
+): Promise<void> {
+  for (const item of items) {
+    if (!item.text) continue;
+    await prefetchSpeech(item.text, item.lang || "vi-VN");
+  }
 }
 
 /**
@@ -263,120 +281,195 @@ export function useSpeech(soundEnabled: boolean, hookOptions?: UseSpeechOptions)
 
       const ttsUrl = buildTtsUrl(cleaned, lang);
       const cachedBlobUrl = ramAudioBlobCache.get(ttsUrl);
-      const audio = new Audio(cachedBlobUrl || ttsUrl);
-      audio.preload = "auto";
-      if (options?.playbackRate) {
-        audio.playbackRate = options.playbackRate;
-      }
-      audioRef.current = audio;
+      const currentToken = seqTokenRef.current;
 
-      // Nếu câu này chưa nằm trong RAM cache, tải ngầm vào RAM cho lần bấm sau phát 0ms
-      if (!cachedBlobUrl) {
-        void prefetchSpeech(cleaned, lang);
-      }
+      const startAudioPlayback = (srcUrl: string, isBlobUrl: boolean) => {
+        if (seqTokenRef.current !== currentToken) return;
 
-      if (trackProgressRef.current) {
-        const updateProgress = () => {
-          if (audioRef.current !== audio) return;
-          if (audio.duration && Number.isFinite(audio.duration) && audio.duration > 0) {
-            const ratio = Math.min(1, Math.max(0, audio.currentTime / audio.duration));
-            if (Math.abs(ratio - lastRatioRef.current) >= 0.015 || ratio >= 0.99) {
-              lastRatioRef.current = ratio;
-              setProgressRatio(ratio);
-            }
-          }
-          if (!audio.paused && !audio.ended) {
-            rafRef.current = window.requestAnimationFrame(updateProgress);
-          }
-        };
-
-        audio.onplay = () => {
-          if (audioRef.current === audio) {
-            rafRef.current = window.requestAnimationFrame(updateProgress);
-          }
-        };
-
-        audio.ontimeupdate = () => {
-          if (
-            audioRef.current === audio &&
-            audio.duration &&
-            Number.isFinite(audio.duration) &&
-            audio.duration > 0
-          ) {
-            const ratio = Math.min(1, Math.max(0, audio.currentTime / audio.duration));
-            if (Math.abs(ratio - lastRatioRef.current) >= 0.015) {
-              lastRatioRef.current = ratio;
-              setProgressRatio(ratio);
-            }
-          }
-        };
-      }
-
-      audio.onended = () => {
-        if (audioRef.current === audio) {
-          cancelRaf();
-          audioRef.current = null;
-          if (trackProgressRef.current) {
-            lastRatioRef.current = 1;
-            setProgressRatio(1);
-          }
-          setSpeaking(false);
-          options?.onEnd?.();
+        const audio = new Audio(srcUrl);
+        audio.preload = "auto";
+        if (options?.playbackRate) {
+          audio.playbackRate = options.playbackRate;
         }
-      };
+        audioRef.current = audio;
 
-      let triedDynamicFallback = false;
-      audio.onerror = () => {
-        if (audioRef.current !== audio) return;
-        if (!triedDynamicFallback && !cachedBlobUrl) {
-          triedDynamicFallback = true;
-          audio.src = buildDynamicTtsApiUrl(cleaned, lang);
-          audio.play().catch(() => {
+        if (trackProgressRef.current) {
+          const updateProgress = () => {
+            if (audioRef.current !== audio) return;
+            if (audio.duration && Number.isFinite(audio.duration) && audio.duration > 0) {
+              const ratio = Math.min(1, Math.max(0, audio.currentTime / audio.duration));
+              if (Math.abs(ratio - lastRatioRef.current) >= 0.015 || ratio >= 0.99) {
+                lastRatioRef.current = ratio;
+                setProgressRatio(ratio);
+              }
+            }
+            if (!audio.paused && !audio.ended) {
+              rafRef.current = window.requestAnimationFrame(updateProgress);
+            }
+          };
+
+          audio.onplay = () => {
             if (audioRef.current === audio) {
-              cancelRaf();
-              setSpeaking(false);
-              options?.onEnd?.();
+              rafRef.current = window.requestAnimationFrame(updateProgress);
             }
-          });
-          return;
+          };
+
+          audio.ontimeupdate = () => {
+            if (
+              audioRef.current === audio &&
+              audio.duration &&
+              Number.isFinite(audio.duration) &&
+              audio.duration > 0
+            ) {
+              const ratio = Math.min(1, Math.max(0, audio.currentTime / audio.duration));
+              if (Math.abs(ratio - lastRatioRef.current) >= 0.015) {
+                lastRatioRef.current = ratio;
+                setProgressRatio(ratio);
+              }
+            }
+          };
         }
-        cancelRaf();
-        audioRef.current = null;
-        setSpeaking(false);
-        if ("speechSynthesis" in window) {
-          const voices = window.speechSynthesis.getVoices();
-          const prefix = lang.slice(0, 2).toLowerCase();
-          const matchedVoice = voices.find((v) =>
-            v.lang.toLowerCase().startsWith(prefix),
-          );
-          if (matchedVoice) {
-            const utt = new SpeechSynthesisUtterance(cleaned);
-            utt.voice = matchedVoice;
-            utt.lang = matchedVoice.lang;
-            utt.rate = 0.85;
-            utt.onend = () => options?.onEnd?.();
-            window.speechSynthesis.speak(utt);
+
+        audio.onended = () => {
+          if (audioRef.current === audio) {
+            cancelRaf();
+            audioRef.current = null;
+            if (trackProgressRef.current) {
+              lastRatioRef.current = 1;
+              setProgressRatio(1);
+            }
+            setSpeaking(false);
+            options?.onEnd?.();
+            // Sau khi phát xong mới lưu vào RAM cache từ browser disk cache (không tranh băng thông lúc bắt đầu phát)
+            if (!isBlobUrl && !ramAudioBlobCache.has(ttsUrl)) {
+              void prefetchSpeech(cleaned, lang);
+            }
+          }
+        };
+
+        let triedDynamicFallback = false;
+        let triedDirectNorthFallback = false;
+        audio.onerror = () => {
+          if (audioRef.current !== audio) return;
+          if (!triedDynamicFallback && !isBlobUrl) {
+            triedDynamicFallback = true;
+            audio.src = buildDynamicTtsApiUrl(cleaned, lang);
+            audio.play().catch(() => {
+              if (audioRef.current === audio) {
+                cancelRaf();
+                setSpeaking(false);
+                options?.onEnd?.();
+              }
+            });
             return;
           }
-        }
-        options?.onEnd?.();
+          if (!triedDirectNorthFallback && lang.toLowerCase().startsWith("vi")) {
+            triedDirectNorthFallback = true;
+            audio.setAttribute("referrerpolicy", "no-referrer");
+            audio.src =
+              "https://translate.google.com/translate_tts?ie=UTF-8&tl=vi&client=tw-ob&q=" +
+              encodeURIComponent(cleaned);
+            audio.play().catch(() => {
+              if (audioRef.current === audio) {
+                cancelRaf();
+                setSpeaking(false);
+                options?.onEnd?.();
+              }
+            });
+            return;
+          }
+          cancelRaf();
+          audioRef.current = null;
+          setSpeaking(false);
+          if ("speechSynthesis" in window) {
+            const voices = window.speechSynthesis.getVoices();
+            const prefix = lang.slice(0, 2).toLowerCase();
+            const matchedVoice = voices.find((v) =>
+              v.lang.toLowerCase().startsWith(prefix),
+            );
+            if (matchedVoice) {
+              const utt = new SpeechSynthesisUtterance(cleaned);
+              utt.voice = matchedVoice;
+              utt.lang = matchedVoice.lang;
+              utt.rate = 0.85;
+              utt.onend = () => options?.onEnd?.();
+              window.speechSynthesis.speak(utt);
+              return;
+            }
+          }
+          options?.onEnd?.();
+        };
+
+        audio.play().catch(() => {
+          if (audioRef.current === audio) {
+            cancelRaf();
+            setSpeaking(false);
+            options?.onEnd?.();
+          }
+        });
       };
 
-      audio.play().catch(() => {
-        if (audioRef.current === audio) {
-          cancelRaf();
-          setSpeaking(false);
-          options?.onEnd?.();
-        }
-      });
+      if (cachedBlobUrl) {
+        startAudioPlayback(cachedBlobUrl, true);
+        return;
+      }
+
+      const inFlight = inFlightAudioFetch.get(ttsUrl);
+      if (inFlight) {
+        void inFlight.then((blobUrl) => {
+          if (seqTokenRef.current !== currentToken) return;
+          startAudioPlayback(blobUrl || ttsUrl, Boolean(blobUrl));
+        });
+        return;
+      }
+
+      startAudioPlayback(ttsUrl, false);
     },
     [cancelRaf, setSpeaking, stop],
+  );
+
+  // Helper: fallback sang speechSynthesis khi audio file lỗi trong speakSequence
+  const tryBrowserSpeechFallback = useCallback(
+    (
+      text: string,
+      lang: string,
+      playbackRate: number,
+      token: number,
+      onDone: () => void,
+    ) => {
+      if ("speechSynthesis" in window && seqTokenRef.current === token) {
+        const voices = window.speechSynthesis.getVoices();
+        const prefix = lang.slice(0, 2).toLowerCase();
+        const matchedVoice = voices.find((v) =>
+          v.lang.toLowerCase().startsWith(prefix),
+        );
+        if (matchedVoice) {
+          const utt = new SpeechSynthesisUtterance(text);
+          utt.voice = matchedVoice;
+          utt.lang = matchedVoice.lang;
+          utt.rate = Math.min(playbackRate, 1.0);
+          utt.onend = () => {
+            if (seqTokenRef.current === token) onDone();
+          };
+          utt.onerror = () => {
+            if (seqTokenRef.current === token) onDone();
+          };
+          window.speechSynthesis.speak(utt);
+          return;
+        }
+      }
+      // Không có speechSynthesis hoặc không có giọng phù hợp → skip sang part tiếp
+      if (seqTokenRef.current === token) onDone();
+    },
+    [],
   );
 
   // Ghép nối chuỗi mẫu âm thanh nhỏ (ví dụ: ["3", "cộng", "2", "bằng mấy nhỉ?"]) mượt mà không tốn file
   const speakSequence = useCallback(
     (parts: string[], lang = "vi-VN", playbackRate = 1.1) => {
       stop();
+      // Cancel any ongoing speechSynthesis from previous sequence fallback
+      if ("speechSynthesis" in window) window.speechSynthesis.cancel();
       const cleanParts = parts.map((p) => cleanSpeechText(p)).filter(Boolean);
       if (cleanParts.length === 0 || !enabledRef.current) return;
 
@@ -408,21 +501,40 @@ export function useSpeech(soundEnabled: boolean, hookOptions?: UseSpeechOptions)
             playNext();
           }
         };
+
+        // Fallback: khi audio file lỗi → thử dynamic TTS API → thử speechSynthesis → skip sang part tiếp
+        let triedDynamicFallback = false;
         audio.onerror = () => {
-          if (seqTokenRef.current === token) {
-            playNext();
+          if (seqTokenRef.current !== token) return;
+
+          // Tầng 1: Thử dynamic TTS API (giống speak())
+          if (!triedDynamicFallback && !(cachedBlobUrl)) {
+            triedDynamicFallback = true;
+            audio.src = buildDynamicTtsApiUrl(part, lang);
+            audio.play().catch(() => {
+              // Dynamic API cũng fail → thử speechSynthesis
+              if (seqTokenRef.current === token) {
+                tryBrowserSpeechFallback(part, lang, playbackRate, token, playNext);
+              }
+            });
+            return;
           }
+
+          // Tầng 2: Thử speechSynthesis của browser
+          tryBrowserSpeechFallback(part, lang, playbackRate, token, playNext);
         };
+
         audio.play().catch(() => {
           if (seqTokenRef.current === token) {
-            setSpeaking(false);
+            // play() bị chặn (autoplay policy) → thử speechSynthesis
+            tryBrowserSpeechFallback(part, lang, playbackRate, token, playNext);
           }
         });
       };
 
       playNext();
     },
-    [setSpeaking, stop],
+    [setSpeaking, stop, tryBrowserSpeechFallback],
   );
 
   return {

@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useRef, useState } from "react";
+import { Suspense, lazy, useEffect, useMemo, useRef, useState } from "react";
 import {
   ArrowLeft,
   ChevronLeft,
@@ -16,14 +16,16 @@ import {
   Volume2,
 } from "lucide-react";
 import musicLessons from "../data/music.json";
-import {
-  DEFAULT_KARAOKE_SONGS,
-  type KaraokeLine,
-  type KaraokeSong,
+import type {
+  KaraokeLine,
+  KaraokeSong,
 } from "../data/karaokeDefaultSongs";
 import { useSpeech } from "../hooks/useSpeech";
 import type { ActivityProps } from "../types";
-import { BandStageView } from "./BandStageView";
+
+const BandStageView = lazy(() =>
+  import("./BandStageView").then((m) => ({ default: m.BandStageView })),
+);
 
 const NOTE_KEYS = [
   { name: "Đồ", freq: 261.63, bass: 130.81, color: "#FF4757" },
@@ -45,18 +47,18 @@ interface NeonLedIconItem {
 }
 
 const ALL_NEON_ICONS: NeonLedIconItem[] = [
-  { id: "star", src: "/assets/karaoke-led/neon-icon-01.png", label: "Ngôi Sao Vàng Neon", glow: "#facc15" },
-  { id: "sparkle", src: "/assets/karaoke-led/neon-icon-02.png", label: "Sao Lấp Lánh Neon", glow: "#e879f9" },
-  { id: "bow", src: "/assets/karaoke-led/neon-icon-03.png", label: "Nơ Hồng Neon", glow: "#ff2e93" },
-  { id: "heart", src: "/assets/karaoke-led/neon-icon-04.png", label: "Trái Tim Neon", glow: "#fb7185" },
-  { id: "note1", src: "/assets/karaoke-led/neon-icon-05.png", label: "Nốt Nhạc Xanh Neon", glow: "#38bdf8" },
-  { id: "note2", src: "/assets/karaoke-led/neon-icon-06.png", label: "Nốt Nhạc Đôi Neon", glow: "#4ade80" },
-  { id: "mic", src: "/assets/karaoke-led/neon-icon-07.png", label: "Micro Neon", glow: "#c084fc" },
-  { id: "kitty", src: "/assets/karaoke-led/neon-icon-08.png", label: "Hello Kitty Neon", glow: "#ff4da6" },
-  { id: "paw", src: "/assets/karaoke-led/neon-icon-09.png", label: "Chân Mèo Neon", glow: "#f472b6" },
-  { id: "rainbow", src: "/assets/karaoke-led/neon-icon-10.png", label: "Cầu Vồng Neon", glow: "#38bdf8" },
-  { id: "moon", src: "/assets/karaoke-led/neon-icon-11.png", label: "Trăng Sao Neon", glow: "#facc15" },
-  { id: "cloud", src: "/assets/karaoke-led/neon-icon-12.png", label: "Mây Cười Neon", glow: "#60a5fa" },
+  { id: "star", src: "/assets/karaoke-led/neon-icon-01.webp", label: "Ngôi Sao Vàng Neon", glow: "#facc15" },
+  { id: "sparkle", src: "/assets/karaoke-led/neon-icon-02.webp", label: "Sao Lấp Lánh Neon", glow: "#e879f9" },
+  { id: "bow", src: "/assets/karaoke-led/neon-icon-03.webp", label: "Nơ Hồng Neon", glow: "#ff2e93" },
+  { id: "heart", src: "/assets/karaoke-led/neon-icon-04.webp", label: "Trái Tim Neon", glow: "#fb7185" },
+  { id: "note1", src: "/assets/karaoke-led/neon-icon-05.webp", label: "Nốt Nhạc Xanh Neon", glow: "#38bdf8" },
+  { id: "note2", src: "/assets/karaoke-led/neon-icon-06.webp", label: "Nốt Nhạc Đôi Neon", glow: "#4ade80" },
+  { id: "mic", src: "/assets/karaoke-led/neon-icon-07.webp", label: "Micro Neon", glow: "#c084fc" },
+  { id: "kitty", src: "/assets/karaoke-led/neon-icon-08.webp", label: "Hello Kitty Neon", glow: "#ff4da6" },
+  { id: "paw", src: "/assets/karaoke-led/neon-icon-09.webp", label: "Chân Mèo Neon", glow: "#f472b6" },
+  { id: "rainbow", src: "/assets/karaoke-led/neon-icon-10.webp", label: "Cầu Vồng Neon", glow: "#38bdf8" },
+  { id: "moon", src: "/assets/karaoke-led/neon-icon-11.webp", label: "Trăng Sao Neon", glow: "#facc15" },
+  { id: "cloud", src: "/assets/karaoke-led/neon-icon-12.webp", label: "Mây Cười Neon", glow: "#60a5fa" },
 ];
 
 interface SpawnedLedNode {
@@ -289,9 +291,7 @@ export function MusicActivity({
   const [tapCount, setTapCount] = useState(0);
 
   // --- STATE CHO LOẠI 2: HÁT KARAOKE MP3 ---
-  const [karaokeSongs, setKaraokeSongs] = useState<KaraokeSong[]>(
-    DEFAULT_KARAOKE_SONGS,
-  );
+  const [karaokeSongs, setKaraokeSongs] = useState<KaraokeSong[]>([]);
   const [selectedSongIdx, setSelectedSongIdx] = useState(0);
   const [isKaraokePlaying, setIsKaraokePlaying] = useState(false);
   const [currentTime, setCurrentTime] = useState(0);
@@ -319,9 +319,7 @@ export function MusicActivity({
   }, [isLedStageFullscreen]);
 
   const currentKaraokeSong =
-    karaokeSongs[selectedSongIdx] ||
-    karaokeSongs[0] ||
-    DEFAULT_KARAOKE_SONGS[0];
+    karaokeSongs[selectedSongIdx] || karaokeSongs[0] || null;
 
   const stanzas = useMemo(
     () =>
@@ -332,7 +330,7 @@ export function MusicActivity({
     [currentKaraokeSong, duration],
   );
 
-  // Tải danh sách bài hát Karaoke từ D:\Nấm học\Karaoke (hoặc dùng bản đóng gói sẵn trên Vercel)
+  // Tải danh sách bài hát Karaoke từ D:\Nấm học\Karaoke (hoặc lazy-load gói dự phòng 680KB trên Vercel)
   useEffect(() => {
     let cancelled = false;
     fetch("/api/karaoke-songs")
@@ -340,17 +338,24 @@ export function MusicActivity({
         const ct = res.headers.get("content-type") || "";
         return res.ok && ct.includes("application/json") ? res.json() : null;
       })
-      .then((data) => {
-        if (
-          !cancelled &&
-          data &&
-          Array.isArray(data.songs) &&
-          data.songs.length > 0
-        ) {
+      .then(async (data) => {
+        if (cancelled) return;
+        if (data && Array.isArray(data.songs) && data.songs.length > 0) {
           setKaraokeSongs(data.songs);
+        } else {
+          const fallbackMod = await import("../data/karaokeDefaultSongs");
+          if (!cancelled) {
+            setKaraokeSongs(fallbackMod.DEFAULT_KARAOKE_SONGS);
+          }
         }
       })
-      .catch(() => {});
+      .catch(async () => {
+        if (cancelled) return;
+        const fallbackMod = await import("../data/karaokeDefaultSongs");
+        if (!cancelled) {
+          setKaraokeSongs(fallbackMod.DEFAULT_KARAOKE_SONGS);
+        }
+      });
     return () => {
       cancelled = true;
     };
@@ -443,7 +448,9 @@ export function MusicActivity({
   const introFullCardEndTime =
     firstLineStartTime >= INTRO_LED_DURATION_SEC
       ? INTRO_LED_DURATION_SEC
-      : Math.max(6.8, firstLineStartTime - 0.6);
+      : firstLineStartTime < 7.0
+        ? Math.max(1.2, firstLineStartTime - 0.3)
+        : Math.max(6.8, firstLineStartTime - 0.6);
   const isShowingFullIntroCard = currentTime < introFullCardEndTime;
   const isShowingIntroTopPill =
     !isShowingFullIntroCard && currentTime < INTRO_LED_DURATION_SEC;
@@ -680,7 +687,7 @@ export function MusicActivity({
       attempts: 1,
       answers: [
         modeLabel ||
-          (viewMode === "karaoke-player"
+          (viewMode === "karaoke-player" && currentKaraokeSong
             ? `Hát Karaoke bài ${currentKaraokeSong.title}`
             : `Đàn bài ${lesson.title} (${tapCount} nốt)`),
       ],
@@ -713,7 +720,7 @@ export function MusicActivity({
             <div
               className="hub-3d-panorama-stage music-hub-stage"
               style={{
-                backgroundImage: `url("/assets/canva/music-hub-bg.png")`,
+                backgroundImage: `url("/assets/canva/music-hub-bg.webp")`,
               }}
             >
               <div className="hub-3d-houses-layer">
@@ -741,7 +748,7 @@ export function MusicActivity({
                   aria-label="Phòng Karaoke"
                 >
                   <img
-                    src="/assets/canva/music-house-karaoke.png"
+                    src="/assets/canva/music-house-karaoke.webp"
                     alt="Phòng Karaoke"
                     className="hub-3d-house-img"
                     draggable={false}
@@ -772,7 +779,7 @@ export function MusicActivity({
                   aria-label="Phòng Đánh Đàn"
                 >
                   <img
-                    src="/assets/canva/music-house-piano.png"
+                    src="/assets/canva/music-house-piano.webp"
                     alt="Phòng Đánh Đàn"
                     className="hub-3d-house-img"
                     draggable={false}
@@ -806,7 +813,7 @@ export function MusicActivity({
                   aria-label="Sân Khấu Concert"
                 >
                   <img
-                    src="/assets/canva/music-house-concert.png"
+                    src="/assets/canva/music-house-concert.webp"
                     alt="Sân Khấu Concert"
                     className="hub-3d-house-img"
                     draggable={false}
@@ -1108,12 +1115,12 @@ export function MusicActivity({
                   <div className="led-long-strip-viewport">
                     <div className="led-long-strip-track scroll-up">
                       <img
-                        src="/assets/karaoke-led/led-strip-left.png"
+                        src="/assets/karaoke-led/led-strip-left.webp"
                         alt=""
                         className="led-long-strip-img"
                       />
                       <img
-                        src="/assets/karaoke-led/led-strip-left.png"
+                        src="/assets/karaoke-led/led-strip-left.webp"
                         alt=""
                         className="led-long-strip-img"
                       />
@@ -1198,46 +1205,73 @@ export function MusicActivity({
                         <span>— {currentKaraokeSong.artist}</span>
                       </div>
                     )}
-                    {currentStanza?.lines.map((line) => (
-                      <div
-                        key={line.id}
-                        className="karaoke-stanza-line"
-                        onClick={() => seekKaraokeTo(line.startTime, true)}
-                        title="Bấm để hát từ dòng này"
-                      >
-                        {line.words.map((wObj, wIdx) => {
-                          const wordDur = Math.max(0.08, wObj.end - wObj.start);
-                          let fillPct = 0;
-                          if (currentTime >= wObj.end) {
-                            fillPct = 100;
-                          } else if (currentTime > wObj.start) {
-                            fillPct = Math.min(
-                              100,
-                              Math.max(
-                                0,
-                                Math.round(
-                                  ((currentTime - wObj.start) / wordDur) * 100,
-                                ),
-                              ),
-                            );
-                          }
+                    {currentStanza?.lines.map((line) => {
+                      const isWholeLineMode =
+                        currentKaraokeSong.highlightMode === "line" ||
+                        currentKaraokeSong.id === "karaoke-nhung-ngay-troi-bao-la";
+                      const lineReachTime = line.startTime - 0.12;
+                      const nextReachTime =
+                        (line.nextLineTime || line.endTime) - 0.12;
+                      const isLineActive =
+                        currentTime >= lineReachTime &&
+                        currentTime < nextReachTime;
+                      const isLinePast = currentTime >= nextReachTime;
 
-                          return (
-                            <span
-                              key={wIdx}
-                              className="karaoke-plain-word"
-                              style={
-                                {
-                                  "--fill-pct": `${fillPct}%`,
-                                } as React.CSSProperties
+                      return (
+                        <div
+                          key={line.id}
+                          className={`karaoke-stanza-line ${
+                            isWholeLineMode && isLineActive
+                              ? "is-line-active"
+                              : ""
+                          } ${
+                            isWholeLineMode && isLinePast ? "is-line-past" : ""
+                          }`}
+                          onClick={() => seekKaraokeTo(line.startTime, true)}
+                          title="Bấm để hát từ dòng này"
+                        >
+                          {line.words.map((wObj, wIdx) => {
+                            let fillPct = 0;
+                            if (isWholeLineMode) {
+                              fillPct = currentTime >= lineReachTime ? 100 : 0;
+                            } else {
+                              const wordDur = Math.max(
+                                0.08,
+                                wObj.end - wObj.start,
+                              );
+                              if (currentTime >= wObj.end) {
+                                fillPct = 100;
+                              } else if (currentTime > wObj.start) {
+                                fillPct = Math.min(
+                                  100,
+                                  Math.max(
+                                    0,
+                                    Math.round(
+                                      ((currentTime - wObj.start) / wordDur) *
+                                        100,
+                                    ),
+                                  ),
+                                );
                               }
-                            >
-                              {wObj.word}
-                            </span>
-                          );
-                        })}
-                      </div>
-                    ))}
+                            }
+
+                            return (
+                              <span
+                                key={wIdx}
+                                className="karaoke-plain-word"
+                                style={
+                                  {
+                                    "--fill-pct": `${fillPct}%`,
+                                  } as React.CSSProperties
+                                }
+                              >
+                                {wObj.word}
+                              </span>
+                            );
+                          })}
+                        </div>
+                      );
+                    })}
                   </div>
                 )}
 
@@ -1260,12 +1294,12 @@ export function MusicActivity({
                   <div className="led-long-strip-viewport">
                     <div className="led-long-strip-track scroll-down">
                       <img
-                        src="/assets/karaoke-led/led-strip-right.png"
+                        src="/assets/karaoke-led/led-strip-right.webp"
                         alt=""
                         className="led-long-strip-img"
                       />
                       <img
-                        src="/assets/karaoke-led/led-strip-right.png"
+                        src="/assets/karaoke-led/led-strip-right.webp"
                         alt=""
                         className="led-long-strip-img"
                       />
@@ -1558,12 +1592,14 @@ export function MusicActivity({
           BƯỚC 2C: SÂN KHẤU BAN NHẠC 3D TƯƠNG TÁC (THU ÂM BÉ HÁT + NHẠC ĐỆM 5 NHẠC CỤ)
          ===================================================================== */}
       {viewMode === "band-stage" && (
-        <BandStageView
-          soundEnabled={soundEnabled}
-          onBackToMenu={() => setViewMode("module-select")}
-          onComplete={(summaryText) => complete(summaryText)}
-          onReaction={onReaction}
-        />
+        <Suspense fallback={null}>
+          <BandStageView
+            soundEnabled={soundEnabled}
+            onBackToMenu={() => setViewMode("module-select")}
+            onComplete={(summaryText) => complete(summaryText)}
+            onReaction={onReaction}
+          />
+        </Suspense>
       )}
     </div>
   );

@@ -20,9 +20,20 @@ import {
   getPageDialogues,
   type StoryBookItem,
 } from "../data/storyBooks";
+import {
+  COST_CINEMA_TICKET,
+  addGoldCoins,
+  loadGoldCoins,
+  spendGoldCoins,
+} from "../data/goldCoinsEconomy";
 import { useSpeech } from "../hooks/useSpeech";
 import type { ActivityProps } from "../types";
+import { KawaiiClawMachineGame } from "./KawaiiClawMachineGame";
 import { PochaccoActivity } from "./PochaccoActivity";
+import { HiddenItemGame } from "./HiddenItemGame";
+import { SanrioBedroomExplorer } from "./SanrioBedroomExplorer";
+import { CinnamorollIslandRaceEmbed } from "./CinnamorollIslandRaceEmbed";
+import { EarthDefenderSpaceGame } from "./EarthDefenderSpaceGame";
 
 interface EntertainmentVideoItem {
   id: string;
@@ -34,6 +45,20 @@ interface EntertainmentVideoItem {
   thumbUrl?: string;
 }
 
+export interface StorybookActivityProps extends ActivityProps {
+  goldCoins?: number;
+  onSpendCoins?: (cost: number) => boolean;
+  onAddCoins?: (amount: number) => void;
+  onOpenPlushieShelf?: () => void;
+  initialHubZone?: "hub" | "stories" | "cinema" | "games";
+  initialParkGameMode?:
+    | "bedrooms"
+    | "claw"
+    | "memory"
+    | "island-race"
+    | "space-defender";
+}
+
 export { STORY_BOOKS };
 
 export function StorybookActivity({
@@ -41,18 +66,47 @@ export function StorybookActivity({
   onComplete,
   onReaction,
   onLessonIndexChange,
-}: ActivityProps) {
+  goldCoins: propGoldCoins,
+  onSpendCoins: propOnSpendCoins,
+  onAddCoins: propOnAddCoins,
+  onOpenPlushieShelf,
+  initialHubZone = "hub",
+  initialParkGameMode = "bedrooms",
+}: StorybookActivityProps) {
   // 3 Khu chính của Khu Giải Trí (Ô số 6):
   // - "hub": Màn hình Sảnh 3 Ngôi Nhà (1. Lều Đọc Truyện | 2. Rạp Chiếu Phim | 3. Khu Vui Chơi)
   // - "stories": Lều Đọc Truyện
-  // - "cinema": Rạp Chiếu Phim Khám Phá
-  // - "games": Khu Vui Chơi Công Viên (Lật Bài Trí Nhớ...)
+  // - "cinema": Rạp Chiếu Phim Khám Phá (10 Xu / 1 lần vào xem)
+  // - "games": Khu Vui Chơi Công Viên (Phòng Ngủ Bí Mật Sanrio, Máy Gắp Thú & Lật Bài Trí Nhớ)
   const [hubZone, setHubZone] = useState<
     "hub" | "stories" | "cinema" | "games"
-  >("hub");
+  >(initialHubZone);
   const [enteringHouse, setEnteringHouse] = useState<
     "stories" | "cinema" | "games" | null
   >(null);
+  const [parkGameMode, setParkGameMode] = useState<
+    "bedrooms" | "claw" | "memory" | "island-race" | "space-defender"
+  >(initialParkGameMode);
+  const [localCoins, setLocalCoins] = useState<number>(() => loadGoldCoins());
+  const [hubNotice, setHubNotice] = useState<string | null>(null);
+
+  const effectiveGoldCoins = propGoldCoins ?? localCoins;
+  const handleSpendCoins = (cost: number): boolean => {
+    if (propOnSpendCoins) {
+      return propOnSpendCoins(cost);
+    }
+    const res = spendGoldCoins(cost);
+    setLocalCoins(res.balance);
+    return res.ok;
+  };
+  const handleEarnCoins = (amount: number) => {
+    if (propOnAddCoins) {
+      propOnAddCoins(amount);
+      return;
+    }
+    const updated = addGoldCoins(amount);
+    setLocalCoins(updated);
+  };
 
   // Mở đầu Lều Đọc Truyện bằng Frame Chọn Truyện cùng Little Twin Stars (Kiki & Lala)
   const [selectedBook, setSelectedBook] = useState<StoryBookItem | null>(null);
@@ -139,8 +193,79 @@ export function StorybookActivity({
     return (
       <div
         className="story-fullscreen-frame hub-3d-panorama-stage ent-hub-stage"
-        style={{ backgroundImage: `url("/assets/canva/ent-hub-bg.png")` }}
+        style={{ backgroundImage: `url("/assets/canva/ent-hub-bg.webp")` }}
       >
+        {/* Huy hiệu Ví Xu Vàng ở Sảnh Khu Giải Trí */}
+        <div
+          style={{
+            position: "absolute",
+            top: 12,
+            left: "50%",
+            transform: "translateX(-50%)",
+            zIndex: 35,
+            display: "flex",
+            alignItems: "center",
+            gap: 10,
+            background: "rgba(255, 255, 255, 0.94)",
+            border: "2.5px solid #f59e0b",
+            borderRadius: 999,
+            padding: "5px 16px",
+            boxShadow: "0 6px 18px rgba(0,0,0,0.16)",
+            fontSize: 13,
+            fontWeight: 900,
+            color: "#92400e",
+          }}
+        >
+          <span style={{ display: "inline-flex", alignItems: "center", gap: 6 }}>
+            <img
+              src="/assets/math/items/gold-coin.webp"
+              alt=""
+              className="inline-coin-3d-icon"
+            />
+            Ví Xu: {effectiveGoldCoins} Xu Vàng
+          </span>
+          {onOpenPlushieShelf && (
+            <button
+              type="button"
+              onClick={onOpenPlushieShelf}
+              style={{
+                border: "1.5px solid #ec4899",
+                background: "linear-gradient(135deg, #ff6b9d, #db2777)",
+                color: "#fff",
+                fontWeight: 900,
+                fontSize: 12,
+                padding: "3px 11px",
+                borderRadius: 999,
+                cursor: "pointer",
+              }}
+            >
+              🧸 Kệ Thú Bông
+            </button>
+          )}
+        </div>
+
+        {hubNotice && (
+          <div
+            style={{
+              position: "absolute",
+              top: 56,
+              left: "50%",
+              transform: "translateX(-50%)",
+              zIndex: 36,
+              background: "#fff1f2",
+              border: "2.5px solid #fb7185",
+              color: "#be123c",
+              borderRadius: 999,
+              padding: "6px 18px",
+              fontSize: 13,
+              fontWeight: 900,
+              boxShadow: "0 8px 20px rgba(0,0,0,0.18)",
+            }}
+          >
+            {hubNotice}
+          </div>
+        )}
+
         <div className="hub-3d-houses-layer">
           {/* NGÔI NHÀ 1 (TRÁI): LỀU ĐỌC TRUYỆN */}
           <button
@@ -166,14 +291,14 @@ export function StorybookActivity({
             aria-label="Lều Đọc Truyện"
           >
             <img
-              src="/assets/canva/ent-house-story.png"
+              src="/assets/canva/ent-house-story.webp"
               alt="Lều Đọc Truyện"
               className="hub-3d-house-img"
               draggable={false}
             />
           </button>
 
-          {/* NGÔI NHÀ 2 (GIỮA): RẠP CHIẾU PHIM */}
+          {/* NGÔI NHÀ 2 (GIỮA): RẠP CHIẾU PHIM (10 XU / 1 LẦN VÀO XEM) */}
           <button
             type="button"
             className={`hub-3d-house-btn house-center ${
@@ -181,10 +306,24 @@ export function StorybookActivity({
             }`}
             onClick={() => {
               if (enteringHouse) return;
+              if (effectiveGoldCoins < COST_CINEMA_TICKET) {
+                const msg = `🎬 Vé vào Rạp Chiếu Phim cần ${COST_CINEMA_TICKET} Xu Vàng (Bé đang có ${effectiveGoldCoins} Xu). Bé hãy học thêm bài (+5 Xu/bài) nhé!`;
+                setHubNotice(msg);
+                window.setTimeout(() => setHubNotice(null), 4200);
+                if (soundEnabled) {
+                  speech.speak(
+                    "Vé vào Rạp Chiếu Phim là mười xu vàng. Bé hãy học thêm bài để nhận xu vàng nhé!",
+                    "vi-VN",
+                  );
+                }
+                return;
+              }
+              const ok = handleSpendCoins(COST_CINEMA_TICKET);
+              if (!ok) return;
               setEnteringHouse("cinema");
               if (soundEnabled) {
                 speech.speak(
-                  "Chào mừng Nấm vào Rạp Chiếu Phim Khám Phá! Mình cùng xem phim phiêu lưu của Nấm nhé!",
+                  "Đã đổi mười xu vàng lấy vé xem phim! Chào mừng Nấm vào Rạp Chiếu Phim Khám Phá!",
                   "vi-VN",
                 );
               }
@@ -193,17 +332,17 @@ export function StorybookActivity({
                 setHubZone("cinema");
               }, 380);
             }}
-            aria-label="Rạp Chiếu Phim"
+            aria-label="Rạp Chiếu Phim (10 Xu Vàng)"
           >
             <img
-              src="/assets/canva/ent-house-cinema.png"
+              src="/assets/canva/ent-house-cinema.webp"
               alt="Rạp Chiếu Phim"
               className="hub-3d-house-img"
               draggable={false}
             />
           </button>
 
-          {/* NGÔI NHÀ 3 (PHẢI): KHU VUI CHƠI */}
+          {/* NGÔI NHÀ 3 (PHẢI): KHU VUI CHƠI (MÁY GẮP THÚ SANRIO & LẬT THẺ) */}
           <button
             type="button"
             className={`hub-3d-house-btn house-right ${
@@ -214,19 +353,20 @@ export function StorybookActivity({
               setEnteringHouse("games");
               if (soundEnabled) {
                 speech.speak(
-                  "Chào mừng Nấm đến Khu Công Viên Vui Chơi! Mình cùng chơi Lật Bài Tìm Cặp Đôi nhé!",
+                  "Chào mừng Nấm đến Khu Vui Chơi! Mình cùng gắp thú bông Sanrio xinh xắn nhé!",
                   "vi-VN",
                 );
               }
               window.setTimeout(() => {
                 setEnteringHouse(null);
+                setParkGameMode("claw");
                 setHubZone("games");
               }, 380);
             }}
             aria-label="Khu Vui Chơi"
           >
             <img
-              src="/assets/canva/ent-house-park.png"
+              src="/assets/canva/ent-house-park.webp"
               alt="Khu Vui Chơi"
               className="hub-3d-house-img"
               draggable={false}
@@ -244,7 +384,7 @@ export function StorybookActivity({
     return (
       <div
         className="story-fullscreen-frame select-frame-bg cinema-zone-screen"
-        style={{ backgroundImage: `url("/assets/story-frame-read-2.png")` }}
+        style={{ backgroundImage: `url("/assets/story-frame-read-2.webp")` }}
       >
         <div
           className={`story-board-inner-window cinema-zone-window ${
@@ -398,23 +538,141 @@ export function StorybookActivity({
   }
 
   // =========================================================================
-  // KHU 3: KHU CÔNG VIÊN VUI CHƠI (CHƠI GAME LẬT BÀI & MINI-GAMES)
+  // KHU 3: KHU CÔNG VIÊN VUI CHƠI (NỀN RỘNG THOÁNG TOÀN MÀN HÌNH - KHÔNG KHUNG)
   // =========================================================================
   if (hubZone === "games") {
     return (
-      <div
-        className="story-fullscreen-frame select-frame-bg park-games-zone-screen"
-        style={{ backgroundImage: `url("/assets/story-frame-read-1.png")` }}
-      >
-        <div className="story-board-inner-window park-games-zone-window">
-          <PochaccoActivity
-            soundEnabled={soundEnabled}
-            onComplete={onComplete}
-            onReaction={onReaction}
-            onLessonIndexChange={onLessonIndexChange}
-            initialViewMode="memory"
-            onBackToHub={() => setHubZone("hub")}
-          />
+      <div className="park-games-fullstage">
+        <div className="park-games-top-strip">
+          <div className="park-games-tabs-left">
+            <button
+              type="button"
+              className="park-pill-btn back"
+              onClick={() => setHubZone("hub")}
+            >
+              <ArrowLeft size={14} /> 3 Khu Giải Trí
+            </button>
+            <button
+              type="button"
+              className={`park-pill-btn tab-pink ${
+                parkGameMode === "space-defender" ? "active" : ""
+              }`}
+              onClick={() => setParkGameMode("space-defender")}
+            >
+              🚀 Phi Thuyền Bảo Vệ Trái Đất
+            </button>
+            <button
+              type="button"
+              className={`park-pill-btn tab-blue ${
+                parkGameMode === "bedrooms" ? "active" : ""
+              }`}
+              onClick={() => setParkGameMode("bedrooms")}
+            >
+              🌟 Phòng Ngủ Bí Mật
+            </button>
+            <button
+              type="button"
+              className={`park-pill-btn tab-pink ${
+                parkGameMode === "island-race" ? "active" : ""
+              }`}
+              onClick={() => setParkGameMode("island-race")}
+            >
+              🎲 Đua Đảo 3D Cinnamoroll
+            </button>
+            <button
+              type="button"
+              className={`park-pill-btn tab-pink ${
+                parkGameMode === "claw" ? "active" : ""
+              }`}
+              onClick={() => setParkGameMode("claw")}
+            >
+              🧸 Máy Gắp Thú Sanrio
+            </button>
+            <button
+              type="button"
+              className={`park-pill-btn tab-blue ${
+                parkGameMode === "memory" ? "active" : ""
+              }`}
+              onClick={() => setParkGameMode("memory")}
+            >
+              🃏 Lật Thẻ Pochacco
+            </button>
+          </div>
+
+          <div className="park-games-tabs-right">
+            {onOpenPlushieShelf && (
+              <button
+                type="button"
+                className="park-pill-btn shelf"
+                onClick={onOpenPlushieShelf}
+              >
+                🧸 Kệ Thú Bông
+              </button>
+            )}
+          </div>
+        </div>
+
+        <div className="park-games-stage-body">
+          {parkGameMode === "space-defender" ? (
+            <EarthDefenderSpaceGame
+              soundEnabled={soundEnabled}
+              onBack={() => setHubZone("hub")}
+              onReaction={onReaction}
+              onEarnReward={(coins, summaryText) => {
+                handleEarnCoins(coins);
+                onReaction?.(
+                  "happy",
+                  `🚀 ${summaryText}! Bé được thưởng thêm +${coins} Xu Vàng!`
+                );
+              }}
+            />
+          ) : parkGameMode === "bedrooms" ? (
+            <SanrioBedroomExplorer
+              soundEnabled={soundEnabled}
+              onBack={() => setHubZone("hub")}
+              onReaction={onReaction}
+              onEarnReward={(coins, roomTitle) => {
+                handleEarnCoins(coins);
+                onComplete({
+                  attempts: 1,
+                  answers: [roomTitle],
+                  activityId: `bedroom-${roomTitle}`,
+                  skillIds: ["story-comprehension"],
+                  independentResult: "passed",
+                  completionSource: "system-checked",
+                });
+              }}
+            />
+          ) : parkGameMode === "island-race" ? (
+            <CinnamorollIslandRaceEmbed
+              onBack={() => setHubZone("hub")}
+              onEarnReward={(coins, champName) => {
+                handleEarnCoins(coins);
+                onReaction?.(
+                  "happy",
+                  `Chúc mừng ${champName} về đích Đua Đảo 3D! Bé được thưởng thêm +${coins} Xu Vàng!`,
+                );
+              }}
+            />
+          ) : parkGameMode === "claw" ? (
+            <KawaiiClawMachineGame
+              goldCoins={effectiveGoldCoins}
+              onSpendCoins={handleSpendCoins}
+              onOpenPlushieShelf={onOpenPlushieShelf}
+              soundEnabled={soundEnabled}
+            />
+          ) : (
+            <div className="park-memory-wide-wrap">
+              <PochaccoActivity
+                soundEnabled={soundEnabled}
+                onComplete={onComplete}
+                onReaction={onReaction}
+                onLessonIndexChange={onLessonIndexChange}
+                initialViewMode="memory"
+                onBackToHub={() => setHubZone("hub")}
+              />
+            </div>
+          )}
         </div>
       </div>
     );
@@ -427,7 +685,7 @@ export function StorybookActivity({
     return (
       <div
         className="story-fullscreen-frame select-frame-bg"
-        style={{ backgroundImage: `url("/assets/story-frame-read-1.png")` }}
+        style={{ backgroundImage: `url("/assets/story-frame-read-1.webp")` }}
       >
         {/* Hotspot chạm vào Little Twin Stars (Kiki & Lala) ở góc trái của Frame */}
         <button
@@ -534,18 +792,19 @@ export function StorybookActivity({
 
   // Cố định 1 Frame duy nhất cho mỗi bộ truyện:
   const BOOK_FRAME_MAP: Record<string, string> = {
-    "nam-frozen-elsa": "/assets/story-frame-read-2.png",
-    "nam-doraemon-may": "/assets/story-frame-read-2.png",
-    "nam-moana-bien": "/assets/story-frame-read-1.png",
-    "nam-hawaii-stitch": "/assets/story-frame-read-2.png",
-    "nam-va-minion": "/assets/story-frame-read-1.png",
-    "nam-di-concert": "/assets/story-frame-read-1.png",
-    "nam-o-zootopia": "/assets/story-frame-read-2.png",
-    "nam-lam-viec-nha": "/assets/story-frame-read-1.png",
-    "nam-di-hoc": "/assets/scene-classroom-3.png",
+    "nam-vui-choi": "/assets/story-frame-read-2.webp",
+    "nam-frozen-elsa": "/assets/story-frame-read-2.webp",
+    "nam-doraemon-may": "/assets/story-frame-read-2.webp",
+    "nam-moana-bien": "/assets/story-frame-read-1.webp",
+    "nam-hawaii-stitch": "/assets/story-frame-read-2.webp",
+    "nam-va-minion": "/assets/story-frame-read-1.webp",
+    "nam-di-concert": "/assets/story-frame-read-1.webp",
+    "nam-o-zootopia": "/assets/story-frame-read-2.webp",
+    "nam-lam-viec-nha": "/assets/story-frame-read-1.webp",
+    "nam-di-hoc": "/assets/scene-classroom-3.webp",
   };
   const readingFrameBg =
-    BOOK_FRAME_MAP[selectedBook.id] || "/assets/story-frame-read-1.png";
+    BOOK_FRAME_MAP[selectedBook.id] || "/assets/story-frame-read-1.webp";
 
   const readCurrentPage = () => {
     speech.speak(current.lines.join(" "), "vi-VN");
@@ -578,15 +837,6 @@ export function StorybookActivity({
   const startStoryQuiz = () => {
     speech.stop();
     setInQuizMode(true);
-    setQuizIdx(0);
-    setSelectedOption(null);
-    setIsOptionCorrect(null);
-    if (soundEnabled && questions[0]) {
-      speech.speak(
-        `Nấm vừa đọc xong truyện ${selectedBook.title}! Bây giờ mình cùng trả lời ${questions.length} câu đố vui nhé! Câu hỏi số 1: ${questions[0].question}`,
-        "vi-VN",
-      );
-    }
   };
 
   const handleSelectQuizOption = (opt: string) => {
@@ -726,7 +976,7 @@ export function StorybookActivity({
                     onClick={startStoryQuiz}
                     title="Chuyển sang trả lời câu hỏi đố vui của truyện này"
                   >
-                    <HelpCircle size={14} /> Đố vui ({questions.length} câu)
+                    <Sparkles size={14} /> Tìm đồ vật (3 vòng)
                   </button>
                 )}
                 <button
@@ -807,169 +1057,28 @@ export function StorybookActivity({
                   className="dialogue-listen-all-pill"
                   onClick={speakAllDialogues}
                 >
-                  🔊 Chạm vào thẻ hoặc tranh để nghe đối thoại
+                  🔊 Chạm vào thẻ để nghe đối thoại
                 </button>
               </div>
             </div>
           </div>
         ) : (
           /* =================================================================
-             MÀN HÌNH ĐỐ VUI 2-3 CÂU HỎI SAU KHI ĐỌC TRUYỆN
+             MINI GAME TÌM 3 ĐỒ VẬT × 3 TRANH SAU KHI ĐỌC TRUYỆN
              ================================================================= */
-          <div className="bedtime-storybook-stage story-quiz-stage">
-            <div className="bedtime-story-toolbar">
-              <div className="bedtime-toolbar-left">
-                <button
-                  type="button"
-                  className="chunky-btn chunky-pink btn-sm"
-                  onClick={() => {
-                    speech.stop();
-                    setInQuizMode(false);
-                  }}
-                >
-                  <ArrowLeft size={14} /> Xem lại truyện
-                </button>
-                <div className="bedtime-page-pill story-quiz-progress-pill">
-                  <Sparkles size={14} />
-                  <span>
-                    Đố Vui: {selectedBook.title} · Câu {quizIdx + 1}/
-                    {questions.length}
-                  </span>
-                </div>
-              </div>
-
-              <button
-                type="button"
-                className="chunky-btn chunky-blue btn-sm"
-                onClick={readCurrentQuestion}
-              >
-                <Volume2 size={14} /> Nghe câu hỏi
-              </button>
-            </div>
-
-            {currentQuestion && (
-              <div className="story-quiz-body">
-                {/* Bên trái: Tranh gợi ý từ trang truyện tương ứng */}
-                <div className="story-quiz-illust-card">
-                  <img
-                    src={refPage.image}
-                    alt={refPage.title}
-                    className="story-quiz-illust-img"
-                  />
-                  <div className="story-quiz-illust-footer">
-                    <span className="story-quiz-page-tag">
-                      📖 Hình gợi ý: Trang {currentQuestion.pageRef}
-                    </span>
-                    <button
-                      type="button"
-                      className="story-quiz-peek-btn"
-                      onClick={() => {
-                        speech.stop();
-                        setPageIdx(
-                          Math.max(0, currentQuestion.pageRef - 1),
-                        );
-                        setInQuizMode(false);
-                      }}
-                    >
-                      🔍 Mở Trang {currentQuestion.pageRef}
-                    </button>
-                  </div>
-                </div>
-
-                {/* Bên phải: Câu hỏi + 3 đáp án lựa chọn + Gợi ý / Nút tiếp tục */}
-                <div className="story-quiz-question-card">
-                  <div
-                    className="story-quiz-prompt-box"
-                    onClick={readCurrentQuestion}
-                    title="Chạm để nghe đọc lại câu hỏi"
-                  >
-                    <span className="story-quiz-q-badge">
-                      ❓ Câu hỏi {quizIdx + 1}/{questions.length}
-                    </span>
-                    <h3 className="story-quiz-q-title">
-                      {currentQuestion.question}
-                    </h3>
-                  </div>
-
-                  <div className="story-quiz-options-list">
-                    {currentQuestion.options.map((opt, idx) => {
-                      const isChosen = selectedOption === opt;
-                      let stateClass = "";
-                      if (isChosen && isOptionCorrect === true) {
-                        stateClass = "correct";
-                      } else if (isChosen && isOptionCorrect === false) {
-                        stateClass = "wrong";
-                      } else if (
-                        isOptionCorrect === true &&
-                        opt === currentQuestion.answer
-                      ) {
-                        stateClass = "correct";
-                      }
-
-                      const letters = ["A", "B", "C"];
-                      return (
-                        <button
-                          key={opt}
-                          type="button"
-                          className={`story-quiz-option-btn ${stateClass}`}
-                          onClick={() => handleSelectQuizOption(opt)}
-                        >
-                          <span className="story-quiz-opt-letter">
-                            {letters[idx] || idx + 1}
-                          </span>
-                          <span className="story-quiz-opt-text">{opt}</span>
-                          {stateClass === "correct" && (
-                            <CheckCircle2
-                              size={20}
-                              className="story-quiz-opt-check"
-                            />
-                          )}
-                        </button>
-                      );
-                    })}
-                  </div>
-
-                  {/* Thanh phản hồi & Nút chuyển câu tiếp theo / Nhận 3 sao */}
-                  <div className="story-quiz-footer-bar">
-                    {isOptionCorrect === false && (
-                      <div className="story-quiz-feedback-pill hint-pill">
-                        💡 {currentQuestion.hint}
-                      </div>
-                    )}
-
-                    {isOptionCorrect === true && (
-                      <div className="story-quiz-success-row">
-                        <span className="story-quiz-feedback-pill ok-pill">
-                          🎉 Chính xác! Nấm giỏi quá!
-                        </span>
-                        <button
-                          type="button"
-                          className="chunky-btn chunky-gold btn-sm story-quiz-next-btn"
-                          onClick={goNextQuestionOrFinish}
-                        >
-                          {quizIdx + 1 < questions.length ? (
-                            <>
-                              Câu tiếp theo <ChevronRight size={16} />
-                            </>
-                          ) : (
-                            <>
-                              <Star size={16} fill="currentColor" /> Nhận 3 Sao!
-                            </>
-                          )}
-                        </button>
-                      </div>
-                    )}
-
-                    {isOptionCorrect === null && (
-                      <div className="story-quiz-feedback-pill idle-pill">
-                        👆 Nấm chạm vào đáp án đúng ở trên nhé!
-                      </div>
-                    )}
-                  </div>
-                </div>
-              </div>
-            )}
-          </div>
+          <HiddenItemGame
+            bookTitle={selectedBook.title}
+            pages={pages}
+            soundEnabled={soundEnabled}
+            onBackToStory={() => {
+              speech.stop();
+              setInQuizMode(false);
+            }}
+            onCompleteGame={(summary) => {
+              onComplete(summary);
+            }}
+            onReaction={onReaction}
+          />
         )}
       </div>
 
@@ -1008,7 +1117,7 @@ export function StorybookActivity({
               className="chunky-btn chunky-gold bedtime-nav-btn"
               onClick={startStoryQuiz}
             >
-              <Sparkles size={17} /> Đố vui ({questions.length} câu)!
+              <Sparkles size={17} /> Tìm đồ vật (3 vòng)!
             </button>
           )}
         </div>

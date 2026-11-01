@@ -35,16 +35,359 @@ export interface StoryBookItem {
 
 export const STORY_BOOKS: StoryBookItem[] = [
   {
+    id: "nam-vui-choi",
+    title: "Nấm Dã Ngoại Cùng Cinnamoroll & Các Bạn",
+    subtitle: "15 trang tranh · Ngày hội mùa xuân bên cầu gỗ và đồi hoa đào!",
+    cover: "/assets/stories/sanrio/page-5-popup.webp",
+    badge: "🌸 Mới Nhất (15 Trang)",
+    pages: [
+      {
+        pageNumber: 1,
+        title: "Trang 1: Chào Buổi Sáng Mùa Xuân",
+        image: "/assets/stories/sanrio/page-1.webp",
+        lines: [
+          "Nắng sớm chiếu ấm áp.",
+          "Nấm vẫy tay chào các bạn nhỏ.",
+        ],
+        dialogue: "Chào buổi sáng Kitty và Cinnamoroll nhé!",
+        speaker: "Bé Nấm",
+        dialogues: [
+          {
+            speaker: "Bé Nấm",
+            text: "Chào buổi sáng các bạn! Hôm nay trời đẹp quá!",
+          },
+          {
+            speaker: "Hello Kitty",
+            text: "Chào Nấm! Chúng mình chuẩn bị đi dã ngoại thôi!",
+          },
+        ],
+      },
+      {
+        pageNumber: 2,
+        title: "Trang 2: Mũ Dã Ngoại Bên Nhà Hồng",
+        image: "/assets/stories/sanrio/page-2.webp",
+        lines: [
+          "Trước ngôi nhà màu hồng xinh xắn.",
+          "Cả nhóm đội mũ rộng vành đi chơi.",
+        ],
+        dialogue: "Đội mũ vào cho mát rồi mình lên đường nào!",
+        speaker: "My Melody",
+        dialogues: [
+          {
+            speaker: "My Melody",
+            text: "Đội mũ cói xinh vào để không bị nắng nhé!",
+          },
+          {
+            speaker: "Bé Nấm",
+            text: "Ai đội mũ nhìn cũng đáng yêu hết!",
+          },
+        ],
+      },
+      {
+        pageNumber: 3,
+        title: "Trang 3: Chọn Bánh Hoa Thơm Lừng",
+        image: "/assets/stories/sanrio/page-3.webp",
+        lines: [
+          "Tiệm bánh có bao nhiêu bánh hình hoa.",
+          "Nấm và các bạn chọn bánh mang theo.",
+        ],
+        dialogue: "Mình chọn bánh hoa hồng và bánh kem dâu nhé!",
+        speaker: "Bé Nấm",
+        dialogues: [
+          {
+            speaker: "Bé Nấm",
+            text: "Mình chọn bánh hoa thơm lừng mang đi ăn chung nhé!",
+          },
+          {
+            speaker: "Cinnamoroll",
+            text: "Oa, nhìn chiếc bánh nào cũng ngon tuyệt!",
+          },
+        ],
+      },
+      {
+        pageNumber: 4,
+        title: "Trang 4: Chuyến Xe Giữa Đồng Hoa",
+        image: "/assets/stories/sanrio/page-4.webp",
+        lines: [
+          "Chiếc xe nhỏ lăn bánh qua đồng hoa.",
+          "Gió xuân thổi mát rượi suốt đường đi.",
+        ],
+        dialogue: "Xe chạy qua cánh đồng hoa rực rỡ quá!",
+        speaker: "Bé Nấm",
+        dialogues: [
+          {
+            speaker: "Bé Nấm",
+            text: "Nhìn kìa, hai bên đường toàn hoa nở rộ!",
+          },
+          {
+            speaker: "Pompompurin",
+            text: "Bíp bíp! Sắp tới cây cầu gỗ bên suối rồi!",
+          },
+        ],
+      },
+      {
+        pageNumber: 5,
+        title: "Trang 5: Chiếc Cầu Gỗ & Chong Chóng Quay",
+        image: "/assets/stories/sanrio/page-5-popup.webp",
+        video: "/assets/stories/sanrio/page-5.mp4",
+        lines: [
+          "Trên cây cầu gỗ dưới tán hoa anh đào.",
+          "Nấm cầm chong chóng quay tít đón Cinnamoroll.",
+        ],
+        dialogue: "Chong chóng quay trong gió xuân vui quá Cinnamoroll ơi!",
+        speaker: "Bé Nấm",
+        dialogues: [
+          {
+            speaker: "Bé Nấm",
+            text: "Chong chóng xanh quay tít trên cầu gỗ đẹp chưa này!",
+          },
+          {
+            speaker: "Cinnamoroll",
+            text: "Tớ mang cả chùm chong chóng cầu vồng tặng Nấm và Kitty đây!",
+          },
+        ],
+      },
+      {
+        pageNumber: 6,
+        title: "Trang 6: Nấm Và Kuromi Đập Tay",
+        image: "/assets/stories/sanrio/page-6.webp",
+        lines: [
+          "Bạn Kuromi chạy tới nhập hội.",
+          "Nấm cười tươi giơ tay đập tay cái bốp!",
+        ],
+        dialogue: "Yeah! Đập tay một cái thật kêu nào Kuromi!",
+        speaker: "Bé Nấm",
+        dialogues: [
+          {
+            speaker: "Bé Nấm",
+            text: "Yeah! Đập tay một cái thật kêu nào Kuromi!",
+          },
+          {
+            speaker: "Kuromi",
+            text: "Hihi, có tớ tới là cuộc chơi càng thêm nhộn nhịp!",
+          },
+        ],
+      },
+      {
+        pageNumber: 7,
+        title: "Trang 7: Trải Khăn Dã Ngoại Bên Hồ",
+        image: "/assets/stories/sanrio/page-7.webp",
+        lines: [
+          "Bên bờ hồ nước trong xanh.",
+          "Cả nhóm cùng căng tấm khăn kẻ ô lên cỏ.",
+        ],
+        dialogue: "Mỗi người giữ một góc khăn kẻo gió bay nhé!",
+        speaker: "Hello Kitty",
+        dialogues: [
+          {
+            speaker: "Hello Kitty",
+            text: "Mỗi bạn giữ một góc khăn trải lên thảm cỏ êm nhé!",
+          },
+          {
+            speaker: "Bé Nấm",
+            text: "Gió thổi phồng cả chiếc khăn nhìn như cánh buồm ấy!",
+          },
+        ],
+      },
+      {
+        pageNumber: 8,
+        title: "Trang 8: Treo Đèn Sao Lấp Lánh",
+        image: "/assets/stories/sanrio/page-8.webp",
+        lines: [
+          "Nấm và các bạn mắc dây đèn hình ngôi sao.",
+          "Cành cây bên hồ thêm lung linh rực rỡ.",
+        ],
+        dialogue: "Treo đèn ông sao lên cao để lát nữa tối thật sáng nhé!",
+        speaker: "Bé Nấm",
+        dialogues: [
+          {
+            speaker: "Bé Nấm",
+            text: "Mình treo dây đèn ngôi sao lên cành cây này nhé!",
+          },
+          {
+            speaker: "My Melody",
+            text: "Đến tối chắc chắn khu vườn sẽ lung linh như cổ tích!",
+          },
+        ],
+      },
+      {
+        pageNumber: 9,
+        title: "Trang 9: Chia Bánh Quy Bên Hồ",
+        image: "/assets/stories/sanrio/page-9.webp",
+        lines: [
+          "Nấm mở hộp bánh quy thơm giòn.",
+          "Ai cũng có phần bánh ngon ngọt ngào.",
+        ],
+        dialogue: "Nấm chia cho mỗi bạn một chiếc bánh quy giòn tan này!",
+        speaker: "Bé Nấm",
+        dialogues: [
+          {
+            speaker: "Bé Nấm",
+            text: "Tớ chia cho mỗi bạn một chiếc bánh quy bơ thơm phức nhé!",
+          },
+          {
+            speaker: "Cinnamoroll",
+            text: "Cảm ơn Nấm! Ăn bánh bên hồ mát thích ghê!",
+          },
+        ],
+      },
+      {
+        pageNumber: 10,
+        title: "Trang 10: Thổi Bong Bóng Xà Phòng",
+        image: "/assets/stories/sanrio/page-10.webp",
+        lines: [
+          "Hàng trăm quả bong bóng tròn xoe bay lên.",
+          "Ánh nắng chiếu vào bong bóng lấp lánh bảy màu.",
+        ],
+        dialogue: "Bong bóng bay cao lấp lánh cầu vồng kìa!",
+        speaker: "Bé Nấm",
+        dialogues: [
+          {
+            speaker: "Bé Nấm",
+            text: "Phù! Nhìn quả bong bóng khổng lồ bảy sắc cầu vồng kìa!",
+          },
+          {
+            speaker: "Hello Kitty",
+            text: "Bong bóng bay cao chạm tới cả đám mây luôn!",
+          },
+        ],
+      },
+      {
+        pageNumber: 11,
+        title: "Trang 11: Ban Nhạc Đồ Chơi Dưới Tán Cây",
+        image: "/assets/stories/sanrio/page-11.webp",
+        lines: [
+          "Dưới bóng cây mát rượi.",
+          "Ban nhạc nhí cùng gõ trống và đàn ca vang.",
+        ],
+        dialogue: "Một, hai, ba! Ban nhạc mùa xuân bắt đầu biểu diễn!",
+        speaker: "Bé Nấm",
+        dialogues: [
+          {
+            speaker: "Bé Nấm",
+            text: "Một, hai, ba! Ban nhạc đồ chơi bắt đầu hòa tấu nào!",
+          },
+          {
+            speaker: "Kuromi",
+            text: "Tùng dinh dinh! Tiếng nhạc vang khắp cả khu rừng!",
+          },
+        ],
+      },
+      {
+        pageNumber: 12,
+        title: "Trang 12: Nắm Tay Giữa Đồng Hoa",
+        image: "/assets/stories/sanrio/page-12.webp",
+        lines: [
+          "Đôi bạn nắm tay nhau chạy vòng tròn.",
+          "Tiếng cười giòn tan giữa muôn hoa khoe sắc.",
+        ],
+        dialogue: "Nắm tay nhau nhảy múa giữa đồng hoa vui quá!",
+        speaker: "Bé Nấm",
+        dialogues: [
+          {
+            speaker: "Bé Nấm",
+            text: "Nắm chặt tay nhau cùng xoay vòng giữa đồng hoa nhé!",
+          },
+          {
+            speaker: "My Melody",
+            text: "Cánh hoa bay theo bước chân chúng mình đẹp quá!",
+          },
+        ],
+      },
+      {
+        pageNumber: 13,
+        title: "Trang 13: Thắp Đèn Sao Bên Hồ",
+        image: "/assets/stories/sanrio/page-13.webp",
+        lines: [
+          "Hoàng hôn buông xuống mặt hồ.",
+          "Những chiếc đèn sao bắt đầu tỏa sáng ấm áp.",
+        ],
+        dialogue: "Đèn sao bật sáng soi bóng xuống mặt hồ kìa!",
+        speaker: "Bé Nấm",
+        dialogues: [
+          {
+            speaker: "Bé Nấm",
+            text: "Oa! Đèn ngôi sao bật sáng vàng ấm cả bờ hồ rồi!",
+          },
+          {
+            speaker: "Cinnamoroll",
+            text: "Mặt nước lung linh như có hàng ngàn vì sao rơi xuống!",
+          },
+        ],
+      },
+      {
+        pageNumber: 14,
+        title: "Trang 14: Chiều Vàng Ngắm Mây",
+        image: "/assets/stories/sanrio/page-14.webp",
+        lines: [
+          "Bầu trời chiều nhuộm ánh vàng cam dịu nhẹ.",
+          "Cả nhóm ngồi bên nhau ngắm mây trôi bồng bềnh.",
+        ],
+        dialogue: "Đám mây chiều hồng cam giống hệt chiếc kẹo bông gòn!",
+        speaker: "Hello Kitty",
+        dialogues: [
+          {
+            speaker: "Hello Kitty",
+            text: "Nhìn đám mây chiều giống hệt chiếc kẹo bông gòn khổng lồ!",
+          },
+          {
+            speaker: "Bé Nấm",
+            text: "Ngồi cạnh các bạn ngắm hoàng hôn thật bình yên!",
+          },
+        ],
+      },
+      {
+        pageNumber: 15,
+        title: "Trang 15: Dưới Cây Sao Đêm Diệu Kỳ",
+        image: "/assets/stories/sanrio/page-15.webp",
+        lines: [
+          "Đêm xuống, cây đại thụ rực sáng muôn vì sao.",
+          "Tình bạn của Nấm và các bạn mãi tỏa sáng.",
+        ],
+        dialogue: "Hẹn gặp lại các bạn trong chuyến đi chơi lần sau nhé!",
+        speaker: "Bé Nấm",
+        dialogues: [
+          {
+            speaker: "Bé Nấm",
+            text: "Hôm nay là ngày dã ngoại tuyệt vời nhất! Cảm ơn các bạn nhé!",
+          },
+          {
+            speaker: "Cinnamoroll",
+            text: "Chúng mình sẽ mãi là những người bạn thân thiết nhất của Nấm!",
+          },
+        ],
+      },
+    ],
+    questions: [
+      {
+        id: "sanrio-q1",
+        question: "Trên cây cầu gỗ ở Trang 5, Nấm và Cinnamoroll cầm đồ chơi gì quay tít?",
+        options: ["Chong chóng nhiều màu", "Quả bóng đá", "Chiếc ô đen"],
+        answer: "Chong chóng nhiều màu",
+        hint: "Đồ chơi quay tít khi có gió xuân thổi trên cầu gỗ!",
+        pageRef: 5,
+      },
+      {
+        id: "sanrio-q2",
+        question: "Buổi tối bên bờ hồ, Nấm và các bạn thắp sáng chiếc đèn hình gì?",
+        options: ["Hình ngôi sao", "Hình củ cà rốt", "Hình chiếc giày"],
+        answer: "Hình ngôi sao",
+        hint: "Chiếc đèn lấp lánh như những vì sao trên bầu trời đêm!",
+        pageRef: 13,
+      },
+    ],
+  },
+  {
     id: "nam-frozen-elsa",
     title: "Nấm Đến Vương Quốc Frozen Cùng Elsa",
     subtitle: "9 trang tranh 3D · Phiêu lưu xứ sở băng giá kỳ diệu cùng Elsa & Olaf!",
-    cover: "/assets/stories/frozen/page-3.png",
+    cover: "/assets/stories/frozen/page-3.webp",
     badge: "❄️ Mới Nhất (9 Trang)",
     pages: [
       {
         pageNumber: 1,
         title: "Trang 1: Đêm Hội Trăng Rằm",
-        image: "/assets/stories/frozen/page-1.png",
+        image: "/assets/stories/frozen/page-1.webp",
         lines: [
           "Lớp Nấm vui đón Trung Thu.",
           "Tranh chị Elsa bỗng phát sáng!",
@@ -65,7 +408,7 @@ export const STORY_BOOKS: StoryBookItem[] = [
       {
         pageNumber: 2,
         title: "Trang 2: Cánh cổng băng tuyết",
-        image: "/assets/stories/frozen/page-2.png",
+        image: "/assets/stories/frozen/page-2.webp",
         lines: [
           "Cổng cầu vồng mở ra giữa lớp.",
           "Chị Elsa vẫy tay mời Nấm vào.",
@@ -86,7 +429,7 @@ export const STORY_BOOKS: StoryBookItem[] = [
       {
         pageNumber: 3,
         title: "Trang 3: Lâu đài băng pha lê",
-        image: "/assets/stories/frozen/page-3.png",
+        image: "/assets/stories/frozen/page-3.webp",
         lines: [
           "Nấm bước qua cánh cổng phép thuật.",
           "Lâu đài băng tỏa sáng lung linh!",
@@ -107,7 +450,7 @@ export const STORY_BOOKS: StoryBookItem[] = [
       {
         pageNumber: 4,
         title: "Trang 4: Hoa Sen Băng Pha Lê",
-        image: "/assets/stories/frozen/page-4.png",
+        image: "/assets/stories/frozen/page-4.webp",
         lines: [
           "Giữa vườn băng có bông hoa sáng.",
           "Đàn thỏ tuyết trắng vây quanh Nấm.",
@@ -128,7 +471,7 @@ export const STORY_BOOKS: StoryBookItem[] = [
       {
         pageNumber: 5,
         title: "Trang 5: Gặp người tuyết Olaf",
-        image: "/assets/stories/frozen/page-5.png",
+        image: "/assets/stories/frozen/page-5.webp",
         lines: [
           "Chị Elsa xoay tay tạo bông tuyết.",
           "Bạn người tuyết Olaf nhảy múa đón Nấm.",
@@ -149,7 +492,7 @@ export const STORY_BOOKS: StoryBookItem[] = [
       {
         pageNumber: 6,
         title: "Trang 6: Thám hiểm hang đá tối",
-        image: "/assets/stories/frozen/page-6.png",
+        image: "/assets/stories/frozen/page-6.webp",
         lines: [
           "Trong hang tối có bóng đá hiện ra.",
           "Nấm dũng cảm giơ cao chiếc đèn vàng.",
@@ -170,7 +513,7 @@ export const STORY_BOOKS: StoryBookItem[] = [
       {
         pageNumber: 7,
         title: "Trang 7: Ngôi Sao Vàng tỏa sáng",
-        image: "/assets/stories/frozen/page-7.png",
+        image: "/assets/stories/frozen/page-7.webp",
         lines: [
           "Nấm giơ cao Ngôi Sao Vàng rực rỡ.",
           "Ánh sáng vàng xua tan hết bóng tối!",
@@ -191,7 +534,7 @@ export const STORY_BOOKS: StoryBookItem[] = [
       {
         pageNumber: 8,
         title: "Trang 8: Đêm hội pháo hoa",
-        image: "/assets/stories/frozen/page-8.png",
+        image: "/assets/stories/frozen/page-8.webp",
         lines: [
           "Bầu trời lâu đài rực sáng pháo hoa.",
           "Nấm cùng Elsa và Olaf nhảy múa vui.",
@@ -212,7 +555,7 @@ export const STORY_BOOKS: StoryBookItem[] = [
       {
         pageNumber: 9,
         title: "Trang 9: Cái ôm ấm áp",
-        image: "/assets/stories/frozen/page-9.png",
+        image: "/assets/stories/frozen/page-9.webp",
         lines: [
           "Nấm ôm ngôi sao vàng trong tay.",
           "Chị Elsa và Olaf ôm Nấm thật ấm.",
@@ -274,13 +617,13 @@ export const STORY_BOOKS: StoryBookItem[] = [
     id: "nam-doraemon-may",
     title: "Nấm & Doraemon Ở Vương Quốc Mây",
     subtitle: "6 cảnh phim động + tranh 3D · Phiêu lưu trên tầng mây kỳ diệu!",
-    cover: "/assets/stories/doraemon/page-1.png",
+    cover: "/assets/stories/doraemon/page-1.webp",
     badge: "🎬 Có Clip Động (6 Cảnh)",
     pages: [
       {
         pageNumber: 1,
         title: "Trang 1: Cánh Cửa Thần Kỳ",
-        image: "/assets/stories/doraemon/page-1.png",
+        image: "/assets/stories/doraemon/page-1.webp",
         video: "/assets/stories/doraemon/clip-1.mp4",
         lines: [
           "Nấm mở Cánh Cửa Thần Kỳ màu hồng.",
@@ -292,7 +635,7 @@ export const STORY_BOOKS: StoryBookItem[] = [
       {
         pageNumber: 2,
         title: "Trang 2: Chong Chóng Tre bay cao",
-        image: "/assets/stories/doraemon/page-2.png",
+        image: "/assets/stories/doraemon/page-2.webp",
         video: "/assets/stories/doraemon/clip-2.mp4",
         lines: [
           "Nấm đội Chong Chóng Tre trên đầu.",
@@ -304,7 +647,7 @@ export const STORY_BOOKS: StoryBookItem[] = [
       {
         pageNumber: 3,
         title: "Trang 3: Chơi cùng Thỏ Mây",
-        image: "/assets/stories/doraemon/page-3.png",
+        image: "/assets/stories/doraemon/page-3.webp",
         video: "/assets/stories/doraemon/clip-3.mp4",
         lines: [
           "Đám mây hồng êm như kẹo bông.",
@@ -316,7 +659,7 @@ export const STORY_BOOKS: StoryBookItem[] = [
       {
         pageNumber: 4,
         title: "Trang 4: Thuyền trưởng Nấm lái tàu",
-        image: "/assets/stories/doraemon/page-4.png",
+        image: "/assets/stories/doraemon/page-4.webp",
         video: "/assets/stories/doraemon/clip-4.mp4",
         lines: [
           "Nấm cầm bánh lái con tàu bay.",
@@ -328,7 +671,7 @@ export const STORY_BOOKS: StoryBookItem[] = [
       {
         pageNumber: 5,
         title: "Trang 5: Ôm thỏ bông phát sáng",
-        image: "/assets/stories/doraemon/page-5.png",
+        image: "/assets/stories/doraemon/page-5.webp",
         video: "/assets/stories/doraemon/clip-5.mp4",
         lines: [
           "Nấm và Doraemon ngồi nghỉ trên mây.",
@@ -340,7 +683,7 @@ export const STORY_BOOKS: StoryBookItem[] = [
       {
         pageNumber: 6,
         title: "Trang 6: Hoàng hôn trên biển mây",
-        image: "/assets/stories/doraemon/page-6.png",
+        image: "/assets/stories/doraemon/page-6.webp",
         video: "/assets/stories/doraemon/clip-6.mp4",
         lines: [
           "Mặt trời lặn nhuộm vàng cả biển mây.",
@@ -393,13 +736,13 @@ export const STORY_BOOKS: StoryBookItem[] = [
     id: "nam-di-hoc",
     title: "Hành Trình Nấm Đi Học",
     subtitle: "8 trang tranh 3D · Một ngày đến trường ngập tràn niềm vui!",
-    cover: "/assets/stories/school/page-3.png",
+    cover: "/assets/stories/school/page-3.webp",
     badge: "🎒 Cập Nhật Mới (8 Trang)",
     pages: [
       {
         pageNumber: 1,
         title: "Trang 1: Chào mèo con, Nấm đi học!",
-        image: "/assets/stories/school/page-1.png",
+        image: "/assets/stories/school/page-1.webp",
         lines: [
           "Sáng sớm, Nấm đeo ba lô nhỏ xinh.",
           "Nấm vẫy tay chào mèo con đi học.",
@@ -410,7 +753,7 @@ export const STORY_BOOKS: StoryBookItem[] = [
       {
         pageNumber: 2,
         title: "Trang 2: Đi học cùng Hello Kitty",
-        image: "/assets/stories/school/page-2.png",
+        image: "/assets/stories/school/page-2.webp",
         lines: [
           "Con đường đến trường nở đầy hoa tươi.",
           "Nấm nắm tay Kitty bước vào cổng trường.",
@@ -421,7 +764,7 @@ export const STORY_BOOKS: StoryBookItem[] = [
       {
         pageNumber: 3,
         title: "Trang 3: Gặp các bạn ở sân trường",
-        image: "/assets/stories/school/page-3.png",
+        image: "/assets/stories/school/page-3.webp",
         lines: [
           "Tới sân trường, Nấm vẫy chào các bạn.",
           "Ai cũng cười tươi đón Nấm vào lớp.",
@@ -432,7 +775,7 @@ export const STORY_BOOKS: StoryBookItem[] = [
       {
         pageNumber: 4,
         title: "Trang 4: Giờ đọc sách vui vẻ",
-        image: "/assets/stories/school/page-4.png",
+        image: "/assets/stories/school/page-4.webp",
         lines: [
           "Giờ đọc sách, Nấm chỉ tay vào trang truyện.",
           "Nấm đọc to cho Kitty và các bạn nghe.",
@@ -443,7 +786,7 @@ export const STORY_BOOKS: StoryBookItem[] = [
       {
         pageNumber: 5,
         title: "Trang 5: Chia sẻ bút sáp màu",
-        image: "/assets/stories/school/page-5.png",
+        image: "/assets/stories/school/page-5.webp",
         lines: [
           "Giờ vẽ tranh, Nấm mở hộp bút màu.",
           "Nấm chia bút cho các bạn cùng tô.",
@@ -454,7 +797,7 @@ export const STORY_BOOKS: StoryBookItem[] = [
       {
         pageNumber: 6,
         title: "Trang 6: Tập thể dục ngoài sân",
-        image: "/assets/stories/school/page-6.png",
+        image: "/assets/stories/school/page-6.webp",
         lines: [
           "Ngoài sân cỏ, Nấm giơ cao hai tay.",
           "Nấm tập thể dục khỏe mạnh cùng Pochacco.",
@@ -465,7 +808,7 @@ export const STORY_BOOKS: StoryBookItem[] = [
       {
         pageNumber: 7,
         title: "Trang 7: Tiệc ăn xế vui nhộn",
-        image: "/assets/stories/school/page-7.png",
+        image: "/assets/stories/school/page-7.webp",
         lines: [
           "Giờ ăn xế có bánh kem dâu và sữa.",
           "Cả nhóm giơ tay chụp ảnh thật tươi!",
@@ -476,7 +819,7 @@ export const STORY_BOOKS: StoryBookItem[] = [
       {
         pageNumber: 8,
         title: "Trang 8: Ngôi Sao Bé Ngoan",
-        image: "/assets/stories/school/page-8.png",
+        image: "/assets/stories/school/page-8.webp",
         lines: [
           "Giờ tan học, cô giáo khen Nấm ngoan.",
           "Cô tặng Nấm huy hiệu Ngôi Sao Vàng!",
@@ -528,13 +871,13 @@ export const STORY_BOOKS: StoryBookItem[] = [
     id: "nam-moana-bien",
     title: "Nấm Khám Phá Biển Cùng Moana",
     subtitle: "7 trang tranh 3D · Hải trình vượt đại dương nhiệm màu!",
-    cover: "/assets/stories/moana/page-2.jpg",
+    cover: "/assets/stories/moana/page-2.webp",
     badge: "🌊 Đại Dương (7 Trang)",
     pages: [
       {
         pageNumber: 1,
         title: "Trang 1: Cuộc gặp gỡ trên đảo nhiệt đới",
-        image: "/assets/stories/moana/page-1.jpg",
+        image: "/assets/stories/moana/page-1.webp",
         lines: [
           "Trên bãi cát trắng rợp bóng dừa xanh, Nấm đeo ba lô hào hứng",
           "làm quen với chị Moana và chú rùa biển nhỏ bên chiếc thuyền buồm.",
@@ -545,7 +888,7 @@ export const STORY_BOOKS: StoryBookItem[] = [
       {
         pageNumber: 2,
         title: "Trang 2: Căng buồm vượt sóng đại dương",
-        image: "/assets/stories/moana/page-2.jpg",
+        image: "/assets/stories/moana/page-2.webp",
         lines: [
           "Chiếc thuyền gỗ lướt băng băng trên làn nước biển xanh biếc,",
           "Nấm chỉ tay theo cánh chim hải âu bay về phía hòn đảo xa.",
@@ -556,7 +899,7 @@ export const STORY_BOOKS: StoryBookItem[] = [
       {
         pageNumber: 3,
         title: "Trang 3: Cần thủ nhí câu cá tài ba",
-        image: "/assets/stories/moana/page-3.jpg",
+        image: "/assets/stories/moana/page-3.webp",
         lines: [
           "Giữa biển khơi, Nấm khéo léo kéo cần câu và bắt được một chú cá lớn",
           "vảy xanh vàng lấp lánh khiến Moana và rùa con vỗ tay reo hò!",
@@ -567,7 +910,7 @@ export const STORY_BOOKS: StoryBookItem[] = [
       {
         pageNumber: 4,
         title: "Trang 4: Lặn biển ngắm san hô & Cá Nhám Voi",
-        image: "/assets/stories/moana/page-4.jpg",
+        image: "/assets/stories/moana/page-4.webp",
         lines: [
           "Đeo kính lặn trong veo, Nấm và Moana bơi giữa rạn san hô rực rỡ",
           "và vẫy chào người bạn Cá Nhám Voi khổng lồ hiền lành đốm trắng.",
@@ -578,7 +921,7 @@ export const STORY_BOOKS: StoryBookItem[] = [
       {
         pageNumber: 5,
         title: "Trang 5: Vũ điệu cá heo phát sáng đêm trăng",
-        image: "/assets/stories/moana/page-5.jpg",
+        image: "/assets/stories/moana/page-5.webp",
         lines: [
           "Màn đêm buông xuống, mặt biển bỗng bừng sáng ánh lam huyền ảo",
           "khi đàn cá heo thần kỳ tung mình nhảy múa quanh mũi thuyền.",
@@ -589,7 +932,7 @@ export const STORY_BOOKS: StoryBookItem[] = [
       {
         pageNumber: 6,
         title: "Trang 6: Quần đảo thác nước thần tiên",
-        image: "/assets/stories/moana/page-6.jpg",
+        image: "/assets/stories/moana/page-6.webp",
         lines: [
           "Sáng hôm sau, thuyền cập bến một hòn đảo kỳ vĩ",
           "với những ngọn núi xanh lơ lửng trên mây và thác nước đổ trắng xóa.",
@@ -600,7 +943,7 @@ export const STORY_BOOKS: StoryBookItem[] = [
       {
         pageNumber: 7,
         title: "Trang 7: Ngắm sao băng bên bờ biển ấm áp",
-        image: "/assets/stories/moana/page-7.jpg",
+        image: "/assets/stories/moana/page-7.webp",
         lines: [
           "Đêm khuya thanh bình, Nấm, Moana và rùa nhỏ nằm bên ánh đèn bão,",
           "cùng ngước nhìn dải ngân hà lấp lánh và ngôi sao băng vụt qua.",
@@ -652,13 +995,13 @@ export const STORY_BOOKS: StoryBookItem[] = [
     id: "nam-hawaii-stitch",
     title: "Nấm Ở Hawaii Với Lilo & Stitch",
     subtitle: "6 trang tranh 3D · Kỳ nghỉ hè sôi động trên bãi biển Hawaii!",
-    cover: "/assets/stories/hawaii/page-4.jpg",
+    cover: "/assets/stories/hawaii/page-4.webp",
     badge: "🌺 Mùa Hè (6 Trang)",
     pages: [
       {
         pageNumber: 1,
         title: "Trang 1: Xin chào mùa hè Hawaii!",
-        image: "/assets/stories/hawaii/page-1.jpg",
+        image: "/assets/stories/hawaii/page-1.webp",
         lines: [
           "Dưới hàng dừa xanh và nắng vàng rực rỡ của bãi biển Hawaii,",
           "Nấm vẫy tay chào hai người bạn mới là cô bé Lilo và chú Stitch xanh!",
@@ -669,7 +1012,7 @@ export const STORY_BOOKS: StoryBookItem[] = [
       {
         pageNumber: 2,
         title: "Trang 2: Xây lâu đài cát khổng lồ",
-        image: "/assets/stories/hawaii/page-2.jpg",
+        image: "/assets/stories/hawaii/page-2.webp",
         lines: [
           "Trải tấm thảm sắc màu trên cát mịn, Nấm và Lilo cầm xẻng nhỏ",
           "cùng đắp một tòa lâu đài cát cao vút cắm cờ đỏ, còn Stitch đứng canh gác.",
@@ -680,7 +1023,7 @@ export const STORY_BOOKS: StoryBookItem[] = [
       {
         pageNumber: 3,
         title: "Trang 3: Trò đùa kem ốc quế tinh nghịch",
-        image: "/assets/stories/hawaii/page-3.jpg",
+        image: "/assets/stories/hawaii/page-3.webp",
         lines: [
           "Trời nóng bức, cả nhóm đi ăn kem vani mát lạnh. Bất ngờ Stitch tinh nghịch",
           "úp ngược cây kem lên đầu Nấm làm Lilo ôm bụng cười nắc nẻ!",
@@ -691,7 +1034,7 @@ export const STORY_BOOKS: StoryBookItem[] = [
       {
         pageNumber: 4,
         title: "Trang 4: Lướt sóng dưới cầu vồng rực rỡ",
-        image: "/assets/stories/hawaii/page-4.jpg",
+        image: "/assets/stories/hawaii/page-4.webp",
         lines: [
           "Trên chiếc ván lướt sóng màu cam, Nấm đứng giữa Lilo và Stitch",
           "cùng cưỡi lên ngọn sóng biếc dưới vòm cầu vồng bảy sắc lung linh!",
@@ -702,7 +1045,7 @@ export const STORY_BOOKS: StoryBookItem[] = [
       {
         pageNumber: 5,
         title: "Trang 5: Bữa tiệc trái cây miền nhiệt đới",
-        image: "/assets/stories/hawaii/page-5.jpg",
+        image: "/assets/stories/hawaii/page-5.webp",
         lines: [
           "Dưới bóng mát rặng dừa, Nấm thưởng thức miếng dưa hấu đỏ ngọt lịm,",
           "Lilo uống nước dừa tươi còn Stitch ôm khư khư quả dứa vàng ươm.",
@@ -713,7 +1056,7 @@ export const STORY_BOOKS: StoryBookItem[] = [
       {
         pageNumber: 6,
         title: "Trang 6: Cái ôm Ohana dưới ánh hoàng hôn",
-        image: "/assets/stories/hawaii/page-6.jpg",
+        image: "/assets/stories/hawaii/page-6.webp",
         lines: [
           "Mặt trời đỏ rực từ từ lặn xuống mặt biển, Lilo ôm chặt Nấm",
           "cùng Stitch vẫy tay hẹn ngày gặp lại trong tình bạn gia đình Ohana.",
@@ -765,13 +1108,13 @@ export const STORY_BOOKS: StoryBookItem[] = [
     id: "nam-va-minion",
     title: "Nấm Và Biệt Đội Minion",
     subtitle: "6 trang tranh 3D · Một ngày đại náo cười nghiêng ngả!",
-    cover: "/assets/stories/minion/page-1.jpg",
+    cover: "/assets/stories/minion/page-1.webp",
     badge: "🍌 Vui Nhộn (6 Trang)",
     pages: [
       {
         pageNumber: 1,
         title: "Trang 1: Biệt đội Minion ùa vào phòng chơi",
-        image: "/assets/stories/minion/page-1.jpg",
+        image: "/assets/stories/minion/page-1.webp",
         lines: [
           "Nấm vừa mở cánh cửa phòng đồ chơi, cả đàn Minion vàng ươm",
           "đã reo hò ùa ra chào đón, một bạn nhỏ còn leo tót lên vai Nấm!",
@@ -782,7 +1125,7 @@ export const STORY_BOOKS: StoryBookItem[] = [
       {
         pageNumber: 2,
         title: "Trang 2: Đầu bếp nhí & Cơn mưa bột mì",
-        image: "/assets/stories/minion/page-2.jpg",
+        image: "/assets/stories/minion/page-2.webp",
         lines: [
           "Nấm cầm muỗng gỗ trộn bột làm bánh cupcake kem, các bạn Minion",
           "hào hứng phụ giúp khiến bột mì bay trắng xóa lấm lem khắp mặt!",
@@ -793,7 +1136,7 @@ export const STORY_BOOKS: StoryBookItem[] = [
       {
         pageNumber: 3,
         title: "Trang 3: Cuộc rượt đuổi bạn Chuối Vàng",
-        image: "/assets/stories/minion/page-3.jpg",
+        image: "/assets/stories/minion/page-3.webp",
         lines: [
           "Một đồ chơi hình quả Chuối Vàng biết đi lon ton chạy quanh phòng,",
           "đàn Minion mắt sáng rỡ chạy đuổi theo làm Nấm ôm bụng cười tít mắt!",
@@ -804,7 +1147,7 @@ export const STORY_BOOKS: StoryBookItem[] = [
       {
         pageNumber: 4,
         title: "Trang 4: Giải đua xe Go-Kart siêu tốc",
-        image: "/assets/stories/minion/page-4.jpg",
+        image: "/assets/stories/minion/page-4.webp",
         lines: [
           "Đèn giao thông bật sáng màu xanh! Trọng tài Nấm phất cao lá cờ caro",
           "ra hiệu cho đoàn xe đua tí hon của các tay đua Minion phóng vút đi!",
@@ -815,7 +1158,7 @@ export const STORY_BOOKS: StoryBookItem[] = [
       {
         pageNumber: 5,
         title: "Trang 5: Đại chiến bong bóng xà phòng",
-        image: "/assets/stories/minion/page-5.jpg",
+        image: "/assets/stories/minion/page-5.webp",
         lines: [
           "Sau khi làm bánh và đua xe lấm lem, Nấm đưa cả đội vào phòng tắm,",
           "dùng súng nước xà phòng tạo nên cơn mưa bong bóng thơm phức!",
@@ -826,7 +1169,7 @@ export const STORY_BOOKS: StoryBookItem[] = [
       {
         pageNumber: 6,
         title: "Trang 6: Lau khô đầu & Giấc ngủ trưa ngoan",
-        image: "/assets/stories/minion/page-6.jpg",
+        image: "/assets/stories/minion/page-6.webp",
         lines: [
           "Tắm xong thơm tho, các bạn Minion thấm mệt nằm lăn ra gối ngáp dài.",
           "Anh cả Nấm ân cần lấy khăn bông mềm lau khô đầu cho từng bạn ngủ ngoan.",
@@ -878,13 +1221,13 @@ export const STORY_BOOKS: StoryBookItem[] = [
     id: "nam-di-concert",
     title: "Nấm Đi Concert Anh Trai",
     subtitle: "9 trang tranh 3D · Đêm nhạc rực rỡ cùng thần tượng!",
-    cover: "/assets/stories/concert/page-4.png",
+    cover: "/assets/stories/concert/page-4.webp",
     badge: "🎤 Đêm Nhạc (9 Trang)",
     pages: [
       {
         pageNumber: 1,
         title: "Trang 1: Chuẩn bị đi xem Concert",
-        image: "/assets/stories/concert/page-1.png",
+        image: "/assets/stories/concert/page-1.webp",
         lines: [
           "Ở nhà, Nấm hào hứng xếp vé xem ca nhạc, mũ đen ngầu",
           "và cây gậy phát sáng vào ba lô cùng bạn Pompompurin.",
@@ -895,7 +1238,7 @@ export const STORY_BOOKS: StoryBookItem[] = [
       {
         pageNumber: 2,
         title: "Trang 2: Chuyến xe niềm vui",
-        image: "/assets/stories/concert/page-2.png",
+        image: "/assets/stories/concert/page-2.webp",
         lines: [
           "Trên xe buýt tiến về sân vận động, Nấm cùng Pompompurin,",
           "Hello Kitty và Cinnamoroll giơ cao gậy sáng hò reo rộn rã.",
@@ -906,7 +1249,7 @@ export const STORY_BOOKS: StoryBookItem[] = [
       {
         pageNumber: 3,
         title: "Trang 3: Trước cổng sân vận động",
-        image: "/assets/stories/concert/page-3.png",
+        image: "/assets/stories/concert/page-3.webp",
         lines: [
           "Cả nhóm đứng trầm trồ trước cổng sân vận động khổng lồ",
           "rực rỡ ánh đèn của đêm nhạc Anh Trai Vượt Ngàn Chông Gai.",
@@ -917,7 +1260,7 @@ export const STORY_BOOKS: StoryBookItem[] = [
       {
         pageNumber: 4,
         title: "Trang 4: Biển ánh sáng đỏ rực",
-        image: "/assets/stories/concert/page-4.png",
+        image: "/assets/stories/concert/page-4.webp",
         lines: [
           "Trên khán đài sôi động, Nấm đeo băng đô, tay cầm cờ",
           "và gậy phát sáng cổ vũ nhiệt tình cùng các bạn nhỏ.",
@@ -928,7 +1271,7 @@ export const STORY_BOOKS: StoryBookItem[] = [
       {
         pageNumber: 5,
         title: "Trang 5: Sân khấu bùng nổ",
-        image: "/assets/stories/concert/page-5.png",
+        image: "/assets/stories/concert/page-5.webp",
         lines: [
           "Pháo sáng rực trời! Các Anh Tài nắm tay nhau trên sân khấu",
           "hát vang những giai điệu hào hùng giữa biển người cổ vũ.",
@@ -939,7 +1282,7 @@ export const STORY_BOOKS: StoryBookItem[] = [
       {
         pageNumber: 6,
         title: "Trang 6: Khoảnh khắc thần tượng vẫy chào",
-        image: "/assets/stories/concert/page-6.png",
+        image: "/assets/stories/concert/page-6.webp",
         lines: [
           "Trên màn hình lớn, anh ca sĩ mỉm cười thật tươi",
           "và vẫy tay hướng micro về phía Nấm khiến Nấm reo lên vui sướng!",
@@ -950,7 +1293,7 @@ export const STORY_BOOKS: StoryBookItem[] = [
       {
         pageNumber: 7,
         title: "Trang 7: Kỷ niệm đêm nhạc đáng nhớ",
-        image: "/assets/stories/concert/page-7.png",
+        image: "/assets/stories/concert/page-7.webp",
         lines: [
           "Đêm nhạc khép lại, Nấm ôm tấm poster kỷ niệm trên tay,",
           "vui vẻ sánh bước cùng các bạn dưới ánh đèn lung linh.",
@@ -961,7 +1304,7 @@ export const STORY_BOOKS: StoryBookItem[] = [
       {
         pageNumber: 8,
         title: "Trang 8: Ngắm ảnh trước giờ ngủ",
-        image: "/assets/stories/concert/page-8.png",
+        image: "/assets/stories/concert/page-8.webp",
         lines: [
           "Về đến căn phòng ấm áp, Nấm ôm bạn Pompompurin trên giường",
           "cùng Kitty và Cinnamoroll ngắm lại những bức ảnh vừa chụp.",
@@ -972,7 +1315,7 @@ export const STORY_BOOKS: StoryBookItem[] = [
       {
         pageNumber: 9,
         title: "Trang 9: Cuốn sổ lưu niệm rực rỡ",
-        image: "/assets/stories/concert/page-9.png",
+        image: "/assets/stories/concert/page-9.webp",
         lines: [
           "Nấm cẩn thận dán những bức ảnh kỷ niệm vào cuốn sổ nhỏ,",
           "vẽ thêm trái tim và ngôi sao để lưu giữ ký ức đẹp mãi mãi!",
@@ -1024,13 +1367,13 @@ export const STORY_BOOKS: StoryBookItem[] = [
     id: "nam-o-zootopia",
     title: "Nấm Ở Zootopia Cùng Nick & Judy",
     subtitle: "6 trang tranh 3D · Phiêu lưu bắt kẻ trộm bánh Donut!",
-    cover: "/assets/stories/zootopia/page-1.png",
+    cover: "/assets/stories/zootopia/page-1.webp",
     badge: "🦊 Phiêu Lưu (6 Trang)",
     pages: [
       {
         pageNumber: 1,
         title: "Trang 1: Chào mừng đến Zootopia",
-        image: "/assets/stories/zootopia/page-1.png",
+        image: "/assets/stories/zootopia/page-1.webp",
         video: "/assets/stories/zootopia/clip-1.mp4",
         lines: [
           "Tại quảng trường đài phun nước rực nắng của thành phố Zootopia,",
@@ -1042,7 +1385,7 @@ export const STORY_BOOKS: StoryBookItem[] = [
       {
         pageNumber: 2,
         title: "Trang 2: Lái xe tuần tra thành phố",
-        image: "/assets/stories/zootopia/page-2.png",
+        image: "/assets/stories/zootopia/page-2.webp",
         lines: [
           "Nấm đội kính tròn ngồi cầm vô lăng chiếc xe cảnh sát tí hon,",
           "cùng Nick và Judy đi tuần tra khắp các con phố nhộn nhịp.",
@@ -1053,7 +1396,7 @@ export const STORY_BOOKS: StoryBookItem[] = [
       {
         pageNumber: 3,
         title: "Trang 3: Vụ án hộp bánh Donut",
-        image: "/assets/stories/zootopia/page-3.png",
+        image: "/assets/stories/zootopia/page-3.webp",
         lines: [
           "Trước tiệm bánh ngọt, một hộp bánh bị rơi! Thám tử Nick cầm kính lúp soi,",
           "còn Nấm tinh mắt chỉ tay về phía chú gấu trúc đang ôm bánh chạy trốn!",
@@ -1064,7 +1407,7 @@ export const STORY_BOOKS: StoryBookItem[] = [
       {
         pageNumber: 4,
         title: "Trang 4: Cuộc rượt đuổi vui nhộn",
-        image: "/assets/stories/zootopia/page-4.png",
+        image: "/assets/stories/zootopia/page-4.webp",
         lines: [
           "Nấm cùng Nick và Judy tức tốc chạy đuổi theo chú gấu trúc tinh nghịch",
           "giữa những chiếc bánh Donut dâu hồng lăn tròn trên phố.",
@@ -1075,7 +1418,7 @@ export const STORY_BOOKS: StoryBookItem[] = [
       {
         pageNumber: 5,
         title: "Trang 5: Bữa tiệc bánh Donut ngọt ngào",
-        image: "/assets/stories/zootopia/page-5.png",
+        image: "/assets/stories/zootopia/page-5.webp",
         lines: [
           "Hoàn thành xuất sắc nhiệm vụ, bác chủ tiệm mời Nấm, Nick và Judy",
           "thưởng thức một bàn đầy bánh Donut phủ kem và nước cam mát lạnh!",
@@ -1086,7 +1429,7 @@ export const STORY_BOOKS: StoryBookItem[] = [
       {
         pageNumber: 6,
         title: "Trang 6: Bức ảnh kỷ niệm Cảnh Sát Nhí",
-        image: "/assets/stories/zootopia/page-6.png",
+        image: "/assets/stories/zootopia/page-6.webp",
         lines: [
           "Trước cổng Sở Cảnh Sát Zootopia, Nấm giơ tay chữ V rạng rỡ",
           "chụp bức ảnh selfie kỷ niệm thật ngầu cùng hai người bạn Nick và Judy!",
@@ -1138,13 +1481,13 @@ export const STORY_BOOKS: StoryBookItem[] = [
     id: "nam-lam-viec-nha",
     title: "Nấm Làm Việc Nhà & Trà Sữa",
     subtitle: "9 trang tranh 3D · Cùng các bạn dọn nhà thật vui!",
-    cover: "/assets/stories/chores/page-9.png",
+    cover: "/assets/stories/chores/page-9.webp",
     badge: "🧋 Việc Tốt (9 Trang)",
     pages: [
       {
         pageNumber: 1,
         title: "Trang 1: Đội biệt kích dọn nhà",
-        image: "/assets/stories/chores/page-1.png",
+        image: "/assets/stories/chores/page-1.webp",
         lines: [
           "Cuối tuần nắng đẹp, Nấm cùng Hello Kitty, My Melody và Cinnamoroll",
           "hào hứng giơ tay bắt đầu ngày tổng vệ sinh nhà cửa!",
@@ -1155,7 +1498,7 @@ export const STORY_BOOKS: StoryBookItem[] = [
       {
         pageNumber: 2,
         title: "Trang 2: Rửa bát sạch bong",
-        image: "/assets/stories/chores/page-2.png",
+        image: "/assets/stories/chores/page-2.webp",
         lines: [
           "Trong gian bếp nhỏ, Nấm bê chồng đĩa trắng giúp Hello Kitty",
           "và bạn cún vàng Pompompurin rửa bát đĩa sáng bóng.",
@@ -1166,7 +1509,7 @@ export const STORY_BOOKS: StoryBookItem[] = [
       {
         pageNumber: 3,
         title: "Trang 3: Quét nhà sạch sẽ",
-        image: "/assets/stories/chores/page-3.png",
+        image: "/assets/stories/chores/page-3.webp",
         lines: [
           "Ngoài phòng khách, Nấm cầm chổi quét sàn gỗ cùng My Melody,",
           "còn bạn Cinnamoroll nhanh nhẹn cầm xẻng hót sạch bụi.",
@@ -1177,7 +1520,7 @@ export const STORY_BOOKS: StoryBookItem[] = [
       {
         pageNumber: 4,
         title: "Trang 4: Gấp quần áo gọn gàng",
-        image: "/assets/stories/chores/page-4.png",
+        image: "/assets/stories/chores/page-4.webp",
         lines: [
           "Đến giờ gấp quần áo, Nấm cùng Pompompurin và My Melody",
           "tỉ mỉ vuốt phẳng và xếp từng chồng áo thật ngay ngắn.",
@@ -1188,7 +1531,7 @@ export const STORY_BOOKS: StoryBookItem[] = [
       {
         pageNumber: 5,
         title: "Trang 5: Thu dọn đồ chơi",
-        image: "/assets/stories/chores/page-5.png",
+        image: "/assets/stories/chores/page-5.webp",
         lines: [
           "Ở góc phòng, Nấm cùng Cinnamoroll và Kitty nhặt xe ô tô,",
           "khối gỗ và gấu bông cất gọn gàng vào chiếc thùng hình gấu.",
@@ -1199,7 +1542,7 @@ export const STORY_BOOKS: StoryBookItem[] = [
       {
         pageNumber: 6,
         title: "Trang 6: Tưới cây xanh mát",
-        image: "/assets/stories/chores/page-6.png",
+        image: "/assets/stories/chores/page-6.webp",
         lines: [
           "Bên khung cửa sổ ngập nắng, Nấm cầm bình tưới nước",
           "cho những chậu cây xanh mát cùng bạn Pompompurin.",
@@ -1210,7 +1553,7 @@ export const STORY_BOOKS: StoryBookItem[] = [
       {
         pageNumber: 7,
         title: "Trang 7: Ngôi nhà sạch tinh tươm",
-        image: "/assets/stories/chores/page-7.png",
+        image: "/assets/stories/chores/page-7.webp",
         lines: [
           "Chỉ một loáng, cả ngôi nhà đã sạch bong và thơm tho!",
           "Nấm cùng các bạn reo hò vui sướng sau khi hoàn thành nhiệm vụ.",
@@ -1221,7 +1564,7 @@ export const STORY_BOOKS: StoryBookItem[] = [
       {
         pageNumber: 8,
         title: "Trang 8: Mẹ khen ngợi & thưởng quà",
-        image: "/assets/stories/chores/page-8.png",
+        image: "/assets/stories/chores/page-8.webp",
         lines: [
           "Mẹ về nhà nhìn thấy nhà cửa gọn gàng liền mỉm cười hạnh phúc,",
           "xoa đầu khen Nấm ngoan và tặng cả nhóm những ly trà sữa!",
@@ -1232,7 +1575,7 @@ export const STORY_BOOKS: StoryBookItem[] = [
       {
         pageNumber: 9,
         title: "Trang 9: Tiệc trà sữa ngọt ngào",
-        image: "/assets/stories/chores/page-9.png",
+        image: "/assets/stories/chores/page-9.webp",
         lines: [
           "Nấm cùng Kitty, Pompompurin, My Melody và Cinnamoroll",
           "quây quần bên bàn thưởng thức trà sữa trân châu thật vui vẻ!",

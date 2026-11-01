@@ -1,41 +1,26 @@
 import { Suspense, lazy, useEffect, useRef, useState } from "react";
 import {
   BookOpen,
-  Check,
   Film,
   Gift,
   Home,
   Maximize2,
   Minimize2,
-  RotateCcw,
   ShieldCheck,
-  Sparkles,
   Trophy,
   Volume2,
   VolumeX,
-  X,
 } from "lucide-react";
 import { useProgress } from "./hooks/useProgress";
 import { useSpeech } from "./hooks/useSpeech";
 import { subjects, getSubject } from "./data/subjects";
 import {
-  NAM_MASTER_CUP_IMAGE,
-  NAM_SPECIAL_STICKERS,
   SUBJECT_CUPS,
   awardNamStickerOnCupOpen,
   awardNamStickerOnDailyQuest,
   awardStickerForSubject,
-  getCharacterStickerEarnedCount,
-  getNamRankInfo,
-  getPlacedStickerCountMap,
-  getSubjectSetStickerEarnedCount,
-  getSubjectSetUnlockedCount,
-  getSubjectStickerSet,
   getTotalLitStickers,
   getTotalUnlockedInBook,
-  getUnlockedNamSpecialCount,
-  isSubjectSet2Available,
-  loadNamSpecialInventory,
   loadStickerStore,
   resetSubjectStickerBoard,
   type AwardedNamCupStickerResult,
@@ -52,20 +37,36 @@ import {
   type DailyQuestState,
   type QuestItemInventory,
 } from "./data/dailyQuests";
+import {
+  COST_CINEMA_TICKET,
+  COST_STICKER_REDEEM,
+  EARN_COINS_DAILY_CHEST,
+  EARN_COINS_PER_LESSON,
+  addGoldCoins,
+  loadGoldCoins,
+  spendGoldCoins,
+} from "./data/goldCoinsEconomy";
 import type { KawaiiPastryAsset } from "./data/mathLessons";
 import type { ActivityProps, LessonResult, SubjectId } from "./types";
 import { playCharacterTapSound, playRewardTone } from "./lib/sound";
 import { getElementLocalRatio } from "./lib/touchCoords";
+import { warmupSubjectAudio } from "./lib/lessonAudioWarmup";
 import {
   ParticleBurstCanvas,
   type ParticleBurstHandle,
 } from "./components/ParticleBurstCanvas";
 import { LobbyLiveStage } from "./components/LobbyLiveStage";
-import {
-  Kitty25DTeacher,
-  type KittyActionMode,
-} from "./components/Kitty25DTeacher";
 import { GoldenCupCeremonyModal } from "./components/GoldenCupCeremonyModal";
+import {
+  StickerRewardScreen,
+  VictoryVideoScreen,
+} from "./components/screens/VictoryRewardScreens";
+import { StarTrophyScreen } from "./components/screens/StarTrophyScreen";
+import { DailyQuestChestModal } from "./components/screens/DailyQuestChestModal";
+import {
+  VideoTheaterModal,
+  type LocalVideoItem,
+} from "./components/screens/VideoTheaterModal";
 
 const ReadingActivity = lazy(() =>
   import("./components/ReadingActivity").then((m) => ({
@@ -125,13 +126,6 @@ const NAM_TAP_LINES = [
   "Cố lên nào, học bài vui quá đi!",
 ];
 
-const TEACHER_TAP_LINES = [
-  "Hoan hô bé Nấm! Con học siêu quá đi!",
-  "Hihi, cô thưởng cho Nấm thật nhiều tim hồng nhé!",
-  "Nấm ơi cố lên, sắp nhận được sticker mới rồi!",
-  "Giỏi lắm! Đập tay với cô một cái nào!",
-];
-
 type Page =
   | { type: "home" }
   | { type: "lesson"; subject: SubjectId }
@@ -166,15 +160,12 @@ const activities: Record<SubjectId, React.ComponentType<ActivityProps>> = {
   lifeskills: LifeSkillsActivity,
 };
 
-interface LocalVideoItem {
-  id: string;
-  filename: string;
-  title: string;
-  sourceDir: "video-nam" | "root";
-  sizeMB: number;
-  duration?: string;
-  thumbUrl?: string;
-}
+const BOARD_CLASS_MAP: Record<1 | 2 | 3 | 4, string> = {
+  1: "kawaii-board-v2",
+  2: "kawaii-board-v3",
+  3: "kawaii-board-v4",
+  4: "kawaii-board-v1",
+};
 
 function App() {
   const [page, setPage] = useState<Page>({ type: "home" });
@@ -187,15 +178,10 @@ function App() {
   const [videoModalOpen, setVideoModalOpen] = useState(false);
   const [localVideos, setLocalVideos] = useState<LocalVideoItem[]>([]);
   const [activeVideoId, setActiveVideoId] = useState<string | null>(null);
-  const videoStripRef = useRef<HTMLDivElement | null>(null);
   const viewportRef = useRef<HTMLDivElement | null>(null);
-  const mainBoardRef = useRef<HTMLElement | null>(null);
   const particleRef = useRef<ParticleBurstHandle | null>(null);
   const tapLineIdxRef = useRef(0);
 
-  // Trạng thái nhận diện đang ở Menu chọn bài học hay đã vào trong bài học (để mở Bảng Học Full Screen)
-  const [isInLessonPicker, setIsInLessonPicker] = useState(true);
-  const [isBoardFullscreen, setIsBoardFullscreen] = useState(true);
   const [isDeviceFullscreen, setIsDeviceFullscreen] = useState(false);
   const [lobbyPage, setLobbyPage] = useState<0 | 1>(0);
   const [uiScale, setUiScale] = useState<number>(() => {
@@ -269,19 +255,21 @@ function App() {
     }
   }
 
-  // Lưu trữ bộ sưu tập Cúp & 6 Sticker của từng môn học
   const [stickerStore, setStickerStore] = useState<StickerCollectionStore>(() =>
     loadStickerStore(),
   );
+  const [goldCoins, setGoldCoins] = useState<number>(() => loadGoldCoins());
+  const [storybookInitialParkMode, setStorybookInitialParkMode] = useState<
+    "bedrooms" | "claw" | "memory" | "island-race" | "space-defender"
+  >("bedrooms");
+  const [storybookInitialHubZone, setStorybookInitialHubZone] = useState<
+    "hub" | "stories" | "cinema" | "games"
+  >("hub");
   const [selectedCupSubject, setSelectedCupSubject] =
     useState<SubjectId>("reading");
-  const [selectedStickerSet, setSelectedStickerSet] = useState<1 | 2 | 3 | 4>(1);
-  const [isViewingNamVipSet, setIsViewingNamVipSet] = useState(false);
-  const [namVipPage, setNamVipPage] = useState<1 | 2 | 3 | 4>(1);
   const [chestNamBonus, setChestNamBonus] =
     useState<AwardedNamCupStickerResult | null>(null);
 
-  // Bản đồ 3 Nhiệm Vụ Hàng Ngày & Kho Sticker Đồ Vật Nhiệm Vụ (3D Kawaii Items)
   const [dailyQuests, setDailyQuests] = useState<DailyQuestState>(() =>
     loadDailyQuestState(),
   );
@@ -290,9 +278,6 @@ function App() {
   const [dailyChestModalOpen, setDailyChestModalOpen] = useState(false);
   const [chestBonusItems, setChestBonusItems] = useState<
     KawaiiPastryAsset[] | null
-  >(null);
-  const [chestBonusStickers, setChestBonusStickers] = useState<
-    { subjectId: SubjectId; sticker: CharacterStickerItem }[] | null
   >(null);
   const [ceremonySubject, setCeremonySubject] = useState<SubjectId | null>(
     null,
@@ -310,9 +295,68 @@ function App() {
 
   const totalLitStickers = getTotalLitStickers(stickerStore);
   const totalUnlockedInBook = getTotalUnlockedInBook(stickerStore);
-  const namRank = getNamRankInfo(stickerStore);
   const doneQuestCount = dailyQuests.quests.filter((q) => q.done).length;
   const allThreeQuestsDone = doneQuestCount === 3;
+
+  function handleSpendGoldCoins(cost: number): boolean {
+    const res = spendGoldCoins(cost);
+    setGoldCoins(res.balance);
+    return res.ok;
+  }
+
+  function handleRedeemCoinSticker(subject: SubjectId) {
+    if (goldCoins < COST_STICKER_REDEEM) {
+      if (progress.soundEnabled) {
+        speech.speak(
+          "Bé cần đủ mười xu vàng để đổi một sticker mới nhé!",
+          "vi-VN",
+        );
+      }
+      return;
+    }
+    const ok = handleSpendGoldCoins(COST_STICKER_REDEEM);
+    if (!ok) return;
+    const outcome = awardStickerForSubject(stickerStore, subject);
+    setStickerStore(outcome.updatedStore);
+    setSelectedCupSubject(subject);
+    if (progress.soundEnabled) {
+      playRewardTone();
+      speech.speak(
+        `Đã đổi mười xu vàng! Bé nhận được sticker ${outcome.awardedSticker.name}!`,
+        "vi-VN",
+      );
+    }
+    launchFullScreenFireworks();
+    if (page.type === "reward") {
+      setPage({
+        type: "reward",
+        subject,
+        awardedSticker: outcome.awardedSticker,
+        justCompletedFullSet: outcome.justCompletedFullSet,
+      });
+    }
+  }
+
+  function handleOpenClawMachine() {
+    setStorybookInitialParkMode("claw");
+    speech.stop();
+    setStorybookInitialHubZone("games");
+    setAttemptKey((k) => k + 1);
+    setDailyChestModalOpen(false);
+    setCeremonySubject(null);
+    setPage({ type: "lesson", subject: "storybook" });
+  }
+
+  function handleOpenPlushieShelf() {
+    speech.stop();
+    setDailyChestModalOpen(false);
+    setCeremonySubject(null);
+    setPage({
+      type: "sticker-book",
+      initialFilter: "claw-plushies",
+      initialPageId: "plushie-shelf",
+    });
+  }
 
   function triggerTapBurst(
     e: React.MouseEvent<HTMLElement>,
@@ -371,12 +415,12 @@ function App() {
     setStickerStore(outcome.updatedStickerStore);
     setQuestItemInventory(outcome.updatedQuestItemInventory);
     setChestBonusItems(outcome.bonusItems);
-    setChestBonusStickers(outcome.bonusStickers);
     setChestNamBonus(namAward);
+    setGoldCoins(addGoldCoins(EARN_COINS_DAILY_CHEST));
     if (progress.soundEnabled) {
       playRewardTone();
       speech.speak(
-        `Oa! Chúc mừng bé Nấm đã hoàn thành đủ ba nhiệm vụ hôm nay! Con nhận được một Sticker Bé Nấm xịn nhất: ${namAward.sticker.name} cùng bốn Sticker Đồ Vật để dán vào Vở nhé!`,
+        `Oa! Chúc mừng bé Nấm đã hoàn thành đủ ba nhiệm vụ hôm nay! Con nhận được thêm mười xu vàng, một Sticker Bé Nấm xịn nhất: ${namAward.sticker.name} cùng bốn Sticker Đồ Vật để dán vào Vở nhé!`,
         "vi-VN",
       );
     }
@@ -387,7 +431,6 @@ function App() {
     const next = startNewQuestRound(dailyQuests);
     setDailyQuests(next);
     setChestBonusItems(null);
-    setChestBonusStickers(null);
     setChestNamBonus(null);
     if (progress.soundEnabled) {
       playCharacterTapSound();
@@ -400,6 +443,18 @@ function App() {
 
   async function openVideoTheater() {
     speech.stop();
+    if (!videoModalOpen) {
+      if (goldCoins < COST_CINEMA_TICKET) {
+        if (progress.soundEnabled) {
+          speech.speak(
+            "Vé vào Rạp Chiếu Phim là mười xu vàng. Bé hãy hoàn thành bài học để nhận thêm xu vàng nhé!",
+            "vi-VN",
+          );
+        }
+        return;
+      }
+      handleSpendGoldCoins(COST_CINEMA_TICKET);
+    }
     setActiveVideoId(null);
     setVideoModalOpen(true);
     try {
@@ -427,12 +482,6 @@ function App() {
     } catch (e) {
       console.error("Failed to load local videos", e);
       setLocalVideos([]);
-      if (progress.soundEnabled) {
-        speech.speak(
-          "Kho phim hoạt hình dài đang cất trong máy tính của Ba Mẹ. Khi mở máy tính ở nhà, Nấm sẽ xem được đầy đủ phim nhé! Bây giờ Nấm có thể hát Karaoke hoặc xem Bài Hát Tiếng Anh luôn nha!",
-          "vi-VN",
-        );
-      }
     }
   }
 
@@ -444,46 +493,10 @@ function App() {
     return () => window.clearTimeout(timer);
   }, [reaction]);
 
-  const [isMusicModuleIdle, setIsMusicModuleIdle] = useState(true);
-
-  // Tự động phát hiện khi bé đang ở Menu chọn bài học hay đã vào trong Bài học thực sự
-  useEffect(() => {
-    if (page.type !== "lesson") return;
-    const el = mainBoardRef.current;
-    if (!el) return;
-
-    let prevHasPicker = true;
-    const checkPickerState = () => {
-      const hasPicker = Boolean(
-        el.querySelector(
-          ".lesson-picker-screen, .coloring-menu-screen, .coloring-gallery-screen, .select-board-window",
-        ),
-      );
-      const hasMusicIdle = Boolean(
-        el.querySelector(".music-module-select-only"),
-      );
-      setIsInLessonPicker(hasPicker);
-      setIsMusicModuleIdle(hasMusicIdle);
-      // Khi vừa bấm chọn bài học (từ Menu -> vào Bài), tự động mở Bảng Học Full Screen
-      if (prevHasPicker && !hasPicker) {
-        setIsBoardFullscreen(true);
-      }
-      prevHasPicker = hasPicker;
-    };
-
-    checkPickerState();
-    const observer = new MutationObserver(checkPickerState);
-    observer.observe(el, {
-      childList: true,
-      subtree: true,
-      attributes: true,
-      attributeFilter: ["class"],
-    });
-    return () => observer.disconnect();
-  }, [page, attemptKey]);
-
   function startLesson(subject: SubjectId) {
     rewarded.current = false;
+    setStorybookInitialHubZone("hub");
+    warmupSubjectAudio(subject, progress.soundEnabled);
     setAttemptKey((k) => k + 1);
     const defaultVariantBySubject: Record<SubjectId, 1 | 2 | 3 | 4> = {
       reading: 1,
@@ -496,9 +509,6 @@ function App() {
       lifeskills: 4,
     };
     setPoseVariant(defaultVariantBySubject[subject] || 1);
-    setIsInLessonPicker(subject !== "lifeskills");
-    setIsMusicModuleIdle(subject === "music");
-    setIsBoardFullscreen(true);
     setReaction({ type: "idle", message: "" });
     setDailyChestModalOpen(false);
     setCeremonySubject(null);
@@ -515,12 +525,12 @@ function App() {
       playRewardTone();
       if (justCompletedFullSet) {
         speech.speak(
-          `Tuyệt vời quá! Bé Nấm vừa nhận được sticker ${awardedSticker.name} và thắp sáng đủ cả sáu sticker của ${cup.characterName}! Nấm bấm mở Cúp Vàng để cất cả sáu sticker vào Quyển Vở Sticker nhé!`,
+          `Tuyệt vời quá! Bé Nấm vừa nhận được năm xu vàng, sticker ${awardedSticker.name} và thắp sáng đủ cả sáu sticker của ${cup.characterName}! Nấm bấm mở Cúp Vàng để cất cả sáu sticker vào Quyển Vở Sticker nhé!`,
           "vi-VN",
         );
       } else {
         speech.speak(
-          `Hoan hô! Bé Nấm giỏi quá, con được tặng sticker ${awardedSticker.name} của bạn ${cup.characterName}!`,
+          `Hoan hô! Bé Nấm giỏi quá, con được thưởng năm xu vàng và tặng sticker ${awardedSticker.name} của bạn ${cup.characterName}!`,
           "vi-VN",
         );
       }
@@ -539,13 +549,12 @@ function App() {
     rewarded.current = true;
     speech.stop();
     completeLesson(getSubject(subject).lessonId, result);
+    setGoldCoins(addGoldCoins(EARN_COINS_PER_LESSON));
 
-    // Tặng 1 Sticker nhân vật tương ứng với môn học (thắp sáng trên bảng 6 sticker)
     const outcome = awardStickerForSubject(stickerStore, subject);
     setStickerStore(outcome.updatedStore);
     setSelectedCupSubject(subject);
 
-    // Đánh dấu hoàn thành Nhiệm Vụ Hôm Nay nếu môn này nằm trong 3 nhiệm vụ
     const questOutcome = markDailyQuestSubjectDone(dailyQuests, subject);
     if (questOutcome.wasQuestSubject) {
       setDailyQuests(questOutcome.updatedQuestState);
@@ -599,6 +608,7 @@ function App() {
       }
     >
       <ParticleBurstCanvas ref={particleRef} />
+
       {/* =====================================================================
           1. MÀN HÌNH SẢNH CHÍNH PASTEL (8 MÔN HỌC 4x2 TRÊN KHAY KEM SỮA)
          ===================================================================== */}
@@ -606,10 +616,9 @@ function App() {
         <div
           className="scene-screen lobby-screen pastel-lobby-screen"
           style={{
-            backgroundImage: `url("/assets/scene-lobby-pastel.png")`,
+            backgroundImage: `url("/assets/scene-lobby-pastel.webp")`,
           }}
         >
-          {/* Thanh điều khiển Kính Mờ Kem Pastel gọn ở 2 góc trên (không che bảng mây ở giữa) */}
           <header className="garland-hud pastel-lobby-hud">
             <div className="hud-left-group">
               <button
@@ -634,15 +643,25 @@ function App() {
               </button>
               <button
                 type="button"
+                className="hud-pill hud-gold"
+                onClick={handleOpenClawMachine}
+                title="Hoàn thành 1 bài học = +5 Xu Vàng • Bấm để vào Máy Gắp Thú Sanrio (10 Xu/lượt)"
+              >
+                <img
+                  src="/assets/math/items/gold-coin.webp"
+                  alt=""
+                  className="inline-coin-3d-icon"
+                />
+                <span>{goldCoins} Xu · 🧸 Gắp Thú</span>
+              </button>
+              <button
+                type="button"
                 className={`hud-pill quest-compact-trigger ${
                   allThreeQuestsDone && !dailyQuests.chestClaimed
                     ? "ready-pulse"
                     : ""
                 }`}
-                onClick={() => {
-                  setChestBonusStickers(null);
-                  setDailyChestModalOpen(true);
-                }}
+                onClick={() => setDailyChestModalOpen(true)}
                 title="Mở Bản Đồ 3 Nhiệm Vụ & Rương Kho Báu Hôm Nay"
               >
                 <Gift size={16} />
@@ -689,7 +708,6 @@ function App() {
             </div>
           </header>
 
-          {/* Sân khấu Live 60fps: Nắng mai lấp lánh & chạm vào 6 bạn ở tầng trên để nghe lời chào */}
           <LobbyLiveStage
             onTapCharacter={(char, e) => {
               triggerTapBurst(e, char.theme);
@@ -704,8 +722,9 @@ function App() {
             }}
           />
 
-          {/* Khay 8 Môn Học Pastel (4 cột × 2 hàng) nằm gọn trong lòng bảng kem sữa */}
-          <div className={`lobby-dock-container pastel-grid-8 page-${lobbyPage}`}>
+          <div
+            className={`lobby-dock-container pastel-grid-8 page-${lobbyPage}`}
+          >
             <button
               type="button"
               className="lobby-page-arrow prev"
@@ -731,6 +750,9 @@ function App() {
                     } ${isHiddenOnMobilePage ? "mobile-page-hidden" : "mobile-page-visible"}`}
                     style={
                       { "--card-accent": subj.colorTheme } as React.CSSProperties
+                    }
+                    onPointerDown={() =>
+                      warmupSubjectAudio(subj.id, progress.soundEnabled)
                     }
                     onClick={() => startLesson(subj.id)}
                     aria-label={`${subj.name} cùng ${subj.teacher}`}
@@ -787,7 +809,7 @@ function App() {
       )}
 
       {/* =====================================================================
-          2. MÀN HÌNH SÂN KHẤU LỚP HỌC 16:9 (CLASSROOM STAGE)
+          2. MÀN HÌNH BẢNG HỌC PASTEL TOÀN MÀN HÌNH (CSS THUẦN LOAD 0MS)
          ===================================================================== */}
       {page.type === "lesson" &&
         (() => {
@@ -795,97 +817,6 @@ function App() {
           const Activity = activities[page.subject];
           const isStorybook = page.subject === "storybook";
           const cupState = stickerStore[page.subject];
-          const showFullscreenBoard =
-            !isStorybook &&
-            (page.subject === "lifeskills" ||
-              (!isInLessonPicker && isBoardFullscreen));
-
-          // Bộ 4 khung dây kẹo dẻo xoắn 3D pastel siêu mỏng đính Nơ / Item đặc trưng nhân vật (lòng trắng >91%)
-          const BOARD_BG_MAP: Record<1 | 2 | 3 | 4, string> = {
-            1: "board-candy-pink.png",
-            2: "board-candy-mint.png",
-            3: "board-candy-lilac.png",
-            4: "board-candy-butter.png",
-          };
-          const BOARD_CLASS_MAP: Record<1 | 2 | 3 | 4, string> = {
-            1: "kawaii-board-v2",
-            2: "kawaii-board-v3",
-            3: "kawaii-board-v4",
-            4: "kawaii-board-v1",
-          };
-
-          const bgFile = showFullscreenBoard
-            ? BOARD_BG_MAP[poseVariant]
-            : poseVariant % 2 === 1
-              ? subject.stageBg1
-              : subject.stageBg2;
-
-          // Tọa độ lòng bảng trắng chính xác theo từng ảnh nền lớp học (đo trực tiếp từ pixel ảnh gốc)
-          const STAGE_BOARD_RECT_MAP: Record<
-            string,
-            { left: string; top: string; width: string; height: string }
-          > = {
-            "stage-reading-no-kitty.png": {
-              left: "27.3%",
-              top: "10.0%",
-              width: "46.2%",
-              height: "48.6%",
-            },
-            "stage-math-1.png": {
-              left: "30.0%",
-              top: "12.8%",
-              width: "41.0%",
-              height: "42.0%",
-            },
-            "stage-math-2.png": {
-              left: "23.2%",
-              top: "13.7%",
-              width: "56.3%",
-              height: "50.4%",
-            },
-            "stage-english-1.png": {
-              left: "31.1%",
-              top: "12.3%",
-              width: "39.6%",
-              height: "43.1%",
-            },
-            "stage-english-2.png": {
-              left: "23.9%",
-              top: "16.2%",
-              width: "53.1%",
-              height: "49.0%",
-            },
-            "stage-music-1.png": {
-              left: "30.0%",
-              top: "10.1%",
-              width: "41.5%",
-              height: "44.2%",
-            },
-            "stage-music-2.png": {
-              left: "20.5%",
-              top: "11.3%",
-              width: "58.8%",
-              height: "52.8%",
-            },
-            "stage-coloring-1.png": {
-              left: "23.9%",
-              top: "10.2%",
-              width: "52.3%",
-              height: "52.3%",
-            },
-            "stage-minigame-1.jpg": {
-              left: "22.8%",
-              top: "12.6%",
-              width: "54.4%",
-              height: "60.8%",
-            },
-          };
-
-          const stageBoardRectStyle =
-            !isStorybook && !showFullscreenBoard
-              ? STAGE_BOARD_RECT_MAP[bgFile]
-              : undefined;
-
           const kawaiiBoardClass = BOARD_CLASS_MAP[poseVariant];
 
           return (
@@ -893,46 +824,31 @@ function App() {
               className={`scene-screen ${
                 isStorybook
                   ? "bedtime-story-screen"
-                  : `classroom-stage-screen reaction-${reaction.type} ${
-                      showFullscreenBoard
-                        ? `has-fullscreen-board ${kawaiiBoardClass}`
-                        : ""
-                    }`
+                  : `classroom-stage-screen reaction-${reaction.type} has-fullscreen-board css-pastel-stage ${kawaiiBoardClass}`
               }`}
-              style={
-                isStorybook
-                  ? undefined
-                  : { backgroundImage: `url("/assets/${bgFile}")` }
-              }
             >
-              <header
-                className={`garland-hud ${
-                  !isInLessonPicker ? "hud-in-active-lesson" : ""
-                }`}
-              >
-                <button
-                  type="button"
-                  className="hud-pill hud-pink"
-                  onClick={() => {
-                    speech.stop();
-                    setPage({ type: "home" });
-                  }}
-                >
-                  <Home size={18} /> Về Sảnh Chính
-                </button>
-
-                {!isStorybook &&
-                  !showFullscreenBoard &&
-                  page.subject !== "music" && (
-                    <div className="hud-stage-title">
+              <header className="garland-hud hud-in-active-lesson">
+                <div className="hud-left-group">
+                  <button
+                    type="button"
+                    className="hud-pill hud-pink"
+                    onClick={() => {
+                      speech.stop();
+                      setPage({ type: "home" });
+                    }}
+                  >
+                    <Home size={18} /> Về Sảnh
+                  </button>
+                  {!isStorybook && (
+                    <span className="hud-pill hud-subject-badge">
                       <span>{subject.icon}</span>
-                      <strong>{`${subject.name} cùng ${subject.teacher}`}</strong>
-                    </div>
+                      <strong>{subject.name}</strong>
+                    </span>
                   )}
+                </div>
 
                 <div className="hud-right-group">
-                  {/* Chỉ hiện nút Video khi đang ở ngoài màn chọn bài (Lesson Picker) để không gây xao nhãng khi đang học */}
-                  {isInLessonPicker && (
+                  {(page.subject === "music" || isStorybook) && (
                     <button
                       type="button"
                       className="hud-pill hud-purple"
@@ -951,8 +867,13 @@ function App() {
                     }}
                     title="Xem Cúp & Bộ Sticker của môn này"
                   >
-                    <Trophy size={17} /> {cupState?.litIndices.length || 0}/6
-                    Sticker
+                    <Trophy size={17} /> {cupState?.litIndices.length || 0}/6 ·{" "}
+                    <img
+                      src="/assets/math/items/gold-coin.webp"
+                      alt=""
+                      className="inline-coin-3d-icon"
+                    />{" "}
+                    {goldCoins}
                   </button>
                   <button
                     type="button"
@@ -981,217 +902,70 @@ function App() {
                 </div>
               </header>
 
-              {/* Bong bóng khen ngợi nhỏ gọn ở mép trên khi đang mở Bảng Lớn (không chặn vùng bấm) */}
-              {showFullscreenBoard && reaction.message && (
-                <div className="kawaii-top-characters-hotspot" style={{ pointerEvents: "none" }}>
+              {!isStorybook && reaction.message && (
+                <div
+                  className="kawaii-top-characters-hotspot"
+                  style={{ pointerEvents: "none" }}
+                >
                   <div className={`kawaii-top-speech-bubble ${reaction.type}`}>
                     {reaction.message}
                   </div>
                 </div>
               )}
 
-              {!isStorybook && !showFullscreenBoard && (
-                <>
-                  <div
-                    className="character-hotspot hotspot-left"
-                    onClick={(e) => {
-                      triggerTapBurst(e, "pink");
-                      const line =
-                        NAM_TAP_LINES[
-                          tapLineIdxRef.current % NAM_TAP_LINES.length
-                        ];
-                      tapLineIdxRef.current += 1;
-                      setReaction({ type: "happy", message: line });
-                      speech.speak(line, "vi-VN");
-                    }}
-                    title="Chạm vào Nấm!"
-                  >
-                    {reaction.type === "singing" && (
-                      <div className="singing-character-badge left-singer">
-                        <div className="singing-floating-notes">
-                          <span>🎵</span>
-                          <span>🎤</span>
-                          <span>🎶</span>
-                          <span>✨</span>
-                        </div>
-                        <div className="singing-pill-tag">🎤 Nấm đang hát~</div>
-                      </div>
-                    )}
-                  </div>
-
-                  {page.subject === "reading" ? (
-                    <Kitty25DTeacher
-                      reactionType={reaction.type}
-                      reactionMessage={reaction.message}
-                      onTapKitty={(e, forcedAction?: KittyActionMode) => {
-                        triggerTapBurst(
-                          e,
-                          forcedAction === "cheer" ? "rainbow" : "pink",
-                        );
-                        let line = "";
-                        if (forcedAction === "wave") {
-                          line =
-                            "Xin chào bé Nấm! Cô Kitty vẫy tay chào con nè!";
-                        } else if (forcedAction === "wink") {
-                          line =
-                            "Hihi, cô Kitty nháy mắt khen Nấm ngoan quá đi!";
-                        } else if (forcedAction === "cheer") {
-                          line = "Hoan hô bé Nấm! Con đọc thơ siêu quá đi!";
-                        } else {
-                          line =
-                            TEACHER_TAP_LINES[
-                              tapLineIdxRef.current % TEACHER_TAP_LINES.length
-                            ];
-                          tapLineIdxRef.current += 1;
-                        }
-                        setReaction({
-                          type: "happy",
-                          message: line,
-                        });
-                        speech.speak(line, "vi-VN");
-                      }}
-                    />
-                  ) : (
-                    <div
-                      className="character-hotspot hotspot-right"
-                      onClick={(e) => {
-                        triggerTapBurst(e, "gold");
-                        const line =
-                          TEACHER_TAP_LINES[
-                            tapLineIdxRef.current % TEACHER_TAP_LINES.length
-                          ];
-                        tapLineIdxRef.current += 1;
-                        setReaction({ type: "happy", message: line });
-                        speech.speak(line, "vi-VN");
-                      }}
-                      title={`Chạm vào ${subject.teacher}!`}
-                    >
-                      {reaction.type === "singing" && (
-                        <div className="singing-character-badge right-singer">
-                          <div className="singing-floating-notes">
-                            <span>🎶</span>
-                            <span>🎼</span>
-                            <span>🎵</span>
-                            <span>🎹</span>
-                          </div>
-                          <div className="singing-pill-tag">
-                            🎶 {subject.teacher} hát cùng!
-                          </div>
-                        </div>
-                      )}
-                      {reaction.message && (
-                        <div
-                          className={`character-speech-bubble ${reaction.type}`}
-                        >
-                          {reaction.message}
-                        </div>
-                      )}
-                    </div>
-                  )}
-                </>
-              )}
-
               <main
-                ref={mainBoardRef}
                 className={
                   isStorybook
                     ? "bedtime-story-zone"
-                    : showFullscreenBoard
-                      ? `whiteboard-frame-zone fullscreen-decorated-board ${kawaiiBoardClass}`
-                      : page.subject === "minigame"
-                        ? "whiteboard-frame-zone minigame-frame-zone"
-                        : "whiteboard-frame-zone"
+                    : `whiteboard-frame-zone fullscreen-decorated-board css-pastel-board-frame ${kawaiiBoardClass}`
                 }
-                style={stageBoardRectStyle}
               >
-                {!isStorybook && !isInLessonPicker && !isBoardFullscreen && (
-                  <button
-                    type="button"
-                    className="mini-board-floating-zoom-btn"
-                    onClick={() => setIsBoardFullscreen(true)}
-                    title="Phóng to Bảng Học Kawaii toàn màn hình"
-                  >
-                    <Maximize2 size={14} /> Phóng to bảng học
-                  </button>
-                )}
-
                 <div className="board-activity-inner">
                   <Suspense fallback={null}>
-                    <Activity
-                      key={`${page.subject}-${attemptKey}`}
-                      soundEnabled={progress.soundEnabled}
-                      onComplete={(result) => finishLesson(page.subject, result)}
-                      onReaction={handleReaction}
-                      onLessonIndexChange={(idx) => {
-                        const baseMap: Record<SubjectId, number> = {
-                          reading: 0,
-                          math: 0,
-                          music: 1,
-                          minigame: 1,
-                          english: 2,
-                          coloring: 3,
-                          storybook: 0,
-                          lifeskills: 3,
-                        };
-                        const base = baseMap[page.subject] ?? 0;
-                        setPoseVariant(
-                          ((((base + idx) % 4) + 1) as 1 | 2 | 3 | 4),
-                        );
-                      }}
-                    />
+                    {isStorybook ? (
+                      <StorybookActivity
+                        key={`${page.subject}-${attemptKey}`}
+                        soundEnabled={progress.soundEnabled}
+                        onComplete={(result) => finishLesson(page.subject, result)}
+                        onReaction={handleReaction}
+                        goldCoins={goldCoins}
+                        onSpendCoins={handleSpendGoldCoins}
+                        onOpenPlushieShelf={handleOpenPlushieShelf}
+                        initialHubZone={storybookInitialHubZone}
+                        initialParkGameMode={storybookInitialParkMode}
+                        onAddCoins={(amount) => {
+                          const updated = addGoldCoins(amount);
+                          setGoldCoins(updated);
+                          setStickerStore(loadStickerStore());
+                        }}
+                      />
+                    ) : (
+                      <Activity
+                        key={`${page.subject}-${attemptKey}`}
+                        soundEnabled={progress.soundEnabled}
+                        onComplete={(result) => finishLesson(page.subject, result)}
+                        onReaction={handleReaction}
+                        onLessonIndexChange={(idx) => {
+                          const baseMap: Record<SubjectId, number> = {
+                            reading: 0,
+                            math: 0,
+                            music: 1,
+                            minigame: 1,
+                            english: 2,
+                            coloring: 3,
+                            storybook: 0,
+                            lifeskills: 3,
+                          };
+                          const base = baseMap[page.subject] ?? 0;
+                          setPoseVariant(
+                            ((((base + idx) % 4) + 1) as 1 | 2 | 3 | 4),
+                          );
+                        }}
+                      />
+                    )}
                   </Suspense>
                 </div>
               </main>
-
-              {!showFullscreenBoard && !isStorybook && (
-                <nav
-                  className="carpet-toy-dock"
-                  aria-label="Chuyển nhanh môn học"
-                >
-                  {[
-                    { id: "reading" as SubjectId, label: "Học Đọc", icon: "📖" },
-                    { id: "math" as SubjectId, label: "Học Toán", icon: "🧮" },
-                    {
-                      id: "english" as SubjectId,
-                      label: "Tiếng Anh",
-                      icon: "🔤",
-                    },
-                    { id: "music" as SubjectId, label: "Âm Nhạc", icon: "🎹" },
-                    {
-                      id: "coloring" as SubjectId,
-                      label: "Mỹ Thuật",
-                      icon: "🎨",
-                    },
-                    {
-                      id: "storybook" as SubjectId,
-                      label: "Giải Trí",
-                      icon: "📚",
-                    },
-                    {
-                      id: "minigame" as SubjectId,
-                      label: "Thể Dục",
-                      icon: "⚽",
-                    },
-                    {
-                      id: "lifeskills" as SubjectId,
-                      label: "Kỹ Năng Sống",
-                      icon: "🍳",
-                    },
-                  ].map((toy) => (
-                    <button
-                      key={toy.id}
-                      type="button"
-                      className={`toy-dock-btn ${
-                        page.subject === toy.id ? "active" : ""
-                      }`}
-                      onClick={() => startLesson(toy.id)}
-                    >
-                      <span className="toy-dock-emoji">{toy.icon}</span>
-                      <span className="toy-dock-label">{toy.label}</span>
-                    </button>
-                  ))}
-                </nav>
-              )}
             </div>
           );
         })()}
@@ -1200,732 +974,64 @@ function App() {
           2B. MÀN HÌNH CLIP CHÚC MỪNG CHIẾN THẮNG TRƯỚC KHI NHẬN STICKER
          ===================================================================== */}
       {page.type === "victory-video" && (
-        <div
-          className="scene-screen victory-video-screen"
-          style={{ backgroundImage: `url("/assets/scene-treasure.png")` }}
-        >
-          <div className="victory-video-backdrop">
-            <div className="victory-video-card">
-              <div className="victory-video-header">
-                <span>🏆 CHÚC MỪNG CHIẾN THẮNG! BÉ NẤM GIỎI QUÁ! 🎉</span>
-                <button
-                  type="button"
-                  className="chunky-btn chunky-gold btn-sm"
-                  onClick={() =>
-                    proceedToReward(
-                      page.subject,
-                      page.awardedSticker,
-                      page.justCompletedFullSet,
-                    )
-                  }
-                >
-                  🎁 Nhận Sticker Thưởng Ngay! ➔
-                </button>
-              </div>
-              <video
-                src={`/api/local-video-stream?id=${encodeURIComponent(
-                  "root:chúc mừng chiến thắng.mp4",
-                )}`}
-                autoPlay
-                playsInline
-                controls
-                className="victory-video-player"
-                onEnded={() =>
-                  proceedToReward(
-                    page.subject,
-                    page.awardedSticker,
-                    page.justCompletedFullSet,
-                  )
-                }
-                onError={() =>
-                  proceedToReward(
-                    page.subject,
-                    page.awardedSticker,
-                    page.justCompletedFullSet,
-                  )
-                }
-              />
-            </div>
-          </div>
-        </div>
+        <VictoryVideoScreen
+          subject={page.subject}
+          awardedSticker={page.awardedSticker}
+          justCompletedFullSet={page.justCompletedFullSet}
+          onProceedToReward={proceedToReward}
+        />
       )}
 
       {/* =====================================================================
           3. MÀN HÌNH TẶNG STICKER & THẮP SÁNG BẢNG STICKER NHÂN VẬT
          ===================================================================== */}
-      {page.type === "reward" &&
-        (() => {
-          const cup = SUBJECT_CUPS[page.subject];
-          const boardState = stickerStore[page.subject] || {
-            litIndices: [],
-            completedCycles: 0,
-          };
-          const isAllSixLit = boardState.litIndices.length === 6;
-
-          return (
-            <div
-              className="scene-screen treasure-screen sticker-reward-screen"
-              style={{ backgroundImage: `url("/assets/scene-treasure.png")` }}
-            >
-              <div
-                className={`sticker-reward-modal ${
-                  isAllSixLit ? "full-set-flashing-board" : ""
-                }`}
-              >
-                {/* Phần tiêu đề + Sticker vừa được tặng */}
-                <div className="sticker-reward-top">
-                  <div className="newly-awarded-showcase">
-                    <img
-                      src={cup.cupImage}
-                      alt={cup.cupTitle}
-                      className="reward-cup-icon"
-                    />
-                    <div className="newly-awarded-sticker-frame">
-                      <img
-                        src={page.awardedSticker.image}
-                        alt={page.awardedSticker.name}
-                        className="newly-awarded-sticker-img"
-                      />
-                      <span className="new-sticker-badge">MỚI! ✨</span>
-                    </div>
-                  </div>
-
-                  <div className="sticker-reward-copy">
-                    <h1 className="sticker-reward-heading">
-                      {isAllSixLit
-                        ? `🎉 SÁNG ĐỦ 6/6 STICKER ${cup.characterName.toUpperCase()}!`
-                        : `🎁 TẶNG NẤM STICKER: ${page.awardedSticker.name.toUpperCase()}!`}
-                    </h1>
-                    <p className="sticker-reward-sub">
-                      {isAllSixLit ? (
-                        <>
-                          Cả 6 sticker của <strong>{cup.characterName}</strong> đã
-                          sáng rực rỡ! Bấm vào bảng hoặc nút{" "}
-                          <strong>Mở Cúp Vàng & Cất Vào Vở</strong> để hợp nhất 6
-                          Sticker vào Cúp Vàng nhé!
-                        </>
-                      ) : (
-                        <>
-                          Sticker vừa được thắp sáng trên{" "}
-                          <strong>{cup.cupTitle}</strong> (
-                          <strong>{boardState.litIndices.length}/6</strong>{" "}
-                          sticker đã sáng) và đã mở khóa trong{" "}
-                          <strong>📒 Vở Sticker</strong>!
-                        </>
-                      )}
-                    </p>
-                  </div>
-                </div>
-
-                {/* Bảng 6 Sticker của nhân vật ngay trên màn hình thưởng */}
-                <div
-                  className={`character-sticker-grid-6 ${
-                    isAllSixLit ? "all-six-disco-glow" : ""
-                  }`}
-                  onClick={() => {
-                    if (isAllSixLit) {
-                      handleResetCupStickers(page.subject);
-                    }
-                  }}
-                  title={
-                    isAllSixLit
-                      ? "Bấm để hợp nhất 6 Sticker vào Cúp Vàng & cất vào Quyển Vở Sticker!"
-                      : undefined
-                  }
-                >
-                  {cup.stickers.map((stk) => {
-                    const isLit = boardState.litIndices.includes(stk.index);
-                    const isJustWon = stk.id === page.awardedSticker.id;
-                    return (
-                      <div
-                        key={stk.id}
-                        className={`sticker-board-slot ${
-                          isLit ? "slot-lit" : "slot-unlit"
-                        } ${isJustWon ? "slot-just-won" : ""} ${
-                          isAllSixLit ? "slot-flashing" : ""
-                        }`}
-                      >
-                        <img src={stk.image} alt={stk.name} />
-                        <span className="slot-sticker-name">
-                          {isLit ? `✨ ${stk.name}` : `🔒 ${stk.name}`}
-                        </span>
-                      </div>
-                    );
-                  })}
-                </div>
-
-                {/* Hàng nút hành động */}
-                <div className="treasure-actions">
-                  {allThreeQuestsDone && !dailyQuests.chestClaimed && (
-                    <button
-                      type="button"
-                      className="chunky-btn chunky-gold daily-chest-cta-btn"
-                      onClick={() => {
-                        setChestBonusStickers(null);
-                        setDailyChestModalOpen(true);
-                      }}
-                    >
-                      <Gift size={18} /> 🎁 Mở Rương Kho Báu Ngày Mới (+2 Sticker)!
-                    </button>
-                  )}
-                  {isAllSixLit && (
-                    <button
-                      type="button"
-                      className="chunky-btn chunky-gold daily-chest-cta-btn"
-                      onClick={() => handleResetCupStickers(page.subject)}
-                    >
-                      <Trophy size={18} /> 🏆 Mở Cúp Vàng & Cất 6 Sticker Vào Vở!
-                    </button>
-                  )}
-                  <button
-                    type="button"
-                    className="chunky-btn chunky-pink"
-                    onClick={() =>
-                      setPage({
-                        type: "sticker-book",
-                        initialFilter: page.subject,
-                      })
-                    }
-                  >
-                    <BookOpen size={18} /> 📒 Mang Vào Vở Dán Sticker Ngay!
-                  </button>
-                  <button
-                    type="button"
-                    className="chunky-btn chunky-green"
-                    onClick={() => startLesson(page.subject)}
-                  >
-                    <RotateCcw size={18} /> Chơi Tiếp Để Sáng Thêm Sticker
-                  </button>
-                  <button
-                    type="button"
-                    className="chunky-btn chunky-gold"
-                    onClick={() => {
-                      setSelectedCupSubject(page.subject);
-                      setPage({ type: "stars", initialSubject: page.subject });
-                    }}
-                  >
-                    <Trophy size={18} /> Xem Phòng Cúp & Sticker
-                  </button>
-                  <button
-                    type="button"
-                    className="chunky-btn chunky-blue"
-                    onClick={() => setPage({ type: "home" })}
-                  >
-                    <Home size={18} /> Về Sảnh Chính
-                  </button>
-                </div>
-              </div>
-            </div>
-          );
-        })()}
+      {page.type === "reward" && (
+        <StickerRewardScreen
+          subject={page.subject}
+          awardedSticker={page.awardedSticker}
+          stickerStore={stickerStore}
+          allThreeQuestsDone={allThreeQuestsDone}
+          chestClaimed={dailyQuests.chestClaimed}
+          goldCoins={goldCoins}
+          onRedeemCoinSticker={handleRedeemCoinSticker}
+          onOpenClawMachine={handleOpenClawMachine}
+          onOpenDailyChestModal={() => setDailyChestModalOpen(true)}
+          onResetCupStickers={handleResetCupStickers}
+          onOpenStickerBook={(filter) =>
+            setPage({ type: "sticker-book", initialFilter: filter })
+          }
+          onPlayAgain={startLesson}
+          onOpenTrophyRoom={(subj) => {
+            setSelectedCupSubject(subj);
+            setPage({ type: "stars", initialSubject: subj });
+          }}
+          onGoHome={() => setPage({ type: "home" })}
+        />
+      )}
 
       {/* =====================================================================
-          4. MÀN HÌNH BẢNG THÀNH TÍCH: CHIA ĐÔI TRÁI (Ô VIP STICKER NẤM + 8 CÚP CỨNG 2x4) - PHẢI (6 Ô STICKER 3x2)
+          4. MÀN HÌNH PHÒNG CÚP VÀNG & STICKER
          ===================================================================== */}
-      {page.type === "stars" &&
-        (() => {
-          const activeCup = SUBJECT_CUPS[selectedCupSubject];
-          const activeBoard = stickerStore[selectedCupSubject] || {
-            litIndices: [],
-            completedCycles: 0,
-          };
-          const isActiveFullLit = activeBoard.litIndices.length === 6;
-          const hasSet2 = isSubjectSet2Available(selectedCupSubject);
-          const effectiveSet: 1 | 2 | 3 | 4 =
-            selectedCupSubject === "lifeskills"
-              ? selectedStickerSet
-              : selectedStickerSet > 2
-                ? 1
-                : selectedStickerSet;
-          const currentStickers = getSubjectStickerSet(
-            selectedCupSubject,
-            effectiveSet,
-          );
-          const set1LitCount = getSubjectSetUnlockedCount(
-            stickerStore,
-            selectedCupSubject,
-            1,
-          );
-          const set2LitCount = getSubjectSetUnlockedCount(
-            stickerStore,
-            selectedCupSubject,
-            2,
-          );
-          const set3LitCount = getSubjectSetUnlockedCount(
-            stickerStore,
-            selectedCupSubject,
-            3,
-          );
-          const set4LitCount = getSubjectSetUnlockedCount(
-            stickerStore,
-            selectedCupSubject,
-            4,
-          );
-
-          const namInv = loadNamSpecialInventory();
-          const unlockedNamCount = getUnlockedNamSpecialCount(namInv);
-          const namNonStageList = NAM_SPECIAL_STICKERS.filter(
-            (s) => s.tier !== "stage",
-          );
-          const namPageStickers = namNonStageList.slice(
-            (namVipPage - 1) * 6,
-            namVipPage * 6,
-          );
-          const placedMap = getPlacedStickerCountMap();
-
-          return (
-            <div
-              className="scene-screen achievements-screen"
-              style={{
-                backgroundImage: `url("/assets/scene-lobby-pastel.png")`,
-              }}
-            >
-              <header className="garland-hud pastel-trophy-hud">
-                <div className="hud-left-group">
-                  <button
-                    type="button"
-                    className="hud-pill hud-pink"
-                    onClick={() => setPage({ type: "home" })}
-                  >
-                    <Home size={17} /> Về Sảnh Chính
-                  </button>
-                  <button
-                    type="button"
-                    className="hud-pill hud-purple"
-                    onClick={() =>
-                      setPage({
-                        type: "sticker-book",
-                        initialFilter: isViewingNamVipSet
-                          ? "nam-special"
-                          : selectedCupSubject,
-                      })
-                    }
-                  >
-                    <BookOpen size={16} /> 📒 Vở Dán Sticker ({totalUnlockedInBook}/48)
-                  </button>
-                </div>
-
-                <div className="hud-stage-title">
-                  <img
-                    src={NAM_MASTER_CUP_IMAGE}
-                    alt="Cúp Bé Nấm"
-                    className="hud-nam-cup-icon"
-                  />
-                  <strong>
-                    PHÒNG CÚP & STICKER · {namRank.icon} {namRank.title}
-                  </strong>
-                </div>
-
-                <button
-                  type="button"
-                  className="hud-pill hud-gold"
-                  onClick={() => startLesson(selectedCupSubject)}
-                >
-                  <Sparkles size={16} /> Học {getSubject(selectedCupSubject).name}
-                </button>
-              </header>
-
-              <div className="trophy-room-container trophy-split-layout">
-                {/* CỘT TRÁI (CỨNG): Ô VIP STICKER NẤM XỊN NHẤT + LƯỚI 8 CÚP MÔN HỌC (2 CỘT x 4 HÀNG) */}
-                <aside className="trophy-left-cups-panel">
-                  {/* Ô STICKER XỊN NHẤT: BỘ STICKER BÉ NẤM SIÊU CẤP */}
-                  <button
-                    type="button"
-                    className={`nam-vip-cup-banner ${
-                      isViewingNamVipSet ? "selected-vip" : ""
-                    }`}
-                    onClick={() => setIsViewingNamVipSet(true)}
-                  >
-                    <div className="nam-vip-banner-icon">
-                      <img src={NAM_MASTER_CUP_IMAGE} alt="Cúp Sticker Nấm" />
-                      <span className="nam-vip-crown-tag">VIP</span>
-                    </div>
-                    <div className="nam-vip-banner-info">
-                      <strong>👑 Ô Sticker Bé Nấm (Xịn Nhất)</strong>
-                      <span>Nhận khi: Xong NV Ngày · Mở 6 ô môn học</span>
-                    </div>
-                    <span className="nam-vip-count-pill">
-                      🌟 {unlockedNamCount}/{NAM_SPECIAL_STICKERS.length}
-                    </span>
-                  </button>
-
-                  <div className="cups-selector-bar cups-grid-8-fixed">
-                    {subjects.map((subj) => {
-                      const cupCfg = SUBJECT_CUPS[subj.id];
-                      const bState = stickerStore[subj.id] || {
-                        litIndices: [],
-                        completedCycles: 0,
-                      };
-                      const litCount = bState.litIndices.length;
-                      const isFull = litCount === 6;
-                      const isSelected =
-                        !isViewingNamVipSet && selectedCupSubject === subj.id;
-
-                      return (
-                        <button
-                          key={subj.id}
-                          type="button"
-                          className={`subject-cup-card ${
-                            isSelected ? "selected-cup" : ""
-                          } ${isFull ? "cup-full-flashing" : ""}`}
-                          style={
-                            {
-                              "--cup-accent": cupCfg.accentColor,
-                            } as React.CSSProperties
-                          }
-                          onClick={() => {
-                            setIsViewingNamVipSet(false);
-                            setSelectedCupSubject(subj.id);
-                          }}
-                        >
-                          <div className="cup-card-row">
-                            <div className="cup-img-wrap">
-                              <img src={cupCfg.cupImage} alt={cupCfg.cupTitle} />
-                              {bState.completedCycles > 0 && (
-                                <span className="cup-cycle-badge">
-                                  👑×{bState.completedCycles}
-                                </span>
-                              )}
-                            </div>
-                            <div className="cup-card-meta">
-                              <strong className="cup-subject-name">
-                                {subj.name}
-                              </strong>
-                              <span className="cup-char-name">
-                                {cupCfg.characterName}
-                              </span>
-                              <span
-                                className={`cup-progress-pill ${
-                                  isFull ? "full" : ""
-                                }`}
-                              >
-                                {isFull
-                                  ? "🏆 MỞ CÚP!"
-                                  : `🌟 ${litCount}/6`}
-                              </span>
-                            </div>
-                          </div>
-                        </button>
-                      );
-                    })}
-                  </div>
-                </aside>
-
-                {/* CỘT PHẢI: BẢNG 6 Ô STICKER (3 CỘT x 2 HÀNG) */}
-                {isViewingNamVipSet ? (
-                  <section className="selected-cup-sticker-board trophy-right-stickers-panel nam-vip-board-panel">
-                    <div className="sticker-board-header">
-                      <div className="board-header-left">
-                        <img
-                          src={NAM_MASTER_CUP_IMAGE}
-                          alt="Sticker Bé Nấm"
-                          className="board-header-cup-img"
-                        />
-                        <div>
-                          <h3 className="board-header-title">
-                            👑 Kho Sticker Bé Nấm Siêu Cấp ({unlockedNamCount}/
-                            {NAM_SPECIAL_STICKERS.length})
-                          </h3>
-                          <p className="board-header-sub">
-                            🎁 Sticker Nấm chỉ nhận được khi:{" "}
-                            <strong>(1) Hoàn thành Nhiệm Vụ Ngày (3/3)</strong>{" "}
-                            hoặc{" "}
-                            <strong>
-                              (2) Mở đủ 6/6 ô của 1 khu môn học chính
-                            </strong>{" "}
-                            (trừ Kỹ Năng Sống)!
-                          </p>
-                        </div>
-                      </div>
-
-                      <div className="board-header-actions">
-                        <div
-                          className="sticker-set-tabs"
-                          role="tablist"
-                          aria-label="Chọn trang Sticker Nấm"
-                        >
-                          {([1, 2, 3, 4] as const).map((pg) => (
-                            <button
-                              key={pg}
-                              type="button"
-                              role="tab"
-                              aria-selected={namVipPage === pg}
-                              className={`sticker-set-tab-btn ${
-                                namVipPage === pg ? "active" : ""
-                              }`}
-                              onClick={() => setNamVipPage(pg)}
-                            >
-                              👑 Nấm #{pg}
-                            </button>
-                          ))}
-                        </div>
-
-                        <button
-                          type="button"
-                          className="chunky-btn chunky-gold btn-sm"
-                          onClick={() => {
-                            setChestBonusStickers(null);
-                            setDailyChestModalOpen(true);
-                          }}
-                        >
-                          <Gift size={15} /> 🗺️ Xem NV Ngày
-                        </button>
-                      </div>
-                    </div>
-
-                    <div className="character-sticker-grid-6">
-                      {namPageStickers.map((stk, i) => {
-                        const globalIdx = (namVipPage - 1) * 6 + i + 1;
-                        const earnedQty = namInv[stk.id] || 0;
-                        const placedQty = placedMap[stk.id] || 0;
-                        const remainQty = Math.max(0, earnedQty - placedQty);
-                        const isUnlocked = earnedQty > 0;
-
-                        return (
-                          <div
-                            key={stk.id}
-                            className={`sticker-board-slot ${
-                              isUnlocked ? "slot-lit" : "slot-unlit"
-                            }`}
-                          >
-                            {isUnlocked ? (
-                              <span
-                                className={`slot-qty-pill ${
-                                  remainQty > 0 ? "has-stock" : "out-of-stock"
-                                }`}
-                              >
-                                {remainQty > 0
-                                  ? `Còn x${remainQty}`
-                                  : `Đã dán (${earnedQty})`}
-                              </span>
-                            ) : (
-                              <span className="slot-set-badge">
-                                🔒 NV Ngày / 6 ô môn học
-                              </span>
-                            )}
-                            <img src={stk.image} alt={stk.name} />
-                            <span className="slot-sticker-name">
-                              {isUnlocked
-                                ? `👑 #${globalIdx}: ${stk.name} (x${earnedQty})`
-                                : `🔒 #${globalIdx}: ${stk.name}`}
-                            </span>
-                          </div>
-                        );
-                      })}
-                    </div>
-                  </section>
-                ) : (
-                  <section
-                    className={`selected-cup-sticker-board trophy-right-stickers-panel ${
-                      isActiveFullLit ? "board-full-flashing" : ""
-                    }`}
-                  >
-                    <div className="sticker-board-header">
-                      <div className="board-header-left">
-                        <img
-                          src={activeCup.cupImage}
-                          alt={activeCup.cupTitle}
-                          className="board-header-cup-img"
-                        />
-                        <div>
-                          <h3 className="board-header-title">
-                            {activeCup.cupTitle} · {activeCup.characterName}
-                          </h3>
-                          <p className="board-header-sub">
-                            {selectedCupSubject === "lifeskills"
-                              ? "🍳 Kỹ Năng Sống thưởng trọn bộ 24 Sticker 3D Đầu Bếp & Món Ngon (4 Bộ × 6 hình) từ Kho Dùng Chung!"
-                              : isActiveFullLit
-                                ? "✨ Đã mở đủ 6/6 ô môn này! Bấm Mở Cúp Vàng để nhận ngay +1 Sticker Bé Nấm xịn nhất nhé!"
-                                : effectiveSet === 1
-                                  ? `Học môn ${getSubject(selectedCupSubject).name} để mở đủ 6/6 ô (${set1LitCount}/6) ➔ Nhận ngay +1 Sticker Bé Nấm xịn nhất!`
-                                  : "🔒 Bộ 2 của môn này đang để tối, chờ mẹ thêm bộ hình mới vào sau nhé!"}
-                          </p>
-                        </div>
-                      </div>
-
-                      <div className="board-header-actions">
-                        {/* Bộ chọn Tab Sticker: Bộ 1..4 cho Kỹ Năng Sống hoặc Bộ 1/2 cho môn khác */}
-                        <div
-                          className="sticker-set-tabs"
-                          role="tablist"
-                          aria-label="Chọn bộ Sticker"
-                        >
-                          <button
-                            type="button"
-                            role="tab"
-                            aria-selected={effectiveSet === 1}
-                            className={`sticker-set-tab-btn ${
-                              effectiveSet === 1 ? "active" : ""
-                            }`}
-                            onClick={() => setSelectedStickerSet(1)}
-                          >
-                            {selectedCupSubject === "lifeskills"
-                              ? `🥣 Bộ 1: Sơ Chế (${set1LitCount}/6)`
-                              : `🌟 Bộ 1 (${set1LitCount}/6)`}
-                          </button>
-                          <button
-                            type="button"
-                            role="tab"
-                            aria-selected={effectiveSet === 2}
-                            className={`sticker-set-tab-btn ${
-                              effectiveSet === 2 ? "active" : ""
-                            }`}
-                            onClick={() => setSelectedStickerSet(2)}
-                          >
-                            {selectedCupSubject === "lifeskills"
-                              ? `🍳 Bộ 2: Đồ Bếp (${set2LitCount}/6)`
-                              : `🔒 Bộ 2 (Chờ mở)`}
-                          </button>
-                          {selectedCupSubject === "lifeskills" && (
-                            <>
-                              <button
-                                type="button"
-                                role="tab"
-                                aria-selected={effectiveSet === 3}
-                                className={`sticker-set-tab-btn ${
-                                  effectiveSet === 3 ? "active" : ""
-                                }`}
-                                onClick={() => setSelectedStickerSet(3)}
-                              >
-                                {`🧁 Bộ 3: Làm Bánh (${set3LitCount}/6)`}
-                              </button>
-                              <button
-                                type="button"
-                                role="tab"
-                                aria-selected={effectiveSet === 4}
-                                className={`sticker-set-tab-btn ${
-                                  effectiveSet === 4 ? "active" : ""
-                                }`}
-                                onClick={() => setSelectedStickerSet(4)}
-                              >
-                                {`🍜 Bộ 4: Bữa Cơm (${set4LitCount}/6)`}
-                              </button>
-                            </>
-                          )}
-                        </div>
-
-                        {isActiveFullLit ? (
-                          <button
-                            type="button"
-                            className="chunky-btn chunky-gold btn-sm flashing-reset-btn"
-                            onClick={() =>
-                              handleResetCupStickers(selectedCupSubject)
-                            }
-                          >
-                            <Trophy size={15} />{" "}
-                            {selectedCupSubject === "lifeskills"
-                              ? "🏆 Mở Cúp Bánh Kẹo!"
-                              : "🏆 Mở Cúp (+1 Sticker Nấm)!"}
-                          </button>
-                        ) : (
-                          <button
-                            type="button"
-                            className="chunky-btn chunky-green btn-sm"
-                            onClick={() => startLesson(selectedCupSubject)}
-                          >
-                            <Sparkles size={15} /> Chơi Nhận Sticker
-                          </button>
-                        )}
-                      </div>
-                    </div>
-
-                    {/* Lưới 6 Ô Sticker (3 cột x 2 hàng cố định) */}
-                    <div
-                      className={`character-sticker-grid-6 ${
-                        isActiveFullLit ? "all-six-disco-glow" : ""
-                      }`}
-                      onClick={() => {
-                        if (isActiveFullLit) {
-                          handleResetCupStickers(selectedCupSubject);
-                        }
-                      }}
-                      title={
-                        isActiveFullLit
-                          ? "Bấm vào đây để Hợp Nhất Mở Cúp Vàng!"
-                          : undefined
-                      }
-                    >
-                      {currentStickers.map((stk) => {
-                        const isDarkLockedSet2 =
-                          effectiveSet >= 2 && !hasSet2;
-
-                        const earnedQty = isDarkLockedSet2
-                          ? 0
-                          : getSubjectSetStickerEarnedCount(
-                              stickerStore,
-                              selectedCupSubject,
-                              effectiveSet,
-                              stk.index,
-                            );
-
-                        const isLit = isDarkLockedSet2
-                          ? false
-                          : effectiveSet === 1
-                            ? activeBoard.litIndices.includes(stk.index) ||
-                              (selectedCupSubject === "lifeskills" &&
-                                activeBoard.completedCycles >= 1)
-                            : earnedQty > 0;
-
-                        const placedQty = placedMap[stk.id] || 0;
-                        const remainQty = Math.max(0, earnedQty - placedQty);
-
-                        return (
-                          <div
-                            key={stk.id}
-                            className={`sticker-board-slot ${
-                              isDarkLockedSet2
-                                ? "slot-unlit slot-dark-locked"
-                                : isLit || earnedQty > 0
-                                  ? "slot-lit"
-                                  : "slot-unlit"
-                            } ${
-                              isActiveFullLit && !isDarkLockedSet2
-                                ? "slot-flashing"
-                                : ""
-                            }`}
-                          >
-                            {isDarkLockedSet2 ? (
-                              <span className="slot-set-badge dark-badge">
-                                🔒 Bộ 2 · Chờ thêm
-                              </span>
-                            ) : earnedQty > 0 ? (
-                              <span
-                                className={`slot-qty-pill ${
-                                  remainQty > 0 ? "has-stock" : "out-of-stock"
-                                }`}
-                              >
-                                {remainQty > 0
-                                  ? `Còn x${remainQty}`
-                                  : `Đã dán (${earnedQty})`}
-                              </span>
-                            ) : (
-                              <span className="slot-set-badge">
-                                {selectedStickerSet === 1
-                                  ? "Bộ 1"
-                                  : "🔒 Xong Bộ 1 để mở"}
-                              </span>
-                            )}
-                            <img src={stk.image} alt={stk.name} />
-                            <span className="slot-sticker-name">
-                              {isDarkLockedSet2
-                                ? `🔒 Ô #${stk.index}: Bộ 2 (Chờ thêm)`
-                                : isLit || earnedQty > 0
-                                  ? `🌟 #${stk.index}: ${stk.name} (x${earnedQty})`
-                                  : `🔒 #${stk.index}: ${stk.name}`}
-                            </span>
-                          </div>
-                        );
-                      })}
-                    </div>
-                  </section>
-                )}
-              </div>
-            </div>
-          );
-        })()}
+      {page.type === "stars" && (
+        <StarTrophyScreen
+          stickerStore={stickerStore}
+          selectedCupSubject={selectedCupSubject}
+          onSelectCupSubject={setSelectedCupSubject}
+          onGoHome={() => setPage({ type: "home" })}
+          onOpenStickerBook={(filter) =>
+            setPage({ type: "sticker-book", initialFilter: filter })
+          }
+          onStartLesson={startLesson}
+          onOpenDailyChestModal={() => setDailyChestModalOpen(true)}
+          onResetCupStickers={handleResetCupStickers}
+          goldCoins={goldCoins}
+          onRedeemCoinSticker={handleRedeemCoinSticker}
+          onOpenClawMachine={handleOpenClawMachine}
+        />
+      )}
 
       {/* =====================================================================
-          4B. QUYỂN VỞ DÁN STICKER CỦA NẤM (PEEL & STICK INTERACTIVE BOOK)
+          4B. QUYỂN VỞ DÁN STICKER CỦA NẤM
          ===================================================================== */}
       {page.type === "sticker-book" && (
         <Suspense fallback={null}>
@@ -1940,6 +1046,7 @@ function App() {
               setChestBonusItems(null);
               setDailyChestModalOpen(true);
             }}
+            onOpenClawMachine={handleOpenClawMachine}
             onStartSubjectLesson={(subj) => startLesson(subj)}
             onBurstAt={(x, y, theme = "pink") => {
               const vp = viewportRef.current;
@@ -2019,398 +1126,40 @@ function App() {
       )}
 
       {/* =====================================================================
-          6. MODAL 3 NHIỆM VỤ NGÀY GỌN GÀNG, TRỰC QUAN BẰNG HÌNH ẢNH (0/3)
+          6. MODAL 3 NHIỆM VỤ NGÀY & RƯƠNG KHO BÁU
          ===================================================================== */}
       {dailyChestModalOpen && (
-        <div
-          className="video-modal-backdrop daily-quest-backdrop"
-          onClick={() => setDailyChestModalOpen(false)}
-        >
-          <div
-            className="daily-quest-modal-card"
-            onClick={(e) => e.stopPropagation()}
-          >
-            <div className="daily-quest-modal-header">
-              <div className="dq-header-title">
-                <span className="dq-title-icon">🎁</span>
-                <h2>Nhiệm Vụ ({doneQuestCount}/3)</h2>
-                <div className="dq-star-dots" aria-hidden="true">
-                  {dailyQuests.quests.map((q, i) => (
-                    <span
-                      key={i}
-                      className={`dq-star-dot ${q.done ? "lit" : ""}`}
-                    >
-                      ⭐
-                    </span>
-                  ))}
-                </div>
-              </div>
-              <button
-                type="button"
-                className="dq-close-circle-btn"
-                onClick={() => setDailyChestModalOpen(false)}
-                aria-label="Đóng"
-              >
-                <X size={18} />
-              </button>
-            </div>
-
-            {/* 3 Thẻ Hình Ảnh Nhiệm Vụ Gọn Gàng (Chạm trực tiếp vào ảnh để học) */}
-            <div className="dq-three-cards-row">
-              {dailyQuests.quests.map((q, idx) => {
-                const subj = getSubject(q.subjectId);
-                return (
-                  <button
-                    key={q.subjectId}
-                    type="button"
-                    className={`dq-quest-card ${q.done ? "is-done" : "is-pending"}`}
-                    onClick={() => startLesson(q.subjectId)}
-                  >
-                    <div className="dq-quest-thumb">
-                      <img src={`/assets/${subj.image}`} alt={subj.name} />
-                      <span className="dq-quest-num-badge">
-                        {q.done ? "✅" : `${idx + 1}`}
-                      </span>
-                    </div>
-                    <strong className="dq-quest-name">
-                      {q.icon} {subj.name}
-                    </strong>
-                    {q.done ? (
-                      <span className="dq-done-pill">
-                        <Check size={13} /> Xong
-                      </span>
-                    ) : (
-                      <span className="dq-play-pill">▶ Chơi</span>
-                    )}
-                  </button>
-                );
-              })}
-            </div>
-
-            {/* Thanh Rương Quà Ngắn Gọn (0/3 -> Mở Rương) */}
-            <div
-              className={`dq-treasure-chest-box ${
-                allThreeQuestsDone && !dailyQuests.chestClaimed
-                  ? "chest-ready-glow"
-                  : ""
-              }`}
-            >
-              {chestBonusItems && chestBonusItems.length > 0 ? (
-                <div className="dq-bonus-result">
-                  <div className="dq-bonus-stickers-row">
-                    {chestNamBonus && (
-                      <div className="dq-bonus-sticker-card nam-vip-bonus-card">
-                        <img
-                          src={chestNamBonus.sticker.image}
-                          alt={chestNamBonus.sticker.name}
-                          className="dq-bonus-sticker-img"
-                        />
-                        <span className="dq-bonus-qty-tag">
-                          👑 x{chestNamBonus.newCount}
-                        </span>
-                      </div>
-                    )}
-                    {chestBonusItems.map((item, i) => (
-                      <div key={`${item.id}-${i}`} className="dq-bonus-sticker-card">
-                        <img
-                          src={item.imageUrl}
-                          alt={item.name}
-                          className="dq-bonus-sticker-img"
-                        />
-                        <span className="dq-bonus-qty-tag">
-                          x{questItemInventory[item.id] || 1}
-                        </span>
-                      </div>
-                    ))}
-                  </div>
-                  <div className="dq-bonus-actions">
-                    <button
-                      type="button"
-                      className="chunky-btn chunky-gold btn-sm"
-                      onClick={() => {
-                        setDailyChestModalOpen(false);
-                        setPage({
-                          type: "sticker-book",
-                          initialFilter: "quest-unlocked",
-                          initialPageId: "supermarket",
-                        });
-                      }}
-                    >
-                      <BookOpen size={15} /> Dán Sticker
-                    </button>
-                    <button
-                      type="button"
-                      className="chunky-btn chunky-green btn-sm"
-                      onClick={handleStartNewQuestRound}
-                    >
-                      <RotateCcw size={15} /> 3 Bài Mới
-                    </button>
-                  </div>
-                </div>
-              ) : allThreeQuestsDone && !dailyQuests.chestClaimed ? (
-                <button
-                  type="button"
-                  className="dq-chest-ready-btn"
-                  onClick={handleOpenDailyChest}
-                >
-                  <span className="dq-ready-gift-icon">🎁✨</span>
-                  <strong>Mở Rương Nhận Quà! (3/3)</strong>
-                </button>
-              ) : dailyQuests.chestClaimed ? (
-                <div className="dq-chest-claimed-area">
-                  <span className="dq-claimed-badge">🏆 Đã mở (3/3)</span>
-                  <div className="dq-bonus-actions">
-                    <button
-                      type="button"
-                      className="chunky-btn chunky-gold btn-sm"
-                      onClick={() => {
-                        setDailyChestModalOpen(false);
-                        setPage({
-                          type: "sticker-book",
-                          initialFilter: "quest-unlocked",
-                          initialPageId: "supermarket",
-                        });
-                      }}
-                    >
-                      <BookOpen size={15} /> Dán Sticker
-                    </button>
-                    <button
-                      type="button"
-                      className="chunky-btn chunky-green btn-sm"
-                      onClick={handleStartNewQuestRound}
-                    >
-                      <RotateCcw size={15} /> 3 Bài Mới
-                    </button>
-                  </div>
-                </div>
-              ) : (
-                <div className="dq-chest-locked-area">
-                  <div className="dq-locked-left">
-                    <span className="dq-locked-chest-icon">🎁</span>
-                    <strong>Rương Quà ({doneQuestCount}/3)</strong>
-                  </div>
-                  <div className="dq-locked-progress-track">
-                    <div
-                      className="dq-locked-progress-fill"
-                      style={{ width: `${(doneQuestCount / 3) * 100}%` }}
-                    />
-                  </div>
-                  <span className="dq-locked-preview-icons">🍰 🍎 🚗</span>
-                </div>
-              )}
-            </div>
-          </div>
-        </div>
+        <DailyQuestChestModal
+          dailyQuests={dailyQuests}
+          questItemInventory={questItemInventory}
+          chestBonusItems={chestBonusItems}
+          chestNamBonus={chestNamBonus}
+          onClose={() => setDailyChestModalOpen(false)}
+          onStartLesson={startLesson}
+          onOpenDailyChest={handleOpenDailyChest}
+          onStartNewQuestRound={handleStartNewQuestRound}
+          onOpenSupermarketStickerBook={() => {
+            setDailyChestModalOpen(false);
+            setPage({
+              type: "sticker-book",
+              initialFilter: "quest-unlocked",
+              initialPageId: "supermarket",
+            });
+          }}
+        />
       )}
 
-      {/* Modal Rạp Chiếu Phim Hoạt Hình Local */}
+      {/* =====================================================================
+          7. MODAL RẠP CHIẾU PHIM HOẠT HÌNH CỦA NẤM
+         ===================================================================== */}
       {videoModalOpen && (
-        <div
-          className="video-modal-backdrop"
-          onClick={() => setVideoModalOpen(false)}
-        >
-          <div
-            className="video-modal-box yt-kids-theater"
-            onClick={(e) => e.stopPropagation()}
-          >
-            <div className="video-modal-header">
-              <div className="yt-header-left">
-                {activeVideoId && (
-                  <button
-                    type="button"
-                    className="chunky-btn chunky-orange btn-sm"
-                    onClick={() => setActiveVideoId(null)}
-                  >
-                    ⬅ Tất cả clip ({localVideos.length})
-                  </button>
-                )}
-                <strong>
-                  🎬{" "}
-                  {activeVideoId
-                    ? localVideos.find((v) => v.id === activeVideoId)?.title ||
-                      "Rạp Chiếu Phim Của Nấm"
-                    : `Rạp Chiếu Phim Hoạt Hình Của Nấm (${localVideos.length} tập)`}
-                </strong>
-              </div>
-              <button
-                type="button"
-                className="chunky-btn chunky-pink btn-sm"
-                onClick={() => setVideoModalOpen(false)}
-              >
-                <X size={16} /> Đóng
-              </button>
-            </div>
-
-            {!activeVideoId ? (
-              localVideos.length === 0 ? (
-                <div
-                  style={{
-                    padding: "28px 24px",
-                    textAlign: "center",
-                    display: "flex",
-                    flexDirection: "column",
-                    alignItems: "center",
-                    gap: "16px",
-                    background: "linear-gradient(180deg, #fff9fc 0%, #fff0f6 100%)",
-                    borderRadius: "24px",
-                    border: "3px dashed #f472b6",
-                    margin: "12px",
-                  }}
-                >
-                  <div style={{ fontSize: "3.2rem", lineHeight: 1 }}>🎬💻✨</div>
-                  <h3
-                    style={{
-                      margin: 0,
-                      fontSize: "1.35rem",
-                      color: "#be185d",
-                      fontWeight: 900,
-                    }}
-                  >
-                    Kho Phim Dài Đang Cất Trong Máy Tính Của Ba Mẹ
-                  </h3>
-                  <p
-                    style={{
-                      margin: 0,
-                      maxWidth: "560px",
-                      fontSize: "1.05rem",
-                      lineHeight: 1.55,
-                      color: "#4b5563",
-                      fontWeight: 700,
-                    }}
-                  >
-                    Các bộ phim hoạt hình dài có dung lượng lớn nên chỉ mở khi bật máy tính ở nhà.
-                    Trong lúc đó, Nấm có thể hát <strong>Karaoke</strong> hoặc xem{" "}
-                    <strong>8 Bài Hát & Truyện Tiếng Anh</strong> trực tuyến ngay bây giờ nhé!
-                  </p>
-                  <div
-                    style={{
-                      display: "flex",
-                      flexWrap: "wrap",
-                      gap: "12px",
-                      justifyContent: "center",
-                      marginTop: "6px",
-                    }}
-                  >
-                    <button
-                      type="button"
-                      className="chunky-btn chunky-pink"
-                      onClick={() => {
-                        setVideoModalOpen(false);
-                        startLesson("music");
-                      }}
-                    >
-                      🎤 Vào Phòng Hát Karaoke
-                    </button>
-                    <button
-                      type="button"
-                      className="chunky-btn chunky-blue"
-                      onClick={() => {
-                        setVideoModalOpen(false);
-                        startLesson("english");
-                      }}
-                    >
-                      🔤 Xem Nhạc & Truyện Tiếng Anh
-                    </button>
-                  </div>
-                </div>
-              ) : (
-                <div className="yt-thumbnail-grid">
-                  {localVideos.map((vid) => (
-                    <button
-                      key={vid.id}
-                      type="button"
-                      className="yt-video-card"
-                      onClick={() => setActiveVideoId(vid.id)}
-                    >
-                      <div className="yt-thumb-wrap">
-                        {vid.thumbUrl ? (
-                          <img
-                            src={vid.thumbUrl}
-                            alt={vid.title}
-                            loading="lazy"
-                          />
-                        ) : (
-                          <div className="yt-thumb-fallback">🎬</div>
-                        )}
-                        <div className="yt-play-overlay">▶</div>
-                        {vid.duration && (
-                          <span className="yt-duration-badge">
-                            {vid.duration}
-                          </span>
-                        )}
-                      </div>
-                      <div className="yt-card-info">
-                        <strong>{vid.title}</strong>
-                        <span>▶ Bấm để xem phim ({vid.sizeMB} MB)</span>
-                      </div>
-                    </button>
-                  ))}
-                </div>
-              )
-            ) : (
-              <div className="yt-player-stage-2col">
-                <div className="yt-main-video-box">
-                  <video
-                    key={activeVideoId}
-                    src={`/api/local-video-stream?id=${encodeURIComponent(
-                      activeVideoId,
-                    )}`}
-                    controls
-                    autoPlay
-                    playsInline
-                    className="local-video-player yt-expanded-video"
-                  />
-                </div>
-
-                <div className="yt-upnext-sidebar">
-                  <div className="yt-upnext-header">
-                    🎞️ Danh sách tập phim ({localVideos.length})
-                  </div>
-                  <div className="yt-upnext-list" ref={videoStripRef}>
-                    {localVideos.map((vid) => {
-                      const isPlaying = activeVideoId === vid.id;
-                      return (
-                        <button
-                          key={vid.id}
-                          type="button"
-                          className={`yt-upnext-item ${
-                            isPlaying ? "active" : ""
-                          }`}
-                          onClick={() => setActiveVideoId(vid.id)}
-                        >
-                          <div className="yt-upnext-thumb">
-                            {vid.thumbUrl ? (
-                              <img
-                                src={vid.thumbUrl}
-                                alt={vid.title}
-                                loading="lazy"
-                              />
-                            ) : (
-                              <span>🎬</span>
-                            )}
-                            <span className="yt-mini-play">
-                              {isPlaying ? "🔊" : "▶"}
-                            </span>
-                          </div>
-                          <div className="yt-upnext-meta">
-                            <strong className="yt-upnext-title">
-                              {vid.title}
-                            </strong>
-                            <small className="yt-upnext-sub">
-                              {isPlaying
-                                ? "🌟 Đang phát..."
-                                : `${vid.duration || "Clip"} · ${vid.sizeMB} MB`}
-                            </small>
-                          </div>
-                        </button>
-                      );
-                    })}
-                  </div>
-                </div>
-              </div>
-            )}
-          </div>
-        </div>
+        <VideoTheaterModal
+          localVideos={localVideos}
+          activeVideoId={activeVideoId}
+          onSelectVideo={setActiveVideoId}
+          onClose={() => setVideoModalOpen(false)}
+          onStartLesson={startLesson}
+        />
       )}
     </div>
   );
