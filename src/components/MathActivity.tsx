@@ -304,11 +304,11 @@ export function MathActivity({
 
       if (num === ord.targetCountA) {
         setFeedbackState("correct");
-        const formulaSummary = `Giỏi quá! ${ord.initialCountA} ${opSymbol} ${y} = ${ord.targetCountA}! Nấm tính chuẩn luôn!`;
+        const formulaSummary = `Giỏi quá! ${ord.initialCountA} ${opSymbol} ${y} = ${ord.targetCountA}!`;
         setFeedbackMessage(formulaSummary);
         if (soundEnabled) {
           playRewardTone();
-          speak(formulaSummary, "vi-VN", { playbackRate: 0.94 });
+          speak(formulaSummary, "vi-VN", { playbackRate: 0.96 });
         }
         onReaction?.("happy", formulaSummary);
       } else {
@@ -328,34 +328,67 @@ export function MathActivity({
       return;
     }
 
-    // Cấp 2: x + ? = y  hoặc  x − ? = y
+    // Cấp 2: x + ? = y  hoặc  x − ? = y -> Chạm chọn số chấm điểm ngay!
     if (ord.mode === "equation") {
       setSelectedBakeryNumber(num);
+      setAttemptsCount((c) => c + 1);
       const nextCount =
         ord.operator === "+"
           ? ord.initialCountA + num
           : Math.max(0, ord.initialCountA - num);
       setTrayCountA(nextCount);
-      if (soundEnabled) {
-        playCardPlaceSound(num);
-        const opWord = ord.operator === "+" ? "cộng" : "trừ";
-        speak(
-          `${ord.initialCountA} ${opWord} ${num} bằng ${nextCount}`,
-          "vi-VN",
-          { playbackRate: 0.96 },
-        );
+      const expectedMissing =
+        ord.missingOperand ?? Math.abs(ord.targetCountA - ord.initialCountA);
+      const opWord = ord.operator === "+" ? "+" : "−";
+
+      if (num === expectedMissing) {
+        setFeedbackState("correct");
+        const formulaSummary = `Giỏi quá! ${ord.initialCountA} ${opWord} ${expectedMissing} = ${ord.targetCountA}!`;
+        setFeedbackMessage(formulaSummary);
+        if (soundEnabled) {
+          playRewardTone();
+          speak(formulaSummary, "vi-VN", { playbackRate: 0.96 });
+        }
+        onReaction?.("happy", formulaSummary);
+      } else {
+        setFeedbackState("wrong");
+        setHintsUsedCount((h) => h + 1);
+        const hintMsg =
+          ord.operator === "+"
+            ? `Rổ có sẵn ${ord.initialCountA}, muốn có ${ord.targetCountA} thì cần thêm ${expectedMissing} (${ord.initialCountA} + ${expectedMissing} = ${ord.targetCountA}). Nấm chọn số ${expectedMissing} nhé!`
+            : `Rổ có ${ord.initialCountA}, muốn còn lại ${ord.targetCountA} thì cần bớt đi ${expectedMissing} (${ord.initialCountA} − ${expectedMissing} = ${ord.targetCountA}). Nấm chọn số ${expectedMissing} nhé!`;
+        setFeedbackMessage(hintMsg);
+        if (soundEnabled) {
+          playAttentionChime();
+          speak(hintMsg, "vi-VN", { playbackRate: 0.92 });
+        }
+        onReaction?.("sad", hintMsg);
       }
       return;
     }
 
-    // Cấp 3: ? + ? = x (Chọn 2 con số cho 2 ô dấu chấm hỏi)
+    // Cấp 3: ? + ? = x (Chọn 2 con số cho 2 ô dấu chấm hỏi -> Đủ 2 số đúng tự chấm luôn!)
+    const expectedTotal =
+      ord.totalTargetCount ?? ord.targetCountA + (ord.targetCountB || 0);
     if (activeMissingSlot === "A") {
       setSelectedBakeryNumber(num);
       setTrayCountA(num);
       setActiveMissingSlot("B");
+      const bVal = selectedBakeryNumberB;
+      if (bVal !== null && num >= 1 && bVal >= 1 && num + bVal === expectedTotal) {
+        setAttemptsCount((c) => c + 1);
+        setFeedbackState("correct");
+        const formulaSummary = `Tuyệt vời! ${num} + ${bVal} = ${expectedTotal}!`;
+        setFeedbackMessage(formulaSummary);
+        if (soundEnabled) {
+          playRewardTone();
+          speak(formulaSummary, "vi-VN", { playbackRate: 0.96 });
+        }
+        onReaction?.("happy", formulaSummary);
+        return;
+      }
       if (soundEnabled) {
         playCardPlaceSound(num);
-        const bVal = selectedBakeryNumberB;
         if (bVal !== null) {
           speak(`${num} cộng ${bVal} bằng ${num + bVal}`, "vi-VN", {
             playbackRate: 0.96,
@@ -370,9 +403,21 @@ export function MathActivity({
       setSelectedBakeryNumberB(num);
       setTrayCountB(num);
       setActiveMissingSlot("A");
+      const aVal = selectedBakeryNumber;
+      if (aVal !== null && aVal >= 1 && num >= 1 && aVal + num === expectedTotal) {
+        setAttemptsCount((c) => c + 1);
+        setFeedbackState("correct");
+        const formulaSummary = `Tuyệt vời! ${aVal} + ${num} = ${expectedTotal}!`;
+        setFeedbackMessage(formulaSummary);
+        if (soundEnabled) {
+          playRewardTone();
+          speak(formulaSummary, "vi-VN", { playbackRate: 0.96 });
+        }
+        onReaction?.("happy", formulaSummary);
+        return;
+      }
       if (soundEnabled) {
         playCardPlaceSound(num);
-        const aVal = selectedBakeryNumber;
         if (aVal !== null) {
           speak(`${aVal} cộng ${num} bằng ${aVal + num}`, "vi-VN", {
             playbackRate: 0.96,
@@ -756,6 +801,18 @@ export function MathActivity({
     const next = [...placedCoins, coinValue];
     setPlacedCoins(next);
     const nextSum = next.reduce((s, c) => s + c, 0);
+    if (nextSum === currentCoinRound.targetCoinsTotal) {
+      setAttemptsCount((c) => c + 1);
+      setFeedbackState("correct");
+      const msg = `Tuyệt vời! ${currentCoinRound.formulaText}!`;
+      setFeedbackMessage(msg);
+      if (soundEnabled) {
+        playRewardTone();
+        speak(msg, "vi-VN", { playbackRate: 0.96 });
+      }
+      onReaction?.("happy", msg);
+      return;
+    }
     if (soundEnabled) {
       playCardPlaceSound(next.length - 1);
       speak(`${nextSum} xu`, "vi-VN", { playbackRate: 0.96 });
@@ -780,7 +837,7 @@ export function MathActivity({
       setFeedbackMessage(msg);
       if (soundEnabled) {
         playRewardTone();
-        speak(msg, "vi-VN", { playbackRate: 0.94 });
+        speak(msg, "vi-VN", { playbackRate: 0.96 });
       }
       onReaction?.("happy", msg);
     } else {
@@ -830,6 +887,16 @@ export function MathActivity({
       });
     }
   };
+
+  // Tự động chuyển sang câu tiếp theo sau ~1.6s khi Nấm trả lời ĐÚNG
+  useEffect(() => {
+    if (viewMode !== "game" || feedbackState !== "correct") return;
+    const timer = window.setTimeout(() => {
+      handleNextRoundOrFinish();
+    }, 1600);
+    return () => window.clearTimeout(timer);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [viewMode, feedbackState, roundIdx, activeGameId]);
 
   const visualPastryForTable =
     KAWAII_PASTRY_CATALOG[

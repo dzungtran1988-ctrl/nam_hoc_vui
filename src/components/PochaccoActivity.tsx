@@ -40,7 +40,6 @@ import {
 } from "../lib/pochaccoMemoryGame";
 import type { MathItemTheme } from "../data/mathLessons";
 import { NamSoccerPixelGame } from "./NamSoccerPixelGame";
-import { EarthDefenderSpaceGame } from "./EarthDefenderSpaceGame";
 
 const AEROBIC_EXERCISES = [
   {
@@ -564,6 +563,22 @@ export function PochaccoActivity({
     setGameState((prev) => nextPochaccoRound(prev));
   };
 
+  // Tự động chuyển sang vòng lệnh tiếp theo sau ~1.6s khi Nấm phản xạ ĐÚNG
+  useEffect(() => {
+    if (
+      viewMode !== "game" ||
+      gameState.status !== "playing" ||
+      gameState.phase !== "feedback_correct"
+    ) {
+      return;
+    }
+    const timer = window.setTimeout(() => {
+      handleNextRound();
+    }, 1600);
+    return () => window.clearTimeout(timer);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [viewMode, gameState.status, gameState.phase, gameState.roundIndex]);
+
   const handleRetryRound = () => {
     speech.stop();
     setGameState((prev) => retryCurrentRound(prev));
@@ -731,34 +746,6 @@ export function PochaccoActivity({
               <span className="wb-row-badge">Bài 3</span>
               <strong className="wb-row-title">
                 Siêu Cầu Thủ Nhí Nấm (Đá Bóng ⚽)
-              </strong>
-              <span className="wb-row-go">▶</span>
-            </button>
-
-            {/* Hoạt động 4: Biệt Đội Phi Thuyền Ngân Hà Bảo Vệ Trái Đất */}
-            <button
-              type="button"
-              className="wb-lesson-row pochacco-entry-row"
-              style={{ "--cluster-accent": "#7950f2" } as React.CSSProperties}
-              onClick={() => {
-                speech.stop();
-                setViewMode("space-defender");
-                if (soundEnabled) {
-                  speech.speak(
-                    "Phi thuyền ánh sao đã sẵn sàng! Nấm kéo ngón tay điều khiển phi thuyền bắn thiên thạch bảo vệ Trái Đất nhé!",
-                    "vi-VN"
-                  );
-                }
-              }}
-            >
-              <img
-                src="/assets/char-nam.webp"
-                alt="Phi Thuyền Bảo Vệ Trái Đất"
-                className="wb-row-thumb-img"
-              />
-              <span className="wb-row-badge">Bài 4</span>
-              <strong className="wb-row-title">
-                Phi Thuyền Bảo Vệ Trái Đất (🚀 60FPS)
               </strong>
               <span className="wb-row-go">▶</span>
             </button>
@@ -1419,19 +1406,6 @@ export function PochaccoActivity({
             </button>
           </div>
         </div>
-      )}
-      {viewMode === "space-defender" && (
-        <EarthDefenderSpaceGame
-          soundEnabled={soundEnabled}
-          onBack={handleExitToMenu}
-          onReaction={onReaction}
-          onEarnReward={(_coins, summaryText) => {
-            onComplete({
-              attempts: 1,
-              answers: [summaryText],
-            });
-          }}
-        />
       )}
     </div>
   );

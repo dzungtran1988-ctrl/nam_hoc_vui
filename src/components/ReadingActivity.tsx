@@ -385,10 +385,13 @@ export function ReadingActivity({
     }
   };
 
-  const handleSubmitQuizAnswer = () => {
-    if (selectedChoiceIdx === null) return;
-    const picked = shuffledChoices[selectedChoiceIdx];
+  const handlePickQuizChoice = (choiceIdx: number) => {
+    if (poemStage === "correct") return;
+    const picked = shuffledChoices[choiceIdx];
     if (!picked) return;
+
+    playCardPlaceSound(choiceIdx);
+    setSelectedChoiceIdx(choiceIdx);
 
     const nextAttempts = attemptsCount + 1;
     setAttemptsCount(nextAttempts);
@@ -410,30 +413,6 @@ export function ReadingActivity({
       if (soundEnabled) {
         speak(currentQuestion.feedback, "vi-VN");
       }
-
-      if (
-        questionIdx >= activePoemQuestions.length - 1 &&
-        !completedSessionRef.current
-      ) {
-        completedSessionRef.current = true;
-        window.setTimeout(() => {
-          onComplete({
-            attempts: Math.max(1, nextAttempts),
-            answers: nextAnswers,
-            activityId: currentPoem.id,
-            skillIds: [
-              "poem-self-reading",
-              "poem-difficult-words",
-              "poem-reading-comprehension",
-              "poem-fill-blank",
-              "poem-life-skill",
-            ],
-            hintsUsed: hintsUsedCount,
-            independentResult: hintsUsedCount > 0 ? "assisted" : "passed",
-            completionSource: "system-checked",
-          });
-        }, 1600);
-      }
     } else {
       setHintsUsedCount((h) => h + 1);
       setShowEvidencePeek(true);
@@ -448,6 +427,11 @@ export function ReadingActivity({
     }
   };
 
+  const handleSubmitQuizAnswer = () => {
+    if (selectedChoiceIdx === null) return;
+    handlePickQuizChoice(selectedChoiceIdx);
+  };
+
   const handleNextQuestion = () => {
     stop();
     const nextQIdx = questionIdx + 1;
@@ -457,8 +441,35 @@ export function ReadingActivity({
       if (soundEnabled && nextQ) {
         speak(nextQ.question, "vi-VN");
       }
+    } else if (!completedSessionRef.current) {
+      completedSessionRef.current = true;
+      onComplete({
+        attempts: Math.max(1, attemptsCount),
+        answers: collectedAnswers,
+        activityId: currentPoem.id,
+        skillIds: [
+          "poem-self-reading",
+          "poem-difficult-words",
+          "poem-reading-comprehension",
+          "poem-fill-blank",
+          "poem-life-skill",
+        ],
+        hintsUsed: hintsUsedCount,
+        independentResult: hintsUsedCount > 0 ? "assisted" : "passed",
+        completionSource: "system-checked",
+      });
     }
   };
+
+  // Tự động chuyển sang câu hỏi tiếp theo (hoặc hoàn thành bài) sau ~1.6s khi Nấm chọn ĐÚNG
+  useEffect(() => {
+    if (viewMode !== "poem" || poemStage !== "correct") return;
+    const timer = window.setTimeout(() => {
+      handleNextQuestion();
+    }, 1600);
+    return () => window.clearTimeout(timer);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [viewMode, poemStage, questionIdx]);
 
   const startFlashcardSet = (fcSet: PictureWordFlashcardSet) => {
     stop();
@@ -1410,15 +1421,7 @@ export function ReadingActivity({
                       key={choice.text}
                       type="button"
                       className={`chunky-choice-btn ${showState}`}
-                      onClick={() => {
-                        if (poemStage === "correct") return;
-                        playCardPlaceSound(idx);
-                        setSelectedChoiceIdx(idx);
-                        setPoemFeedback(null);
-                        if (soundEnabled) {
-                          speak(choice.text, "vi-VN");
-                        }
-                      }}
+                      onClick={() => handlePickQuizChoice(idx)}
                     >
                       {choice.text}
                     </button>

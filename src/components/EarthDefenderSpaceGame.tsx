@@ -1,4 +1,4 @@
-import React, { useEffect, useRef, useState, useCallback } from 'react';
+import React, { useEffect, useRef, useState, useCallback, useMemo } from 'react';
 
 interface EarthDefenderSpaceGameProps {
   soundEnabled?: boolean;
@@ -9,6 +9,17 @@ interface EarthDefenderSpaceGameProps {
 }
 
 type GameStatus = 'menu' | 'playing' | 'quiz' | 'paused' | 'victory' | 'gameover';
+type QuizTargetCount = 5 | 10 | 15;
+type QuizTopicId = 'all' | 'math' | 'vietnamese' | 'english' | 'lifeskills' | 'custom';
+type QuizMilestoneReason =
+  | 'stage_start_1'
+  | 'stage_fleet_2'
+  | 'stage_fleet_3'
+  | 'mid_wave'
+  | 'boss_intro'
+  | 'boss_65'
+  | 'boss_half'
+  | 'boss_30';
 
 interface StarBg {
   x: number;
@@ -53,10 +64,20 @@ interface BossState {
   radius: number;
   spriteKey: string;
   fireCd: number;
-  halfQuizTriggered: boolean;
   hitFlash: number;
   dying: boolean;
   dyingTimer: number;
+}
+
+interface StageQuizFlags {
+  stageStartAsked: boolean;
+  midWaveAsked: boolean;
+  bossSpawned: boolean;
+  bossDefeated: boolean;
+  bossIntroAsked: boolean;
+  boss65Asked: boolean;
+  boss50Asked: boolean;
+  boss30Asked: boolean;
 }
 
 interface PortalSceneState {
@@ -135,7 +156,8 @@ interface FloatingPopup {
   scale: number;
 }
 
-interface QuizQuestion {
+export interface SpaceQuizQuestion {
+  topic: Exclude<QuizTopicId, 'all' | 'custom'>;
   subject: string;
   visual: string;
   question: string;
@@ -143,11 +165,14 @@ interface QuizQuestion {
   correct: number;
 }
 
-interface ActiveQuiz extends QuizQuestion {
+interface ActiveQuiz extends SpaceQuizQuestion {
   shuffledOptions: { text: string; isCorrect: boolean }[];
 }
 
 const BEST_SCORE_KEY = 'nam_kitty_space_campaign_best_v3';
+const CUSTOM_RAW_QUIZ_KEY = 'nam_kitty_space_custom_raw_quiz_v1';
+const QUIZ_COUNT_STORAGE_KEY = 'nam_kitty_space_quiz_count_v1';
+const QUIZ_TOPIC_STORAGE_KEY = 'nam_kitty_space_quiz_topic_v1';
 
 const STAGES = [
   {
@@ -185,31 +210,113 @@ const STAGES = [
   },
 ];
 
-const QUESTION_BANK: QuizQuestion[] = [
-  { subject: '🧮 Toán Học', visual: '🍎🍎 + 🍎 = ?', question: '2 quả táo thêm 1 quả táo là mấy quả táo?', options: ['3 quả táo', '2 quả táo', '5 quả táo'], correct: 0 },
-  { subject: '🧮 Toán Học', visual: '⭐⭐ + ⭐⭐ = ?', question: '2 ngôi sao cộng 2 ngôi sao bằng mấy ngôi sao?', options: ['4 ngôi sao', '3 ngôi sao', '5 ngôi sao'], correct: 0 },
-  { subject: '🧮 Toán Học', visual: '🚀🚀🚀🚀🚀', question: 'Đếm xem trên bảng có tất cả mấy chiếc tên lửa?', options: ['5 chiếc', '4 chiếc', '6 chiếc'], correct: 0 },
-  { subject: '🧮 Toán Học', visual: '🍓🍓🍓 - 🍓 = ?', question: 'Có 3 quả dâu tây, Nấm ăn 1 quả thì còn mấy quả?', options: ['2 quả dâu', '1 quả dâu', '3 quả dâu'], correct: 0 },
-  { subject: '🧮 Toán Học', visual: '🐘 Voi vs 🐁 Chuột', question: 'Con Voi và con Chuột, con nào to lớn hơn?', options: ['🐘 Con Voi', '🐁 Con Chuột', 'Bằng nhau'], correct: 0 },
-  { subject: '🧮 Toán Học', visual: '🔺 Hình có 3 cạnh', question: 'Hình nào dưới đây có 3 cạnh và 3 góc?', options: ['🔺 Hình tam giác', '⚪ Hình tròn', '🟦 Hình vuông'], correct: 0 },
-  { subject: '🧮 Toán Học', visual: '🖐️ Một bàn tay', question: 'Một bàn tay của Nấm có mấy ngón tay?', options: ['5 ngón tay', '4 ngón tay', '6 ngón tay'], correct: 0 },
-  { subject: '🧮 Toán Học', visual: '1, 2, 3, [ ? ], 5', question: 'Số nào đứng liền sau số 3 và đứng trước số 5?', options: ['Số 4', 'Số 2', 'Số 6'], correct: 0 },
-  { subject: '📖 Tiếng Việt', visual: '🐱 Meo meo!', question: 'Con gì kêu "Meo meo", rất thích bắt chuột?', options: ['🐱 Con Mèo', '🐶 Con Chó', '🐷 Con Lợn'], correct: 0 },
-  { subject: '📖 Tiếng Việt', visual: '🐟 C - O - N   C - Á', question: 'Từ "CON CÁ" bắt đầu bằng chữ cái nào?', options: ['Chữ C', 'Chữ B', 'Chữ M'], correct: 0 },
-  { subject: '📖 Tiếng Việt', visual: '🐓 Ò... ó... o...', question: 'Con vật nào gáy "Ò ó o" gọi mặt trời dậy mỗi sáng?', options: ['🐓 Gà Trống', '🦆 Con Vịt', '🐦 Chim Sẻ'], correct: 0 },
-  { subject: '📖 Tiếng Việt', visual: '🐝 Chăm chỉ hút mật', question: 'Con gì chăm chỉ bay đi tìm hoa làm mật ngọt?', options: ['🐝 Con Ong', '🐢 Con Rùa', '🦀 Con Cua'], correct: 0 },
-  { subject: '🔤 Tiếng Anh', visual: '🍎 APPLE', question: 'Trong Tiếng Anh, quả "APPLE" là quả gì?', options: ['🍎 Quả Táo', '🍌 Quả Chuối', '🍊 Quả Cam'], correct: 0 },
-  { subject: '🔤 Tiếng Anh', visual: '⭐ STAR', question: 'Trong Tiếng Anh, từ "STAR" có nghĩa là gì?', options: ['⭐ Ngôi Sao', '🌙 Mặt Trăng', '☁️ Đám Mây'], correct: 0 },
-  { subject: '🔤 Tiếng Anh', visual: '🔴 RED', question: 'Màu "RED" trên chiếc áo của Nấm là màu gì?', options: ['🔴 Màu Đỏ', '🔵 Màu Xanh', '🟡 Màu Vàng'], correct: 0 },
-  { subject: '🔤 Tiếng Anh', visual: '🐱 CAT', question: 'Bạn mèo Hello Kitty trong Tiếng Anh gọi là gì?', options: ['🐱 Cat', '🐶 Dog', '🦆 Duck'], correct: 0 },
-  { subject: '🚦 Kỹ Năng Sống', visual: '🛑 ĐÈN ĐỎ GIAO THÔNG', question: 'Khi đi đường gặp Đèn Giao Thông màu ĐỎ, bé phải làm gì?', options: ['🛑 Dừng lại ngay', '🏃 Chạy thật nhanh', '💃 Nhảy múa'], correct: 0 },
-  { subject: '🚦 Kỹ Năng Sống', visual: '🧼🤲 Trước khi ăn', question: 'Trước khi ăn cơm, Nấm cần làm gì để bụng luôn khỏe mạnh?', options: ['🧼 Rửa tay sạch', '🎮 Chơi điện tử', '👟 Đi giày vào'], correct: 0 },
-  { subject: '🚦 Kỹ Năng Sống', visual: '🎁 Khi được tặng quà', question: 'Khi ông bà hoặc bố mẹ tặng quà, bé ngoan sẽ nói lời gì?', options: ['🙏 Con cảm ơn ạ!', '😠 Không thích đâu', '😶 Im lặng bỏ đi'], correct: 0 },
-  { subject: '🎨 Âm Nhạc & Mỹ Thuật', visual: '🔴 Đỏ + 🟡 Vàng = ?', question: 'Khi pha màu Đỏ với màu Vàng, chúng mình được màu gì?', options: ['🟠 Màu Cam', '🟣 Màu Tím', '⚫ Màu Đen'], correct: 0 },
-  { subject: '🎨 Âm Nhạc & Mỹ Thuật', visual: '🇻🇳 Lá Cờ Tổ Quốc', question: 'Lá cờ Việt Nam có nền màu Đỏ và ngôi sao ở giữa màu gì?', options: ['⭐ Màu Vàng', '🔵 Màu Xanh', '⚪ Màu Trắng'], correct: 0 },
-  { subject: '🌿 Tự Nhiên & Vũ Trụ', visual: '🌍 Hành tinh xanh', question: 'Hành tinh thân yêu nơi chúng mình đang sống tên là gì?', options: ['🌍 Trái Đất', '🔥 Sao Hỏa', '🪐 Sao Thổ'], correct: 0 },
-  { subject: '🌿 Tự Nhiên & Vũ Trụ', visual: '☀️ Ban ngày tỏa nắng', question: 'Ông gì mọc vào buổi sáng tỏa nắng ấm áp cho muôn loài?', options: ['☀️ Ông Mặt Trời', '🌙 Ông Mặt Trăng', '🌧️ Đám Mây Mưa'], correct: 0 },
+const BUILTIN_QUESTION_BANK: SpaceQuizQuestion[] = [
+  { topic: 'math', subject: '🧮 Toán Học', visual: '🍎🍎 + 🍎 = ?', question: '2 quả táo thêm 1 quả táo là mấy quả táo?', options: ['3 quả táo', '2 quả táo', '5 quả táo'], correct: 0 },
+  { topic: 'math', subject: '🧮 Toán Học', visual: '⭐⭐ + ⭐⭐ = ?', question: '2 ngôi sao cộng 2 ngôi sao bằng mấy ngôi sao?', options: ['4 ngôi sao', '3 ngôi sao', '5 ngôi sao'], correct: 0 },
+  { topic: 'math', subject: '🧮 Toán Học', visual: '🚀🚀🚀🚀🚀', question: 'Đếm xem trên bảng có tất cả mấy chiếc tên lửa?', options: ['5 chiếc', '4 chiếc', '6 chiếc'], correct: 0 },
+  { topic: 'math', subject: '🧮 Toán Học', visual: '🍓🍓🍓 - 🍓 = ?', question: 'Có 3 quả dâu tây, Nấm ăn 1 quả thì còn mấy quả?', options: ['2 quả dâu', '1 quả dâu', '3 quả dâu'], correct: 0 },
+  { topic: 'math', subject: '🧮 Toán Học', visual: '🐘 Voi vs 🐁 Chuột', question: 'Con Voi và con Chuột, con nào to lớn hơn?', options: ['🐘 Con Voi', '🐁 Con Chuột', 'Bằng nhau'], correct: 0 },
+  { topic: 'math', subject: '🧮 Toán Học', visual: '🔺 Hình có 3 cạnh', question: 'Hình nào dưới đây có 3 cạnh và 3 góc?', options: ['🔺 Hình tam giác', '⚪ Hình tròn', '🟦 Hình vuông'], correct: 0 },
+  { topic: 'math', subject: '🧮 Toán Học', visual: '🖐️ Một bàn tay', question: 'Một bàn tay của Nấm có mấy ngón tay?', options: ['5 ngón tay', '4 ngón tay', '6 ngón tay'], correct: 0 },
+  { topic: 'math', subject: '🧮 Toán Học', visual: '1, 2, 3, [ ? ], 5', question: 'Số nào đứng liền sau số 3 và đứng trước số 5?', options: ['Số 4', 'Số 2', 'Số 6'], correct: 0 },
+  { topic: 'math', subject: '🧮 Toán Học', visual: '🧁🧁🧁 + 🧁🧁 = ?', question: 'Có 3 chiếc bánh kem, thêm 2 chiếc nữa là mấy chiếc?', options: ['5 chiếc bánh', '4 chiếc bánh', '6 chiếc bánh'], correct: 0 },
+  { topic: 'vietnamese', subject: '📖 Tiếng Việt', visual: '🐱 Meo meo!', question: 'Con gì kêu "Meo meo", rất thích bắt chuột?', options: ['🐱 Con Mèo', '🐶 Con Chó', '🐷 Con Lợn'], correct: 0 },
+  { topic: 'vietnamese', subject: '📖 Tiếng Việt', visual: '🐟 C - O - N   C - Á', question: 'Từ "CON CÁ" bắt đầu bằng chữ cái nào?', options: ['Chữ C', 'Chữ B', 'Chữ M'], correct: 0 },
+  { topic: 'vietnamese', subject: '📖 Tiếng Việt', visual: '🐓 Ò... ó... o...', question: 'Con vật nào gáy "Ò ó o" gọi mặt trời dậy mỗi sáng?', options: ['🐓 Gà Trống', '🦆 Con Vịt', '🐦 Chim Sẻ'], correct: 0 },
+  { topic: 'vietnamese', subject: '📖 Tiếng Việt', visual: '🐝 Chăm chỉ hút mật', question: 'Con gì chăm chỉ bay đi tìm hoa làm mật ngọt?', options: ['🐝 Con Ong', '🐢 Con Rùa', '🦀 Con Cua'], correct: 0 },
+  { topic: 'vietnamese', subject: '📖 Tiếng Việt', visual: '🌸 M - Ẹ   Y - Ê - U', question: 'Ai là người sinh ra và bế bồng chăm sóc Nấm từ nhỏ?', options: ['👩‍👧 Mẹ yêu', '🤖 Người máy', '⛄ Người tuyết'], correct: 0 },
+  { topic: 'english', subject: '🔤 Tiếng Anh', visual: '🍎 APPLE', question: 'Trong Tiếng Anh, quả "APPLE" là quả gì?', options: ['🍎 Quả Táo', '🍌 Quả Chuối', '🍊 Quả Cam'], correct: 0 },
+  { topic: 'english', subject: '🔤 Tiếng Anh', visual: '⭐ STAR', question: 'Trong Tiếng Anh, từ "STAR" có nghĩa là gì?', options: ['⭐ Ngôi Sao', '🌙 Mặt Trăng', '☁️ Đám Mây'], correct: 0 },
+  { topic: 'english', subject: '🔤 Tiếng Anh', visual: '🔴 RED', question: 'Màu "RED" trên chiếc áo của Nấm là màu gì?', options: ['🔴 Màu Đỏ', '🔵 Màu Xanh', '🟡 Màu Vàng'], correct: 0 },
+  { topic: 'english', subject: '🔤 Tiếng Anh', visual: '🐱 CAT', question: 'Bạn mèo Hello Kitty trong Tiếng Anh gọi là gì?', options: ['🐱 Cat', '🐶 Dog', '🦆 Duck'], correct: 0 },
+  { topic: 'english', subject: '🔤 Tiếng Anh', visual: '🌞 SUN', question: 'Trong Tiếng Anh, "THE SUN" là gì?', options: ['🌞 Mặt Trời', '🌧️ Cơn Mưa', '❄️ Bông Tuyết'], correct: 0 },
+  { topic: 'lifeskills', subject: '🚦 Kỹ Năng Sống', visual: '🛑 ĐÈN ĐỎ GIAO THÔNG', question: 'Khi đi đường gặp Đèn Giao Thông màu ĐỎ, bé phải làm gì?', options: ['🛑 Dừng lại ngay', '🏃 Chạy thật nhanh', '💃 Nhảy múa'], correct: 0 },
+  { topic: 'lifeskills', subject: '🚦 Kỹ Năng Sống', visual: '🧼🤲 Trước khi ăn', question: 'Trước khi ăn cơm, Nấm cần làm gì để bụng luôn khỏe mạnh?', options: ['🧼 Rửa tay sạch', '🎮 Chơi điện tử', '👟 Đi giày vào'], correct: 0 },
+  { topic: 'lifeskills', subject: '🚦 Kỹ Năng Sống', visual: '🎁 Khi được tặng quà', question: 'Khi ông bà hoặc bố mẹ tặng quà, bé ngoan sẽ nói lời gì?', options: ['🙏 Con cảm ơn ạ!', '😠 Không thích đâu', '😶 Im lặng bỏ đi'], correct: 0 },
+  { topic: 'lifeskills', subject: '🎨 Mỹ Thuật & Vũ Trụ', visual: '🔴 Đỏ + 🟡 Vàng = ?', question: 'Khi pha màu Đỏ với màu Vàng, chúng mình được màu gì?', options: ['🟠 Màu Cam', '🟣 Màu Tím', '⚫ Màu Đen'], correct: 0 },
+  { topic: 'lifeskills', subject: '🌿 Tự Nhiên & Vũ Trụ', visual: '🌍 Hành tinh xanh', question: 'Hành tinh thân yêu nơi chúng mình đang sống tên là gì?', options: ['🌍 Trái Đất', '🔥 Sao Hỏa', '🪐 Sao Thổ'], correct: 0 },
+  { topic: 'lifeskills', subject: '🌿 Tự Nhiên & Vũ Trụ', visual: '☀️ Ban ngày tỏa nắng', question: 'Ông gì mọc vào buổi sáng tỏa nắng ấm áp cho muôn loài?', options: ['☀️ Ông Mặt Trời', '🌙 Ông Mặt Trăng', '🌧️ Đám Mây Mưa'], correct: 0 },
 ];
+
+const SAMPLE_CUSTOM_QUIZ_TEXT = `Câu 1: 3 ngôi sao vàng thêm 2 ngôi sao vàng là mấy ngôi sao?
+*A. 5 ngôi sao
+B. 4 ngôi sao
+C. 6 ngôi sao
+
+Câu 2: Hành tinh xanh nơi Bé Nấm và Hello Kitty đang bảo vệ tên là gì?
+*A. Trái Đất
+B. Sao Hỏa
+C. Mặt Trăng
+
+Câu 3: Trong Tiếng Anh, từ "STAR" có nghĩa là gì?
+A. Đám mây
+*B. Ngôi sao
+C. Mặt trời
+
+Câu 4: Khi gặp đèn giao thông màu ĐỎ, bé phải làm gì?
+*A. Dừng lại ngay
+B. Chạy thật nhanh
+C. Nhắm mắt đi tiếp
+
+Câu 5: Một bàn tay của Nấm có mấy ngón tay?
+A. 4 ngón tay
+*B. 5 ngón tay
+C. 6 ngón tay`;
+
+export function parseRawSpaceQuestions(rawText: string): SpaceQuizQuestion[] {
+  const lines = rawText
+    .split(/\r?\n/)
+    .map((l) => l.trim())
+    .filter(Boolean);
+  const result: SpaceQuizQuestion[] = [];
+  let currentQ = '';
+  let options: string[] = [];
+  let correctIdx = 0;
+
+  const flush = () => {
+    if (currentQ && options.length >= 2) {
+      result.push({
+        topic: 'math',
+        subject: '✍️ Bộ Đề Tự Soạn',
+        visual: `🌟 Câu đố #${result.length + 1}`,
+        question: currentQ,
+        options: options.slice(0, 4),
+        correct: Math.min(Math.max(0, correctIdx), Math.min(3, options.length - 1)),
+      });
+    }
+    currentQ = '';
+    options = [];
+    correctIdx = 0;
+  };
+
+  for (const line of lines) {
+    const ansMatch = line.match(/^(?:đáp\s*án|dap\s*an|answer)\s*[:=-]?\s*([A-D])/i);
+    if (ansMatch) {
+      const letter = ansMatch[1].toUpperCase();
+      correctIdx = letter.charCodeAt(0) - 65;
+      continue;
+    }
+
+    const optMatch = line.match(/^(\*)?\s*([A-D])[.):\s-]+\s*(.+)$/i);
+    if (optMatch) {
+      const isStarred = Boolean(optMatch[1]) || optMatch[3].trim().startsWith('*');
+      const cleanOpt = optMatch[3].replace(/^\*\s*/, '').trim();
+      if (isStarred) {
+        correctIdx = options.length;
+      }
+      options.push(cleanOpt);
+      continue;
+    }
+
+    if (options.length >= 2) {
+      flush();
+    }
+    const cleanQ = line.replace(/^(?:câu|cau|question|bài|bai)\s*\d+\s*[:.)-]?\s*/i, '').trim();
+    currentQ = currentQ ? `${currentQ} ${cleanQ}` : cleanQ;
+  }
+  flush();
+  return result;
+}
 
 const SPRITE_PATHS: Record<string, string> = {
   shipMain: '/assets/space-defender/ship-kitty-nam.webp',
@@ -243,6 +350,19 @@ const SPRITE_PATHS: Record<string, string> = {
   itemRocket: '/assets/space-defender/item-rocket-3d.webp',
 };
 
+function createEmptyStageFlags(): StageQuizFlags {
+  return {
+    stageStartAsked: false,
+    midWaveAsked: false,
+    bossSpawned: false,
+    bossDefeated: false,
+    bossIntroAsked: false,
+    boss65Asked: false,
+    boss50Asked: false,
+    boss30Asked: false,
+  };
+}
+
 export const EarthDefenderSpaceGame: React.FC<EarthDefenderSpaceGameProps> = ({
   soundEnabled = true,
   onBack,
@@ -255,208 +375,164 @@ export const EarthDefenderSpaceGame: React.FC<EarthDefenderSpaceGameProps> = ({
   const spritesRef = useRef<Record<string, HTMLImageElement>>({});
   const usedQuizRef = useRef<number[]>([]);
   const lastTapRef = useRef<number>(0);
+  const quizCloseTimerRef = useRef<number | null>(null);
 
   const [status, setStatus] = useState<GameStatus>('menu');
-  const [score, setScore] = useState(0);
-  const [bestScore, setBestScore] = useState(() => {
+  const [soundOn, setSoundOn] = useState<boolean>(soundEnabled);
+  const [score, setScore] = useState<number>(0);
+  const [bestScore, setBestScore] = useState<number>(() => {
     try {
-      return Number(localStorage.getItem(BEST_SCORE_KEY) || '0');
+      return Number(localStorage.getItem(BEST_SCORE_KEY) || 0);
     } catch {
       return 0;
     }
   });
-  const [stageIdx, setStageIdx] = useState(0);
-  const [stageKills, setStageKills] = useState(0);
+  const [stageIdx, setStageIdx] = useState<number>(0);
+  const [stageKills, setStageKills] = useState<number>(0);
   const [bossHpPct, setBossHpPct] = useState<number | null>(null);
-  const [fleetCount, setFleetCount] = useState(1);
-  const [shipHp, setShipHp] = useState(5);
-  const [earthHp, setEarthHp] = useState(100);
-  const [novaEnergy, setNovaEnergy] = useState(50);
-  const [soundOn, setSoundOn] = useState(soundEnabled);
+  const [shipHp, setShipHp] = useState<number>(5);
+  const [earthHp, setEarthHp] = useState<number>(100);
+  const [fleetCount, setFleetCount] = useState<number>(1);
+  const [novaEnergy, setNovaEnergy] = useState<number>(50);
+  const [activeQuiz, setActiveQuiz] = useState<ActiveQuiz | null>(null);
+  const [quizReason, setQuizReason] = useState<QuizMilestoneReason>('boss_intro');
+  const [quizFeedback, setQuizFeedback] = useState<string>('');
+  const [quizSelectedIdx, setQuizSelectedIdx] = useState<number | null>(null);
+  const [quizStats, setQuizStats] = useState<{ correct: number; total: number }>({
+    correct: 0,
+    total: 0,
+  });
+
+  // Question Bank Config & Editor State
+  const [showQuizEditorModal, setShowQuizEditorModal] = useState<boolean>(false);
+  const [hideEditorAnswers, setHideEditorAnswers] = useState<boolean>(false);
+  const [quizTargetCount, setQuizTargetCount] = useState<QuizTargetCount>(() => {
+    try {
+      const saved = Number(localStorage.getItem(QUIZ_COUNT_STORAGE_KEY));
+      if (saved === 5 || saved === 10 || saved === 15) return saved;
+    } catch {
+      // ignore
+    }
+    return 5;
+  });
+  const [selectedTopic, setSelectedTopic] = useState<QuizTopicId>(() => {
+    try {
+      const saved = localStorage.getItem(QUIZ_TOPIC_STORAGE_KEY) as QuizTopicId;
+      if (saved && ['all', 'math', 'vietnamese', 'english', 'lifeskills', 'custom'].includes(saved)) {
+        return saved;
+      }
+    } catch {
+      // ignore
+    }
+    return 'all';
+  });
+  const [customRawText, setCustomRawText] = useState<string>(() => {
+    try {
+      return localStorage.getItem(CUSTOM_RAW_QUIZ_KEY) || SAMPLE_CUSTOM_QUIZ_TEXT;
+    } catch {
+      return SAMPLE_CUSTOM_QUIZ_TEXT;
+    }
+  });
+
+  const parsedCustomQuestions = useMemo(
+    () => parseRawSpaceQuestions(customRawText),
+    [customRawText]
+  );
+
+  const activeQuestionPool = useMemo(() => {
+    if (selectedTopic === 'custom') {
+      return parsedCustomQuestions.length > 0 ? parsedCustomQuestions : BUILTIN_QUESTION_BANK;
+    }
+    if (selectedTopic === 'all') {
+      return BUILTIN_QUESTION_BANK;
+    }
+    const filtered = BUILTIN_QUESTION_BANK.filter((q) => q.topic === selectedTopic);
+    return filtered.length > 0 ? filtered : BUILTIN_QUESTION_BANK;
+  }, [selectedTopic, parsedCustomQuestions]);
+
+  const activeQuestionPoolRef = useRef<SpaceQuizQuestion[]>(activeQuestionPool);
+  useEffect(() => {
+    activeQuestionPoolRef.current = activeQuestionPool;
+    usedQuizRef.current = [];
+  }, [activeQuestionPool]);
+
+  const quizTargetCountRef = useRef<QuizTargetCount>(quizTargetCount);
+  useEffect(() => {
+    quizTargetCountRef.current = quizTargetCount;
+    try {
+      localStorage.setItem(QUIZ_COUNT_STORAGE_KEY, String(quizTargetCount));
+    } catch {
+      // ignore
+    }
+  }, [quizTargetCount]);
+
+  useEffect(() => {
+    try {
+      localStorage.setItem(QUIZ_TOPIC_STORAGE_KEY, selectedTopic);
+    } catch {
+      // ignore
+    }
+  }, [selectedTopic]);
+
+  useEffect(() => {
+    try {
+      localStorage.setItem(CUSTOM_RAW_QUIZ_KEY, customRawText);
+    } catch {
+      // ignore
+    }
+  }, [customRawText]);
 
   useEffect(() => {
     setSoundOn(soundEnabled);
   }, [soundEnabled]);
 
-  const [activeQuiz, setActiveQuiz] = useState<ActiveQuiz | null>(null);
-  const [quizReason, setQuizReason] = useState<'boss_intro' | 'boss_half'>('boss_intro');
-  const [quizSelectedIdx, setQuizSelectedIdx] = useState<number | null>(null);
-  const [quizFeedback, setQuizFeedback] = useState<string>('');
-  const [quizStats, setQuizStats] = useState({ correct: 0, total: 0 });
-
-  useEffect(() => {
-    const loaded: Record<string, HTMLImageElement> = {};
-    Object.entries(SPRITE_PATHS).forEach(([key, src]) => {
-      const img = new Image();
-      img.src = src;
-      loaded[key] = img;
-    });
-    spritesRef.current = loaded;
+  const clearPendingQuizTimer = useCallback(() => {
+    if (quizCloseTimerRef.current !== null) {
+      window.clearTimeout(quizCloseTimerRef.current);
+      quizCloseTimerRef.current = null;
+    }
   }, []);
 
-  const getAudio = useCallback(() => {
-    if (!soundOn) return null;
-    if (!audioCtxRef.current) {
-      const AC = window.AudioContext || (window as unknown as { webkitAudioContext: typeof AudioContext }).webkitAudioContext;
-      if (AC) audioCtxRef.current = new AC();
-    }
-    if (audioCtxRef.current && audioCtxRef.current.state === 'suspended') {
-      audioCtxRef.current.resume();
-    }
-    return audioCtxRef.current;
-  }, [soundOn]);
+  useEffect(() => {
+    return () => {
+      clearPendingQuizTimer();
+      if ('speechSynthesis' in window) {
+        window.speechSynthesis.cancel();
+      }
+    };
+  }, [clearPendingQuizTimer]);
 
-  const speakVi = useCallback(
-    (text: string) => {
-      if (!soundOn || !text) return;
-      const cleaned = text.replace(/[\p{Emoji_Presentation}\p{Extended_Pictographic}]/gu, '').trim();
-      if (!cleaned) return;
-      if ('speechSynthesis' in window) window.speechSynthesis.cancel();
-      const url = `https://translate.google.com/translate_tts?ie=UTF-8&tl=vi&client=tw-ob&q=${encodeURIComponent(cleaned)}`;
-      const audio = new Audio(url);
-      audio.play().catch(() => {
-        if ('speechSynthesis' in window) {
-          const u = new SpeechSynthesisUtterance(cleaned);
-          u.lang = 'vi-VN';
-          window.speechSynthesis.speak(u);
-        }
+  const handleOverrideCustomAnswer = (qIndex: number, newCorrectIdx: number) => {
+    const blocks = customRawText
+      .trim()
+      .split(/\n\s*\n/)
+      .filter(Boolean);
+    if (!blocks[qIndex]) return;
+    const lines = blocks[qIndex].split(/\r?\n/);
+    let optCounter = 0;
+    const updatedLines = lines
+      .filter((l) => !/^(?:đáp\s*án|dap\s*an|answer)\s*[:=-]/i.test(l.trim()))
+      .map((line) => {
+        const m = line.trim().match(/^(\*)?\s*([A-D])([.):\s-]+)\s*(.+)$/i);
+        if (!m) return line;
+        const cleanBody = m[4].replace(/^\*\s*/, '').trim();
+        const prefix = optCounter === newCorrectIdx ? '*' : '';
+        optCounter++;
+        return `${prefix}${m[2].toUpperCase()}. ${cleanBody}`;
       });
-    },
-    [soundOn]
-  );
-
-  const playLaserSfx = useCallback(
-    (fleet: number) => {
-      const ctx = getAudio();
-      if (!ctx) return;
-      const now = ctx.currentTime;
-      const osc = ctx.createOscillator();
-      const gain = ctx.createGain();
-      osc.type = fleet >= 3 ? 'triangle' : 'sine';
-      osc.frequency.setValueAtTime(880 + fleet * 95, now);
-      osc.frequency.exponentialRampToValueAtTime(240, now + 0.08);
-      gain.gain.setValueAtTime(0.065, now);
-      gain.gain.exponentialRampToValueAtTime(0.001, now + 0.08);
-      osc.connect(gain);
-      gain.connect(ctx.destination);
-      osc.start(now);
-      osc.stop(now + 0.08);
-    },
-    [getAudio]
-  );
-
-  const playPopSfx = useCallback(
-    (radius: number) => {
-      const ctx = getAudio();
-      if (!ctx) return;
-      const now = ctx.currentTime;
-      const osc = ctx.createOscillator();
-      const gain = ctx.createGain();
-      osc.type = 'sawtooth';
-      const baseFreq = Math.max(70, 220 - radius * 1.2);
-      osc.frequency.setValueAtTime(baseFreq, now);
-      osc.frequency.exponentialRampToValueAtTime(30, now + 0.24);
-      gain.gain.setValueAtTime(0.15, now);
-      gain.gain.exponentialRampToValueAtTime(0.001, now + 0.24);
-      osc.connect(gain);
-      gain.connect(ctx.destination);
-      osc.start(now);
-      osc.stop(now + 0.24);
-    },
-    [getAudio]
-  );
-
-  const playMegaBoomSfx = useCallback(() => {
-    const ctx = getAudio();
-    if (!ctx) return;
-    const now = ctx.currentTime;
-    const sub = ctx.createOscillator();
-    const subG = ctx.createGain();
-    sub.type = 'sawtooth';
-    sub.frequency.setValueAtTime(140, now);
-    sub.frequency.exponentialRampToValueAtTime(24, now + 0.75);
-    subG.gain.setValueAtTime(0.32, now);
-    subG.gain.exponentialRampToValueAtTime(0.001, now + 0.75);
-    sub.connect(subG);
-    subG.connect(ctx.destination);
-    sub.start(now);
-    sub.stop(now + 0.76);
-
-    [261.63, 329.63, 392.0, 523.25, 659.25, 783.99, 1046.5].forEach((freq, idx) => {
-      const osc = ctx.createOscillator();
-      const gain = ctx.createGain();
-      osc.type = 'triangle';
-      osc.frequency.setValueAtTime(freq, now + 0.12 + idx * 0.06);
-      gain.gain.setValueAtTime(0.14, now + 0.12 + idx * 0.06);
-      gain.gain.exponentialRampToValueAtTime(0.001, now + 0.12 + idx * 0.06 + 0.48);
-      osc.connect(gain);
-      gain.connect(ctx.destination);
-      osc.start(now + 0.12 + idx * 0.06);
-      osc.stop(now + 0.12 + idx * 0.06 + 0.5);
-    });
-  }, [getAudio]);
-
-  const playWarpWhooshSfx = useCallback(() => {
-    const ctx = getAudio();
-    if (!ctx) return;
-    const now = ctx.currentTime;
-    const osc = ctx.createOscillator();
-    const gain = ctx.createGain();
-    osc.type = 'sine';
-    osc.frequency.setValueAtTime(220, now);
-    osc.frequency.exponentialRampToValueAtTime(1280, now + 0.55);
-    gain.gain.setValueAtTime(0.15, now);
-    gain.gain.exponentialRampToValueAtTime(0.001, now + 0.58);
-    osc.connect(gain);
-    gain.connect(ctx.destination);
-    osc.start(now);
-    osc.stop(now + 0.6);
-  }, [getAudio]);
-
-  const playPickupSfx = useCallback(() => {
-    const ctx = getAudio();
-    if (!ctx) return;
-    const now = ctx.currentTime;
-    [587.33, 783.99, 1046.5, 1318.5].forEach((freq, idx) => {
-      const osc = ctx.createOscillator();
-      const gain = ctx.createGain();
-      osc.type = 'triangle';
-      osc.frequency.setValueAtTime(freq, now + idx * 0.042);
-      gain.gain.setValueAtTime(0.11, now + idx * 0.042);
-      gain.gain.exponentialRampToValueAtTime(0.001, now + idx * 0.042 + 0.16);
-      osc.connect(gain);
-      gain.connect(ctx.destination);
-      osc.start(now + idx * 0.042);
-      osc.stop(now + idx * 0.042 + 0.16);
-    });
-  }, [getAudio]);
-
-  const playNovaSfx = useCallback(() => {
-    const ctx = getAudio();
-    if (!ctx) return;
-    const now = ctx.currentTime;
-    [261.6, 392.0, 523.25, 659.25, 783.99, 1046.5].forEach((freq, idx) => {
-      const osc = ctx.createOscillator();
-      const gain = ctx.createGain();
-      osc.type = 'sine';
-      osc.frequency.setValueAtTime(freq, now + idx * 0.048);
-      gain.gain.setValueAtTime(0.14, now + idx * 0.048);
-      gain.gain.exponentialRampToValueAtTime(0.001, now + idx * 0.048 + 0.42);
-      osc.connect(gain);
-      gain.connect(ctx.destination);
-      osc.start(now + idx * 0.048);
-      osc.stop(now + idx * 0.048 + 0.42);
-    });
-  }, [getAudio]);
+    blocks[qIndex] = updatedLines.join('\n');
+    setCustomRawText(blocks.join('\n\n'));
+  };
 
   const stateRef = useRef({
     status: 'menu' as GameStatus,
     width: 960,
-    height: 580,
+    height: 560,
+    frame: 0,
     shipX: 205,
-    shipY: 290,
+    shipY: 280,
     targetX: 205,
-    targetY: 290,
+    targetY: 280,
     shipVy: 0,
     shipScale: 1.0,
     shipHp: 5,
@@ -466,6 +542,11 @@ export const EarthDefenderSpaceGame: React.FC<EarthDefenderSpaceGameProps> = ({
     stageIndex: 0,
     stageKills: 0,
     boss: null as BossState | null,
+    stageFlags: [
+      createEmptyStageFlags(),
+      createEmptyStageFlags(),
+      createEmptyStageFlags(),
+    ] as StageQuizFlags[],
     portalScene: null as PortalSceneState | null,
     victoryCelebrationTimer: 0,
     fleetCount: 1,
@@ -480,7 +561,6 @@ export const EarthDefenderSpaceGame: React.FC<EarthDefenderSpaceGameProps> = ({
     novaOrbSpawned: false,
     novaFlash: 0,
     shake: 0,
-    frame: 0,
     fireCooldown: 0,
     rocketCooldown: 45,
     spawnCooldown: 30,
@@ -496,68 +576,258 @@ export const EarthDefenderSpaceGame: React.FC<EarthDefenderSpaceGameProps> = ({
     popups: [] as FloatingPopup[],
   });
 
+  useEffect(() => {
+    const loaded: Record<string, HTMLImageElement> = {};
+    Object.entries(SPRITE_PATHS).forEach(([key, src]) => {
+      const img = new Image();
+      img.src = src;
+      loaded[key] = img;
+    });
+    spritesRef.current = loaded;
+  }, []);
+
+  const getAudio = useCallback(() => {
+    if (!soundOn) return null;
+    if (!audioCtxRef.current) {
+      const AudioCtx = window.AudioContext || (window as unknown as { webkitAudioContext: typeof AudioContext }).webkitAudioContext;
+      if (AudioCtx) audioCtxRef.current = new AudioCtx();
+    }
+    if (audioCtxRef.current && audioCtxRef.current.state === 'suspended') {
+      audioCtxRef.current.resume().catch(() => {});
+    }
+    return audioCtxRef.current;
+  }, [soundOn]);
+
+  const speakVi = useCallback(
+    (text: string) => {
+      if (!soundOn || !('speechSynthesis' in window)) return;
+      try {
+        window.speechSynthesis.cancel();
+        const u = new SpeechSynthesisUtterance(text);
+        u.lang = 'vi-VN';
+        u.rate = 1.04;
+        u.pitch = 1.1;
+        window.speechSynthesis.speak(u);
+      } catch {
+        // ignore
+      }
+    },
+    [soundOn]
+  );
+
+  const playLaserSfx = useCallback(
+    (ships: number) => {
+      const ac = getAudio();
+      if (!ac) return;
+      const now = ac.currentTime;
+      const osc = ac.createOscillator();
+      const gain = ac.createGain();
+      osc.type = ships >= 3 ? 'triangle' : 'sine';
+      osc.frequency.setValueAtTime(880 + ships * 95, now);
+      osc.frequency.exponentialRampToValueAtTime(240, now + 0.08);
+      gain.gain.setValueAtTime(0.06, now);
+      gain.gain.exponentialRampToValueAtTime(0.001, now + 0.08);
+      osc.connect(gain);
+      gain.connect(ac.destination);
+      osc.start(now);
+      osc.stop(now + 0.08);
+    },
+    [getAudio]
+  );
+
+  const playPopSfx = useCallback(
+    (radius: number) => {
+      const ac = getAudio();
+      if (!ac) return;
+      const now = ac.currentTime;
+      const osc = ac.createOscillator();
+      const gain = ac.createGain();
+      osc.type = 'sawtooth';
+      const baseFreq = Math.max(70, 220 - radius * 1.2);
+      osc.frequency.setValueAtTime(baseFreq, now);
+      osc.frequency.exponentialRampToValueAtTime(30, now + 0.24);
+      gain.gain.setValueAtTime(0.14, now);
+      gain.gain.exponentialRampToValueAtTime(0.001, now + 0.24);
+      osc.connect(gain);
+      gain.connect(ac.destination);
+      osc.start(now);
+      osc.stop(now + 0.24);
+    },
+    [getAudio]
+  );
+
+  const playMegaBoomSfx = useCallback(() => {
+    const ac = getAudio();
+    if (!ac) return;
+    const now = ac.currentTime;
+    const sub = ac.createOscillator();
+    const subG = ac.createGain();
+    sub.type = 'sawtooth';
+    sub.frequency.setValueAtTime(140, now);
+    sub.frequency.exponentialRampToValueAtTime(24, now + 0.75);
+    subG.gain.setValueAtTime(0.32, now);
+    subG.gain.exponentialRampToValueAtTime(0.001, now + 0.75);
+    sub.connect(subG);
+    subG.connect(ac.destination);
+    sub.start(now);
+    sub.stop(now + 0.76);
+
+    [261.63, 329.63, 392.0, 523.25, 659.25, 783.99, 1046.5].forEach((freq, idx) => {
+      const osc = ac.createOscillator();
+      const gain = ac.createGain();
+      osc.type = 'triangle';
+      osc.frequency.setValueAtTime(freq, now + 0.12 + idx * 0.06);
+      gain.gain.setValueAtTime(0.13, now + 0.12 + idx * 0.06);
+      gain.gain.exponentialRampToValueAtTime(0.001, now + 0.12 + idx * 0.06 + 0.48);
+      osc.connect(gain);
+      gain.connect(ac.destination);
+      osc.start(now + 0.12 + idx * 0.06);
+      osc.stop(now + 0.12 + idx * 0.06 + 0.5);
+    });
+  }, [getAudio]);
+
+  const playWarpWhooshSfx = useCallback(() => {
+    const ac = getAudio();
+    if (!ac) return;
+    const now = ac.currentTime;
+    const osc = ac.createOscillator();
+    const gain = ac.createGain();
+    osc.type = 'sine';
+    osc.frequency.setValueAtTime(220, now);
+    osc.frequency.exponentialRampToValueAtTime(1280, now + 0.55);
+    gain.gain.setValueAtTime(0.15, now);
+    gain.gain.exponentialRampToValueAtTime(0.001, now + 0.58);
+    osc.connect(gain);
+    gain.connect(ac.destination);
+    osc.start(now);
+    osc.stop(now + 0.6);
+  }, [getAudio]);
+
+  const playPickupSfx = useCallback(() => {
+    const ac = getAudio();
+    if (!ac) return;
+    const now = ac.currentTime;
+    [587.33, 783.99, 1046.5, 1318.5].forEach((freq, idx) => {
+      const osc = ac.createOscillator();
+      const gain = ac.createGain();
+      osc.type = 'triangle';
+      osc.frequency.setValueAtTime(freq, now + idx * 0.042);
+      gain.gain.setValueAtTime(0.11, now + idx * 0.042);
+      gain.gain.exponentialRampToValueAtTime(0.001, now + idx * 0.042 + 0.16);
+      osc.connect(gain);
+      gain.connect(ac.destination);
+      osc.start(now + idx * 0.042);
+      osc.stop(now + idx * 0.042 + 0.16);
+    });
+  }, [getAudio]);
+
+  const playNovaSfx = useCallback(() => {
+    const ac = getAudio();
+    if (!ac) return;
+    const now = ac.currentTime;
+    [261.6, 392.0, 523.25, 659.25, 783.99, 1046.5].forEach((freq, idx) => {
+      const osc = ac.createOscillator();
+      const gain = ac.createGain();
+      osc.type = 'sine';
+      osc.frequency.setValueAtTime(freq, now + idx * 0.048);
+      gain.gain.setValueAtTime(0.14, now + idx * 0.048);
+      gain.gain.exponentialRampToValueAtTime(0.001, now + idx * 0.048 + 0.42);
+      osc.connect(gain);
+      gain.connect(ac.destination);
+      osc.start(now + idx * 0.048);
+      osc.stop(now + idx * 0.048 + 0.42);
+    });
+  }, [getAudio]);
+
   const syncHud = useCallback(() => {
     const s = stateRef.current;
     setScore(s.score);
     setStageIdx(s.stageIndex);
     setStageKills(s.stageKills);
-    setFleetCount(s.fleetCount);
     setShipHp(s.shipHp);
     setEarthHp(Math.max(0, Math.round(s.earthHp)));
-    setNovaEnergy(Math.min(100, Math.floor(s.novaEnergy)));
-    setBossHpPct(s.boss ? Math.max(0, Math.round((s.boss.hp / s.boss.maxHp) * 100)) : null);
+    setFleetCount(s.fleetCount);
+    setNovaEnergy(Math.floor(s.novaEnergy));
     setQuizStats({ correct: s.correctQuizCount, total: s.totalQuizAsked });
-
-    if (s.score > bestScore) {
-      setBestScore(s.score);
-      try {
-        localStorage.setItem(BEST_SCORE_KEY, String(s.score));
-      } catch {
-        // ignore
-      }
+    if (s.boss) {
+      setBossHpPct(Math.max(0, Math.round((s.boss.hp / s.boss.maxHp) * 100)));
+    } else {
+      setBossHpPct(null);
     }
-  }, [bestScore]);
+    setBestScore((prev) => {
+      if (s.score > prev) {
+        try {
+          localStorage.setItem(BEST_SCORE_KEY, String(s.score));
+        } catch {
+          // ignore
+        }
+        return s.score;
+      }
+      return prev;
+    });
+  }, []);
 
   const addBurst = useCallback(
-    (x: number, y: number, colors: string[], count = 18, speedScale = 1, show3dExplosion = false) => {
+    (
+      x: number,
+      y: number,
+      colors: string[],
+      count = 18,
+      speedScale = 1,
+      show3dExplosion = false
+    ) => {
       const s = stateRef.current;
       if (show3dExplosion) {
         s.explosions.push({ x, y, scale: 0.35, maxScale: 1.25 * speedScale, alpha: 1 });
       }
       for (let i = 0; i < count; i++) {
         const ang = Math.random() * Math.PI * 2;
-        const spd = (1.2 + Math.random() * 5.0) * speedScale;
+        const spd = (1.2 + Math.random() * 5.2) * speedScale;
         s.particles.push({
           x,
           y,
           vx: Math.cos(ang) * spd,
           vy: Math.sin(ang) * spd,
-          r: 2.2 + Math.random() * 4.2,
+          r: 2.2 + Math.random() * 4.5,
           color: colors[i % colors.length],
           alpha: 1,
-          decay: 0.02 + Math.random() * 0.022,
+          decay: 0.018 + Math.random() * 0.02,
         });
       }
     },
     []
   );
 
-  const openBossQuiz = useCallback(
-    (reason: 'boss_intro' | 'boss_half') => {
+  const openMilestoneQuiz = useCallback(
+    (reason: QuizMilestoneReason) => {
       const s = stateRef.current;
+      const maxAllowed = quizTargetCountRef.current;
+      // Strict guard: never open quiz if game ended, celebrating victory, or quota reached!
+      if (
+        s.status !== 'playing' ||
+        s.victoryCelebrationTimer > 0 ||
+        s.totalQuizAsked >= maxAllowed ||
+        (s.stageIndex >= STAGES.length - 1 && s.stageFlags[2]?.bossDefeated)
+      ) {
+        return;
+      }
+
+      clearPendingQuizTimer();
       s.status = 'quiz';
       s.totalQuizAsked++;
       setStatus('quiz');
       setQuizReason(reason);
       setQuizSelectedIdx(null);
 
-      if (usedQuizRef.current.length >= QUESTION_BANK.length) {
+      const pool = activeQuestionPoolRef.current;
+      if (usedQuizRef.current.length >= pool.length) {
         usedQuizRef.current = [];
       }
-      const avail = QUESTION_BANK.map((_, i) => i).filter((i) => !usedQuizRef.current.includes(i));
-      const pickIdx = avail[Math.floor(Math.random() * avail.length)];
+      const avail = pool.map((_, i) => i).filter((i) => !usedQuizRef.current.includes(i));
+      const pickIdx = avail[Math.floor(Math.random() * avail.length)] ?? 0;
       usedQuizRef.current.push(pickIdx);
-      const raw = QUESTION_BANK[pickIdx];
+      const raw = pool[pickIdx] || BUILTIN_QUESTION_BANK[0];
+
       const shuffledOptions = raw.options.map((text, idx) => ({
         text,
         isCorrect: idx === raw.correct,
@@ -568,84 +838,40 @@ export const EarthDefenderSpaceGame: React.FC<EarthDefenderSpaceGameProps> = ({
       }
 
       const stg = STAGES[s.stageIndex] || STAGES[0];
-      setQuizFeedback(
-        reason === 'boss_intro'
-          ? `⚠️ ${stg.bossName} xuất hiện! Trả lời đúng để cường hóa Siêu Vũ Khí cho cả đội tàu nhé!`
-          : `🔥 Boss đang suy yếu! Trả lời đúng để phóng mưa Tên Lửa Tự Dẫn Đường kết liễu Boss!`
-      );
+      const promptMap: Record<QuizMilestoneReason, string> = {
+        stage_start_1: '🚀 Khởi động Chiến Dịch! Trả lời đúng để bật Khiên Bất Tử & Nạp Bão Sao xuất kích!',
+        stage_fleet_2: '🛸 Tín hiệu từ Chặng 2! Trả lời đúng để triệu hồi Phi Thuyền thứ 2 (Kitty & My Melody) cùng Khiên Bất Tử!',
+        stage_fleet_3: '🛸 Tiến vào Chặng Quyết Chiến! Trả lời đúng để triệu hồi Đội Hình 3 Phi Thuyền (Nấm, Kitty & Mũ Nấm)!',
+        mid_wave: '🛰️ Vệ Tinh Tiếp Tế giữa chặng! Trả lời đúng để nhận Siêu Nam Châm + Tia Sét Bắn Nhanh!',
+        boss_intro: `⚠️ ${stg.bossName} xuất hiện! Trả lời đúng để bắn Pháo Khai Cuộc giảm ngay 20% Máu Boss + Siêu Đạn Sao Xanh!`,
+        boss_65: `🔥 ${stg.bossName} đang phản công! Trả lời đúng để Phá Giáp Boss (-15% HP) + Phóng 4 Tên Lửa Tự Dẫn!`,
+        boss_half: `💥 Boss còn 50% máu! Trả lời đúng để phóng mưa Tên Lửa Tự Dẫn Đường & Nạp Bão Sao áp đảo Boss!`,
+        boss_30: `⚡ Đòn Quyết Định! Trả lời đúng để nạp Đầy 100% Siêu Bão Sao kết liễu ${stg.bossName}!`,
+      };
+
+      setQuizFeedback(promptMap[reason]);
       setActiveQuiz({ ...raw, shuffledOptions });
+      syncHud();
       speakVi(raw.question);
     },
-    [speakVi]
+    [clearPendingQuizTimer, speakVi, syncHud]
   );
-
-  const handleSelectQuizOption = (opt: { text: string; isCorrect: boolean }, idx: number) => {
-    if (quizSelectedIdx !== null || !activeQuiz) return;
-    setQuizSelectedIdx(idx);
-    const s = stateRef.current;
-
-    if (opt.isCorrect) {
-      playPickupSfx();
-      s.correctQuizCount++;
-      s.blasterLevel = 3;
-      s.rapidTimer = 420;
-      s.novaEnergy = Math.min(100, s.novaEnergy + 45);
-      s.shipHp = Math.min(s.maxShipHp, s.shipHp + 1);
-      s.score += 120;
-      for (let r = 0; r < 4; r++) {
-        s.bullets.push({
-          x: s.shipX + 35,
-          y: s.shipY + (r - 1.5) * 28,
-          vx: 11.5,
-          vy: (r - 1.5) * 1.2,
-          dmg: 3.5,
-          spriteKey: 'itemRocket',
-          scale: 0.78,
-          homing: true,
-        });
-      }
-      setQuizFeedback(
-        `🎉 CHÍNH XÁC! Toàn đội tàu đã kích hoạt Siêu Đạn Sao Xanh + Phóng Tên Lửa Tự Dẫn!`
-      );
-
-      setTimeout(() => {
-        s.invincibleTimer = 150;
-        s.status = 'playing';
-        setStatus('playing');
-        setActiveQuiz(null);
-        s.popups.push({
-          x: s.shipX + 70,
-          y: s.shipY - 50,
-          text: `🚀 CƯỜNG HÓA ĐỘI TÀU: ĐẠN SAO XANH + TÊN LỬA!`,
-          color: '#4ADE80',
-          vy: -1.3,
-          alpha: 1,
-          scale: 1.35,
-        });
-        syncHud();
-      }, 950);
-    } else {
-      playPopSfx(40);
-      const rightText = activeQuiz.shuffledOptions.find((o) => o.isCorrect)?.text || '';
-      setQuizFeedback(
-        `💡 Đáp án đúng là: "${rightText}". Cố lên nhé, Nấm vẫn được tặng Khiên bảo vệ!`
-      );
-      setTimeout(() => {
-        s.invincibleTimer = 140;
-        s.status = 'playing';
-        setStatus('playing');
-        setActiveQuiz(null);
-        syncHud();
-      }, 1350);
-    }
-  };
 
   const startBossDyingSequence = useCallback(() => {
     const s = stateRef.current;
     if (!s.boss || s.boss.dying) return;
+    clearPendingQuizTimer();
+    setActiveQuiz(null);
+    if (s.status === 'quiz') {
+      s.status = 'playing';
+      setStatus('playing');
+    }
     s.boss.hp = 0;
     s.boss.dying = true;
     s.boss.dyingTimer = s.stageIndex >= STAGES.length - 1 ? 115 : 75;
+    if (s.stageFlags[s.stageIndex]) {
+      s.stageFlags[s.stageIndex].bossDefeated = true;
+    }
     s.bossProjectiles = [];
     s.meteors = [];
     s.invincibleTimer = 240;
@@ -660,7 +886,114 @@ export const EarthDefenderSpaceGame: React.FC<EarthDefenderSpaceGameProps> = ({
       scale: 1.45,
     });
     syncHud();
-  }, [playPopSfx, syncHud]);
+  }, [clearPendingQuizTimer, playPopSfx, syncHud]);
+
+  const handleSelectQuizOption = (opt: { text: string; isCorrect: boolean }, idx: number) => {
+    if (quizSelectedIdx !== null || !activeQuiz) return;
+    setQuizSelectedIdx(idx);
+    const s = stateRef.current;
+
+    if (opt.isCorrect) {
+      playPickupSfx();
+      s.correctQuizCount++;
+      s.blasterLevel = 3;
+      s.rapidTimer = 420;
+      s.shipHp = Math.min(s.maxShipHp, s.shipHp + 1);
+      s.score += 120;
+
+      let rewardBanner = '🚀 CƯỜNG HÓA ĐỘI TÀU: ĐẠN SAO XANH + TÊN LỬA!';
+      if (quizReason === 'stage_fleet_2') {
+        s.fleetCount = Math.max(s.fleetCount, 2);
+        s.novaEnergy = Math.min(100, s.novaEnergy + 50);
+        s.invincibleTimer = 240;
+        rewardBanner = '🛸 ĐỘI HÌNH 2 PHI THUYỀN (+KITTY & MELODY) + KHIÊN BẤT TỬ!';
+      } else if (quizReason === 'stage_fleet_3') {
+        s.fleetCount = 3;
+        s.novaEnergy = Math.min(100, s.novaEnergy + 60);
+        s.invincibleTimer = 260;
+        rewardBanner = '🛸 ĐỘI HÌNH 3 PHI THUYỀN (NẤM, KITTY & MŨ NẤM) XUẤT KÍCH!';
+      } else if (quizReason === 'mid_wave') {
+        s.magnetTimer = 480;
+        s.novaEnergy = Math.min(100, s.novaEnergy + 45);
+        rewardBanner = '🧲 TIẾP TẾ VỆ TINH: SIÊU NAM CHÂM + BẮN NHANH!';
+      } else if (quizReason === 'boss_30') {
+        s.novaEnergy = 100;
+        if (s.boss && !s.boss.dying) {
+          s.boss.hp = Math.max(1, s.boss.hp - s.boss.maxHp * 0.15);
+          s.boss.hitFlash = 10;
+        }
+        rewardBanner = '🌈 NẠP ĐẦY 100% SIÊU BÃO SAO + PHÁ GIÁP BOSS!';
+      } else {
+        s.novaEnergy = Math.min(100, s.novaEnergy + 45);
+        if (s.boss && !s.boss.dying) {
+          const bossCut = quizReason === 'boss_intro' ? 0.2 : 0.15;
+          s.boss.hp = Math.max(1, s.boss.hp - s.boss.maxHp * bossCut);
+          s.boss.hitFlash = 10;
+          addBurst(s.boss.x, s.boss.y, ['#FEF08A', '#38BDF8', '#EC4899'], 24, 1.3, true);
+        }
+      }
+
+      for (let r = 0; r < 4; r++) {
+        s.bullets.push({
+          x: s.shipX + 35,
+          y: s.shipY + (r - 1.5) * 28,
+          vx: 11.5,
+          vy: (r - 1.5) * 1.2,
+          dmg: 3.5,
+          spriteKey: 'itemRocket',
+          scale: 0.78,
+          homing: true,
+        });
+      }
+
+      setQuizFeedback(`🎉 CHÍNH XÁC! ${rewardBanner}`);
+      syncHud();
+
+      clearPendingQuizTimer();
+      quizCloseTimerRef.current = window.setTimeout(() => {
+        quizCloseTimerRef.current = null;
+        if (s.status === 'victory' || s.status === 'gameover') return;
+        s.invincibleTimer = Math.max(s.invincibleTimer, 150);
+        s.status = 'playing';
+        setStatus('playing');
+        setActiveQuiz(null);
+        s.popups.push({
+          x: s.shipX + 90,
+          y: s.shipY - 50,
+          text: rewardBanner,
+          color: '#4ADE80',
+          vy: -1.2,
+          alpha: 1,
+          scale: 1.3,
+        });
+        syncHud();
+      }, 1150);
+    } else {
+      playPopSfx(40);
+      // Even if wrong on stage 2/3 entry, still grant the new companion ship so the child doesn't lose fleet progression!
+      if (quizReason === 'stage_fleet_2') {
+        s.fleetCount = Math.max(s.fleetCount, 2);
+      } else if (quizReason === 'stage_fleet_3') {
+        s.fleetCount = 3;
+      }
+      const rightText = activeQuiz.shuffledOptions.find((o) => o.isCorrect)?.text || '';
+      setQuizFeedback(
+        `💡 Đáp án đúng là: "${rightText}". Cố lên nhé, đội tàu của Nấm vẫn được bật Khiên bảo vệ!`
+      );
+      syncHud();
+
+      clearPendingQuizTimer();
+      quizCloseTimerRef.current = window.setTimeout(() => {
+        quizCloseTimerRef.current = null;
+        if (s.status === 'victory' || s.status === 'gameover') return;
+        s.invincibleTimer = Math.max(s.invincibleTimer, 140);
+        s.status = 'playing';
+        setStatus('playing');
+        setActiveQuiz(null);
+        syncHud();
+      }, 1450);
+    }
+  };
 
   const triggerSuperNova = useCallback(() => {
     const s = stateRef.current;
@@ -709,6 +1042,7 @@ export const EarthDefenderSpaceGame: React.FC<EarthDefenderSpaceGameProps> = ({
 
   const startNewGame = useCallback(() => {
     getAudio();
+    clearPendingQuizTimer();
     const s = stateRef.current;
     s.status = 'playing';
     s.shipX = 205;
@@ -723,6 +1057,11 @@ export const EarthDefenderSpaceGame: React.FC<EarthDefenderSpaceGameProps> = ({
     s.stageIndex = 0;
     s.stageKills = 0;
     s.boss = null;
+    s.stageFlags = [
+      createEmptyStageFlags(),
+      createEmptyStageFlags(),
+      createEmptyStageFlags(),
+    ];
     s.portalScene = null;
     s.victoryCelebrationTimer = 0;
     s.fleetCount = 1;
@@ -748,11 +1087,23 @@ export const EarthDefenderSpaceGame: React.FC<EarthDefenderSpaceGameProps> = ({
     s.shockwaves = [];
     s.particles = [];
     s.popups = [];
+    usedQuizRef.current = [];
 
     setActiveQuiz(null);
     setStatus('playing');
     syncHud();
-  }, [getAudio, syncHud]);
+
+    // If 10 or 15 questions selected, open the Stage 1 Launch Quiz right after takeoff!
+    if (quizTargetCountRef.current >= 10) {
+      s.stageFlags[0].stageStartAsked = true;
+      quizCloseTimerRef.current = window.setTimeout(() => {
+        quizCloseTimerRef.current = null;
+        if (s.status === 'playing' && s.stageIndex === 0) {
+          openMilestoneQuiz('stage_start_1');
+        }
+      }, 650);
+    }
+  }, [clearPendingQuizTimer, getAudio, openMilestoneQuiz, syncHud]);
 
   useEffect(() => {
     const canvas = canvasRef.current;
@@ -781,8 +1132,8 @@ export const EarthDefenderSpaceGame: React.FC<EarthDefenderSpaceGameProps> = ({
       if (!parent) return;
       const rect = parent.getBoundingClientRect();
       const dpr = Math.min(window.devicePixelRatio || 1, 2);
-      const w = Math.max(640, rect.width);
-      const h = Math.max(440, rect.height);
+      const w = Math.max(640, rect.width || 920);
+      const h = Math.max(420, rect.height || 520);
       canvas.width = w * dpr;
       canvas.height = h * dpr;
       ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
@@ -831,9 +1182,14 @@ export const EarthDefenderSpaceGame: React.FC<EarthDefenderSpaceGameProps> = ({
 
     const finalizeBossExplosion = () => {
       const s = stateRef.current;
+      clearPendingQuizTimer();
+      setActiveQuiz(null);
       const bx = s.boss ? s.boss.x : s.width - 165;
       const by = s.boss ? s.boss.y : s.height * 0.5;
       s.boss = null;
+      if (s.stageFlags[s.stageIndex]) {
+        s.stageFlags[s.stageIndex].bossDefeated = true;
+      }
 
       playMegaBoomSfx();
       s.novaFlash = 1.0;
@@ -939,7 +1295,7 @@ export const EarthDefenderSpaceGame: React.FC<EarthDefenderSpaceGameProps> = ({
               ps.phase = 'warp_speed';
               ps.timer = 0;
               ps.warpFlash = 1.0;
-              s.stageIndex++;
+              s.stageIndex = Math.min(STAGES.length - 1, s.stageIndex + 1);
               s.fleetCount = Math.min(3, s.stageIndex + 1);
               s.stageKills = 0;
               s.shipHp = Math.min(s.maxShipHp, s.shipHp + 1);
@@ -959,10 +1315,6 @@ export const EarthDefenderSpaceGame: React.FC<EarthDefenderSpaceGameProps> = ({
               const nextStg = STAGES[s.stageIndex] || STAGES[0];
               s.shipScale = 1.0;
               s.portalScene = null;
-              const fleetJoinText =
-                s.fleetCount === 2
-                  ? '🚀 HỘI NGỘ PHI THUYỀN KITTY & MELODY (x2 TÀU)!'
-                  : '🚀 ĐỘI HÌNH 3 PHI THUYỀN: NẤM - KITTY - MŨ NẤM XUẤT KÍCH!';
               s.popups.push({
                 x: W * 0.5,
                 y: H * 0.34,
@@ -972,15 +1324,13 @@ export const EarthDefenderSpaceGame: React.FC<EarthDefenderSpaceGameProps> = ({
                 alpha: 1,
                 scale: 1.4,
               });
-              s.popups.push({
-                x: W * 0.5,
-                y: H * 0.44,
-                text: fleetJoinText,
-                color: '#4ADE80',
-                vy: -0.9,
-                alpha: 1,
-                scale: 1.3,
-              });
+
+              // Milestone: Entering Stage 2 or Stage 3 -> Ask question to summon the new companion spaceship!
+              const curFlags = s.stageFlags[s.stageIndex];
+              if (curFlags && !curFlags.stageStartAsked) {
+                curFlags.stageStartAsked = true;
+                openMilestoneQuiz(s.stageIndex === 1 ? 'stage_fleet_2' : 'stage_fleet_3');
+              }
             }
           }
         } else {
@@ -1005,17 +1355,20 @@ export const EarthDefenderSpaceGame: React.FC<EarthDefenderSpaceGameProps> = ({
             playPickupSfx();
           }
           if (s.victoryCelebrationTimer === 0) {
+            clearPendingQuizTimer();
+            setActiveQuiz(null);
             s.status = 'victory';
             setStatus('victory');
             syncHud();
             if (onEarnStars) onEarnStars(15);
             if (onEarnReward) {
-              onEarnReward(20, `Chiến thắng 3 Đại Boss Vũ Trụ (${s.score} điểm)!`);
+              onEarnReward(20, `Chiến thắng 3 Đại Boss Vũ Trụ (${s.score} điểm)`);
             }
             if (onReaction) {
               onReaction('happy', 'Hoan hô! Nấm, Hello Kitty và các bạn đã bảo vệ Trái Đất thành công!');
             }
             speakVi('Hoan hô! Nấm, Hello Kitty và các bạn đã chiến thắng bảo vệ Trái Đất thành công!');
+            return;
           }
         }
 
@@ -1133,8 +1486,12 @@ export const EarthDefenderSpaceGame: React.FC<EarthDefenderSpaceGameProps> = ({
         }
 
         const stg = STAGES[s.stageIndex] || STAGES[0];
-        if (!s.boss && !s.portalScene && s.victoryCelebrationTimer === 0) {
-          if (s.stageKills >= stg.targetMeteors) {
+        const curFlags = s.stageFlags[s.stageIndex];
+
+        if (!s.boss && !s.portalScene && s.victoryCelebrationTimer === 0 && curFlags && !curFlags.bossDefeated) {
+          if (s.stageKills >= stg.targetMeteors && !curFlags.bossSpawned) {
+            curFlags.bossSpawned = true;
+            curFlags.bossIntroAsked = true;
             s.meteors = [];
             s.bossProjectiles = [];
             s.boss = {
@@ -1146,14 +1503,13 @@ export const EarthDefenderSpaceGame: React.FC<EarthDefenderSpaceGameProps> = ({
               radius: stg.bossRadius,
               spriteKey: stg.bossSpriteKey,
               fireCd: 75,
-              halfQuizTriggered: false,
               hitFlash: 0,
               dying: false,
               dyingTimer: 0,
             };
             syncHud();
-            openBossQuiz('boss_intro');
-          } else {
+            openMilestoneQuiz('boss_intro');
+          } else if (!curFlags.bossSpawned) {
             s.spawnCooldown--;
             if (s.spawnCooldown <= 0) {
               s.spawnCooldown = Math.max(26, 58 - s.stageIndex * 8) + Math.floor(Math.random() * 20);
@@ -1224,6 +1580,7 @@ export const EarthDefenderSpaceGame: React.FC<EarthDefenderSpaceGameProps> = ({
               }
             }
 
+            const qTarget = quizTargetCountRef.current;
             for (let j = s.bullets.length - 1; j >= 0; j--) {
               const b = s.bullets[j];
               if (Math.hypot(b.x - boss.x, b.y - boss.y) <= boss.radius + 18) {
@@ -1237,16 +1594,32 @@ export const EarthDefenderSpaceGame: React.FC<EarthDefenderSpaceGameProps> = ({
                   spawnRandomPickup(boss.x - 40, boss.y + (Math.random() - 0.5) * 90);
                 }
 
-                if (!boss.halfQuizTriggered && boss.hp > 0 && boss.hp <= boss.maxHp * 0.5) {
-                  boss.halfQuizTriggered = true;
-                  syncHud();
-                  openBossQuiz('boss_half');
-                  break;
-                }
-
                 if (boss.hp <= 0) {
                   startBossDyingSequence();
                   break;
+                }
+
+                // Boss HP Milestones based on selected question package (10 or 15 questions)
+                if (curFlags && qTarget === 15) {
+                  if (!curFlags.boss65Asked && boss.hp <= boss.maxHp * 0.65 && boss.hp > boss.maxHp * 0.35) {
+                    curFlags.boss65Asked = true;
+                    syncHud();
+                    openMilestoneQuiz('boss_65');
+                    break;
+                  }
+                  if (!curFlags.boss30Asked && boss.hp <= boss.maxHp * 0.32) {
+                    curFlags.boss30Asked = true;
+                    syncHud();
+                    openMilestoneQuiz('boss_30');
+                    break;
+                  }
+                } else if (curFlags && qTarget === 10) {
+                  if (!curFlags.boss50Asked && boss.hp <= boss.maxHp * 0.5) {
+                    curFlags.boss50Asked = true;
+                    syncHud();
+                    openMilestoneQuiz('boss_half');
+                    break;
+                  }
                 }
                 syncHud();
               }
@@ -1282,6 +1655,8 @@ export const EarthDefenderSpaceGame: React.FC<EarthDefenderSpaceGameProps> = ({
               addBurst(s.shipX, s.shipY, ['#F43F5E', '#C084FC'], 18, 1.1, true);
               syncHud();
               if (s.shipHp <= 0) {
+                clearPendingQuizTimer();
+                setActiveQuiz(null);
                 s.status = 'gameover';
                 setStatus('gameover');
                 return;
@@ -1337,6 +1712,19 @@ export const EarthDefenderSpaceGame: React.FC<EarthDefenderSpaceGameProps> = ({
                 if (Math.random() < 0.46) spawnRandomPickup(m.x, m.y);
                 s.meteors.splice(i, 1);
                 syncHud();
+
+                // Mid-wave supply quiz check (for 15-question mode on all stages, or 10-question mode on Stage 3)
+                const qTarget = quizTargetCountRef.current;
+                const halfTarget = Math.floor(stg.targetMeteors * 0.5);
+                if (
+                  curFlags &&
+                  !curFlags.midWaveAsked &&
+                  s.stageKills >= halfTarget &&
+                  (qTarget === 15 || (qTarget === 10 && s.stageIndex === 2))
+                ) {
+                  curFlags.midWaveAsked = true;
+                  openMilestoneQuiz('mid_wave');
+                }
                 break;
               }
             }
@@ -1353,6 +1741,8 @@ export const EarthDefenderSpaceGame: React.FC<EarthDefenderSpaceGameProps> = ({
               addBurst(m.x, m.y, ['#F43F5E', '#FB923C'], 22, 1.15, true);
               syncHud();
               if (s.shipHp <= 0) {
+                clearPendingQuizTimer();
+                setActiveQuiz(null);
                 s.status = 'gameover';
                 setStatus('gameover');
                 return;
@@ -1370,6 +1760,8 @@ export const EarthDefenderSpaceGame: React.FC<EarthDefenderSpaceGameProps> = ({
             s.meteors.splice(i, 1);
             syncHud();
             if (s.earthHp <= 0) {
+              clearPendingQuizTimer();
+              setActiveQuiz(null);
               s.status = 'gameover';
               setStatus('gameover');
               return;
@@ -1834,10 +2226,11 @@ export const EarthDefenderSpaceGame: React.FC<EarthDefenderSpaceGameProps> = ({
     };
   }, [
     addBurst,
+    clearPendingQuizTimer,
     onEarnReward,
     onEarnStars,
     onReaction,
-    openBossQuiz,
+    openMilestoneQuiz,
     playLaserSfx,
     playMegaBoomSfx,
     playNovaSfx,
@@ -1875,54 +2268,305 @@ export const EarthDefenderSpaceGame: React.FC<EarthDefenderSpaceGameProps> = ({
       ? bossHpPct
       : Math.min(100, Math.round((stageKills / stg.targetMeteors) * 100));
 
+  const topicLabels: Record<QuizTopicId, string> = {
+    all: '🌟 Tổng Hợp Đa Môn',
+    math: '🧮 Toán Học',
+    vietnamese: '📖 Tiếng Việt',
+    english: '🔤 Tiếng Anh',
+    lifeskills: '🚦 Kỹ Năng & Vũ Trụ',
+    custom: `✍️ Tự Soạn (${parsedCustomQuestions.length} câu)`,
+  };
+
   return (
-    <div className="relative flex flex-col w-full h-full min-h-[560px] bg-[#09031C] text-white rounded-3xl overflow-hidden shadow-2xl border-2 border-pink-400/30 select-none">
+    <div className="sd-shell">
+      <style>{`
+        .sd-shell {
+          position: relative;
+          display: flex;
+          flex-direction: column;
+          width: 100%;
+          height: 100%;
+          min-height: 530px;
+          background: radial-gradient(circle at 20% 15%, #230F45 0%, #100626 55%, #070212 100%);
+          color: #ffffff;
+          border-radius: 24px;
+          overflow: hidden;
+          border: 2.5px solid rgba(244, 114, 182, 0.42);
+          box-shadow: 0 18px 45px rgba(0, 0, 0, 0.55);
+          user-select: none;
+          font-family: 'Nunito', sans-serif;
+        }
+        .sd-topbar {
+          display: flex;
+          flex-wrap: wrap;
+          align-items: center;
+          justify-content: space-between;
+          gap: 8px;
+          padding: 8px 14px;
+          background: rgba(16, 7, 38, 0.92);
+          border-bottom: 2px solid rgba(244, 114, 182, 0.32);
+          z-index: 20;
+        }
+        .sd-brand {
+          display: flex;
+          align-items: center;
+          gap: 10px;
+        }
+        .sd-brand-icon {
+          width: 38px;
+          height: 38px;
+          border-radius: 12px;
+          background: linear-gradient(135deg, #FF66B2, #8B5CF6);
+          padding: 3px;
+          box-shadow: 0 4px 12px rgba(255, 102, 178, 0.45);
+          object-fit: contain;
+        }
+        .sd-brand-title {
+          font-family: 'Baloo 2', 'Nunito', sans-serif;
+          font-size: 17px;
+          font-weight: 900;
+          line-height: 1.1;
+          background: linear-gradient(90deg, #FFFFFF, #FFD1EA, #FDE047);
+          -webkit-background-clip: text;
+          -webkit-text-fill-color: transparent;
+          margin: 0;
+        }
+        .sd-brand-sub {
+          font-size: 11px;
+          color: #E9D5FF;
+          font-weight: 700;
+          margin: 0;
+        }
+        .sd-top-stats {
+          display: flex;
+          flex-wrap: wrap;
+          align-items: center;
+          gap: 6px;
+        }
+        .sd-pill {
+          display: inline-flex;
+          align-items: center;
+          gap: 5px;
+          padding: 5px 11px;
+          border-radius: 999px;
+          font-size: 12px;
+          font-weight: 800;
+          background: rgba(255, 255, 255, 0.08);
+          border: 1.5px solid rgba(255, 255, 255, 0.16);
+          color: #fff;
+        }
+        .sd-pill.gold { border-color: rgba(250, 204, 21, 0.55); color: #FEF08A; }
+        .sd-pill.pink { border-color: rgba(244, 114, 182, 0.55); color: #FBCFE8; }
+        .sd-pill.cyan { border-color: rgba(56, 189, 248, 0.55); color: #BAE6FD; }
+        .sd-pill.green { border-color: rgba(74, 222, 128, 0.55); color: #BBF7D0; }
+        .sd-btn {
+          cursor: pointer;
+          border: 1.5px solid rgba(255, 255, 255, 0.25);
+          background: rgba(255, 255, 255, 0.12);
+          color: #ffffff;
+          padding: 5px 11px;
+          border-radius: 12px;
+          font-weight: 800;
+          font-size: 12px;
+          font-family: inherit;
+          transition: transform 0.12s, background 0.15s;
+        }
+        .sd-btn:hover { background: rgba(255, 255, 255, 0.22); transform: translateY(-1px); }
+        .sd-btn.quiz-cfg {
+          background: linear-gradient(135deg, #F59E0B, #EC4899);
+          border-color: #FEF08A;
+          color: #fff;
+          box-shadow: 0 4px 12px rgba(236, 72, 153, 0.4);
+        }
+        .sd-stage-wrap {
+          position: relative;
+          flex: 1;
+          width: 100%;
+          min-height: 460px;
+          overflow: hidden;
+        }
+        .sd-canvas {
+          display: block;
+          width: 100%;
+          height: 100%;
+          min-height: 460px;
+          touch-action: none;
+          cursor: crosshair;
+        }
+        .sd-hud-row {
+          position: absolute;
+          top: 10px;
+          left: 14px;
+          right: 14px;
+          display: flex;
+          flex-wrap: wrap;
+          align-items: center;
+          justify-content: space-between;
+          gap: 10px;
+          pointer-events: none;
+          z-index: 10;
+        }
+        .sd-hud-box {
+          display: flex;
+          align-items: center;
+          gap: 12px;
+          background: rgba(16, 7, 38, 0.84);
+          backdrop-filter: blur(8px);
+          padding: 7px 14px;
+          border-radius: 16px;
+          border: 1.5px solid rgba(255, 255, 255, 0.18);
+          box-shadow: 0 8px 20px rgba(0, 0, 0, 0.4);
+        }
+        .sd-bar-track {
+          width: 115px;
+          height: 9px;
+          background: rgba(15, 23, 42, 0.9);
+          border-radius: 999px;
+          overflow: hidden;
+          border: 1px solid rgba(255, 255, 255, 0.22);
+        }
+        .sd-bar-fill {
+          height: 100%;
+          transition: width 0.2s ease;
+        }
+        .sd-nova-btn {
+          pointer-events: auto;
+          cursor: pointer;
+          display: inline-flex;
+          align-items: center;
+          gap: 7px;
+          padding: 8px 15px;
+          border-radius: 999px;
+          font-weight: 900;
+          font-size: 12px;
+          color: #fff;
+          background: rgba(16, 7, 38, 0.85);
+          border: 2px solid rgba(255, 255, 255, 0.22);
+          box-shadow: 0 8px 20px rgba(0, 0, 0, 0.4);
+        }
+        .sd-nova-btn.ready {
+          background: linear-gradient(135deg, #EC4899, #F59E0B, #EC4899);
+          border-color: #FEF08A;
+          box-shadow: 0 0 22px rgba(250, 204, 21, 0.75);
+        }
+        .sd-overlay {
+          position: absolute;
+          inset: 0;
+          background: rgba(8, 3, 24, 0.84);
+          backdrop-filter: blur(8px);
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          padding: 16px;
+          z-index: 30;
+        }
+        .sd-modal-card {
+          max-width: 560px;
+          width: 100%;
+          background: linear-gradient(180deg, rgba(38, 17, 77, 0.97), rgba(18, 7, 41, 0.99));
+          border: 3px solid rgba(244, 114, 182, 0.65);
+          border-radius: 28px;
+          padding: 20px 24px;
+          text-align: center;
+          box-shadow: 0 24px 60px rgba(0, 0, 0, 0.75);
+        }
+        .sd-quiz-card {
+          max-width: 600px;
+          width: 100%;
+          background: linear-gradient(180deg, #271258 0%, #140832 100%);
+          border: 3.5px solid #FDE047;
+          border-radius: 28px;
+          padding: 18px 22px;
+          box-shadow: 0 25px 60px rgba(0, 0, 0, 0.85);
+        }
+        .sd-quiz-opt {
+          cursor: pointer;
+          display: flex;
+          align-items: center;
+          gap: 12px;
+          width: 100%;
+          text-align: left;
+          padding: 11px 15px;
+          border-radius: 16px;
+          border: 2.5px solid rgba(255, 255, 255, 0.25);
+          background: rgba(255, 255, 255, 0.1);
+          color: #ffffff;
+          font-family: inherit;
+          font-size: 15px;
+          font-weight: 800;
+          transition: all 0.14s;
+        }
+        .sd-quiz-opt:hover:not(:disabled) {
+          background: rgba(244, 114, 182, 0.28);
+          border-color: #FDE047;
+          transform: translateX(4px);
+        }
+        .sd-quiz-opt.correct {
+          background: linear-gradient(135deg, #22C55E, #16A34A) !important;
+          border-color: #BBF7D0 !important;
+        }
+        .sd-quiz-opt.wrong {
+          background: linear-gradient(135deg, #EF4444, #DC2626) !important;
+          border-color: #FECACA !important;
+        }
+        .sd-primary-cta {
+          cursor: pointer;
+          width: 100%;
+          padding: 13px 24px;
+          border-radius: 999px;
+          border: 2.5px solid #FEF08A;
+          background: linear-gradient(135deg, #FF4D94 0%, #8B5CF6 100%);
+          color: #ffffff;
+          font-family: 'Baloo 2', 'Nunito', sans-serif;
+          font-size: 18px;
+          font-weight: 900;
+          box-shadow: 0 10px 25px rgba(255, 77, 148, 0.5);
+          transition: transform 0.15s;
+        }
+        .sd-primary-cta:hover { transform: scale(1.02); }
+      `}</style>
+
       {/* TOP BAR */}
-      <div className="flex flex-wrap items-center justify-between gap-2 px-4 py-2.5 bg-[#0F0726]/90 backdrop-blur-md border-b border-pink-400/25 z-20">
-        <div className="flex items-center gap-3">
+      <div className="sd-topbar">
+        <div className="sd-brand">
           {onBack && (
-            <button
-              type="button"
-              onClick={onBack}
-              className="px-3 py-1.5 rounded-xl bg-white/10 hover:bg-white/20 text-sm font-bold transition"
-            >
+            <button type="button" onClick={onBack} className="sd-btn">
               ← Quay lại
             </button>
           )}
-          <div className="flex items-center gap-2">
-            <img
-              src="/assets/space-defender/ship-kitty-nam.webp"
-              alt="Kitty & Nấm"
-              className="w-9 h-9 object-contain"
-            />
-            <div>
-              <h2 className="text-base sm:text-lg font-extrabold tracking-wide bg-gradient-to-r from-white via-pink-200 to-yellow-200 bg-clip-text text-transparent">
-                HELLO KITTY & NẤM BẮN SAO
-              </h2>
-              <p className="text-[11px] text-pink-200/80 hidden sm:block">
-                Chiến Dịch 3 Ải: 1 Tàu (Nấm & Kitty) • 2 Tàu (+Melody) • 3 Tàu (+Mũ Nấm)
-              </p>
-            </div>
+          <img
+            src="/assets/space-defender/ship-kitty-nam.webp"
+            alt="Kitty & Nấm"
+            className="sd-brand-icon"
+          />
+          <div>
+            <h2 className="sd-brand-title">HELLO KITTY &amp; NẤM BẮN SAO</h2>
+            <p className="sd-brand-sub">
+              3 Ải: 1 Tàu (Nấm &amp; Kitty) ➔ 2 Tàu (+Melody) ➔ 3 Tàu (+Mũ Nấm)
+            </p>
           </div>
         </div>
 
-        <div className="flex flex-wrap items-center gap-2">
-          <div className="px-3 py-1 rounded-xl bg-yellow-400/15 border border-yellow-300/40 text-xs font-extrabold text-yellow-200">
-            ⭐ {score.toLocaleString('vi-VN')}
-          </div>
-          <div className="px-3 py-1 rounded-xl bg-pink-500/15 border border-pink-300/40 text-xs font-extrabold text-pink-200">
-            🏆 Kỷ lục: {bestScore.toLocaleString('vi-VN')}
-          </div>
-          <div className="px-3 py-1 rounded-xl bg-cyan-500/15 border border-cyan-300/40 text-xs font-extrabold text-cyan-200">
-            🚀 x{fleetCount} Tàu
-          </div>
-          <div className="px-3 py-1 rounded-xl bg-emerald-500/15 border border-emerald-300/40 text-xs font-extrabold text-emerald-200">
-            🌌 Ải {stg.stage}/3
-          </div>
+        <div className="sd-top-stats">
+          <span className="sd-pill gold">⭐ {score.toLocaleString('vi-VN')}</span>
+          <span className="sd-pill pink">🏆 Kỷ lục: {bestScore.toLocaleString('vi-VN')}</span>
+          <span className="sd-pill cyan">🚀 x{fleetCount} Tàu</span>
+          <span className="sd-pill green">🌌 Ải {stg.stage}/3</span>
+          <span className="sd-pill gold">
+            🧠 Câu đố: {quizStats.total}/{quizTargetCount}
+          </span>
+          <button
+            type="button"
+            onClick={() => setShowQuizEditorModal(true)}
+            className="sd-btn quiz-cfg"
+            title="Chọn gói 5 - 10 - 15 câu hỏi hoặc tự soạn câu hỏi"
+          >
+            ⚙️ Bộ Câu Hỏi ({quizTargetCount} câu)
+          </button>
           <button
             type="button"
             onClick={() => setSoundOn((v) => !v)}
-            className="px-2.5 py-1 rounded-xl bg-white/10 hover:bg-white/20 text-xs font-bold"
+            className="sd-btn"
           >
             {soundOn ? '🔊' : '🔇'}
           </button>
@@ -1934,7 +2578,7 @@ export const EarthDefenderSpaceGame: React.FC<EarthDefenderSpaceGameProps> = ({
                 stateRef.current.status = next;
                 setStatus(next);
               }}
-              className="px-2.5 py-1 rounded-xl bg-white/10 hover:bg-white/20 text-xs font-bold"
+              className="sd-btn"
             >
               {status === 'playing' ? '⏸️ Tạm dừng' : '▶️ Tiếp tục'}
             </button>
@@ -1943,60 +2587,95 @@ export const EarthDefenderSpaceGame: React.FC<EarthDefenderSpaceGameProps> = ({
       </div>
 
       {/* CANVAS STAGE */}
-      <div className="relative flex-1 w-full h-full min-h-[480px] overflow-hidden">
+      <div className="sd-stage-wrap">
         <canvas
           ref={canvasRef}
           onPointerMove={handlePointerMove}
           onPointerDown={handlePointerDown}
-          className="block w-full h-full touch-none cursor-crosshair"
+          className="sd-canvas"
         />
 
         {/* FLOATING HUD */}
         {status === 'playing' && (
-          <div className="absolute top-3 left-4 right-4 flex flex-wrap items-center justify-between gap-3 pointer-events-none z-10">
-            <div className="flex items-center gap-3 bg-[#100726]/85 backdrop-blur-md px-3.5 py-2 rounded-2xl border border-white/15 shadow-lg">
-              <div className="flex items-center gap-1">
+          <div className="sd-hud-row">
+            <div className="sd-hud-box">
+              <div style={{ display: 'flex', gap: 3 }}>
                 {Array.from({ length: 5 }).map((_, i) => (
-                  <span key={i} className={`text-base ${i < shipHp ? 'opacity-100' : 'opacity-25 grayscale'}`}>
+                  <span
+                    key={i}
+                    style={{
+                      fontSize: 16,
+                      opacity: i < shipHp ? 1 : 0.22,
+                      filter: i < shipHp ? 'none' : 'grayscale(1)',
+                    }}
+                  >
                     ❤️
                   </span>
                 ))}
               </div>
-              <div className="w-28">
-                <div className="flex justify-between text-[10px] font-extrabold text-cyan-200 mb-0.5">
+              <div>
+                <div
+                  style={{
+                    display: 'flex',
+                    justifyContent: 'space-between',
+                    fontSize: 10,
+                    fontWeight: 900,
+                    color: '#BAE6FD',
+                    marginBottom: 3,
+                  }}
+                >
                   <span>🌍 TRÁI ĐẤT</span>
                   <span>{earthHp}%</span>
                 </div>
-                <div className="w-full h-2 bg-slate-900 rounded-full overflow-hidden border border-white/15">
+                <div className="sd-bar-track">
                   <div
-                    className="h-full transition-all duration-200 bg-gradient-to-r from-emerald-400 to-cyan-400"
-                    style={{ width: `${earthHp}%` }}
+                    className="sd-bar-fill"
+                    style={{
+                      width: `${earthHp}%`,
+                      background: 'linear-gradient(90deg, #22C55E, #38BDF8)',
+                    }}
                   />
                 </div>
               </div>
             </div>
 
-            {/* STAGE / BOSS BAR */}
             <div
-              className={`flex items-center gap-3 px-4 py-2 rounded-2xl border-2 backdrop-blur-md shadow-lg min-w-[230px] ${
-                bossHpPct !== null
-                  ? 'bg-rose-950/90 border-rose-500'
-                  : 'bg-[#140A34]/90 border-cyan-400/50'
-              }`}
+              className="sd-hud-box"
+              style={{
+                minWidth: 230,
+                borderColor: bossHpPct !== null ? '#F43F5E' : 'rgba(56, 189, 248, 0.5)',
+              }}
             >
-              <div className="flex-1">
-                <div className="flex justify-between text-[11px] font-black text-yellow-200 mb-1">
-                  <span>{bossHpPct !== null ? `👾 ${stg.bossName}` : `☄️ ẢI ${stg.stage}/3: ${stg.name.toUpperCase()}`}</span>
-                  <span>{bossHpPct !== null ? `${bossHpPct}% HP` : `${stageKills}/${stg.targetMeteors}`}</span>
+              <div style={{ flex: 1 }}>
+                <div
+                  style={{
+                    display: 'flex',
+                    justifyContent: 'space-between',
+                    fontSize: 11,
+                    fontWeight: 900,
+                    color: '#FEF08A',
+                    marginBottom: 4,
+                  }}
+                >
+                  <span>
+                    {bossHpPct !== null
+                      ? `👾 ${stg.bossName}`
+                      : `☄️ ẢI ${stg.stage}/3: ${stg.name.toUpperCase()}`}
+                  </span>
+                  <span style={{ marginLeft: 8 }}>
+                    {bossHpPct !== null ? `${bossHpPct}% HP` : `${stageKills}/${stg.targetMeteors}`}
+                  </span>
                 </div>
-                <div className="w-full h-2.5 bg-slate-950 rounded-full overflow-hidden border border-white/20">
+                <div className="sd-bar-track" style={{ width: '100%' }}>
                   <div
-                    className={`h-full transition-all duration-200 ${
-                      bossHpPct !== null
-                        ? 'bg-gradient-to-r from-red-500 via-orange-400 to-yellow-300'
-                        : 'bg-gradient-to-r from-cyan-400 via-purple-400 to-pink-400'
-                    }`}
-                    style={{ width: `${stagePct}%` }}
+                    className="sd-bar-fill"
+                    style={{
+                      width: `${stagePct}%`,
+                      background:
+                        bossHpPct !== null
+                          ? 'linear-gradient(90deg, #EF4444, #F97316, #FACC15)'
+                          : 'linear-gradient(90deg, #38BDF8, #A855F7, #EC4899)',
+                    }}
                   />
                 </div>
               </div>
@@ -2006,15 +2685,13 @@ export const EarthDefenderSpaceGame: React.FC<EarthDefenderSpaceGameProps> = ({
               type="button"
               onClick={triggerSuperNova}
               disabled={novaEnergy < 100}
-              className={`pointer-events-auto flex items-center gap-2 px-4 py-2 rounded-2xl font-extrabold text-xs transition-all shadow-lg border-2 ${
-                novaEnergy >= 100
-                  ? 'bg-gradient-to-r from-pink-500 via-amber-400 to-pink-500 text-white border-yellow-200 animate-pulse'
-                  : 'bg-[#100726]/80 text-slate-300 border-white/15'
-              }`}
+              className={`sd-nova-btn ${novaEnergy >= 100 ? 'ready' : ''}`}
             >
               <span>🌈</span>
               <span>
-                {novaEnergy >= 100 ? 'CHẠM ĐÚP / ĂN SAO CẦU VỒNG!' : `Bão Sao (${novaEnergy}%)`}
+                {novaEnergy >= 100
+                  ? 'CHẠM ĐÚP / ĂN SAO CẦU VỒNG!'
+                  : `Bão Sao (${novaEnergy}%)`}
               </span>
             </button>
           </div>
@@ -2022,50 +2699,93 @@ export const EarthDefenderSpaceGame: React.FC<EarthDefenderSpaceGameProps> = ({
 
         {/* QUIZ MODAL OVERLAY */}
         {status === 'quiz' && activeQuiz && (
-          <div className="absolute inset-0 bg-[#080318]/85 backdrop-blur-md flex items-center justify-center p-4 z-40">
-            <div className="max-w-xl w-full bg-gradient-to-b from-[#271258] to-[#140832] border-4 border-yellow-300 rounded-3xl p-5 shadow-2xl">
-              <div className="flex flex-wrap items-center justify-between gap-2 mb-3">
-                <span className="px-3 py-1 rounded-full bg-cyan-500/20 border border-cyan-300 text-cyan-200 text-xs font-black">
-                  {activeQuiz.subject}
+          <div className="sd-overlay" style={{ zIndex: 40 }}>
+            <div className="sd-quiz-card">
+              <div
+                style={{
+                  display: 'flex',
+                  flexWrap: 'wrap',
+                  alignItems: 'center',
+                  justifyContent: 'space-between',
+                  gap: 8,
+                  marginBottom: 12,
+                }}
+              >
+                <span className="sd-pill cyan">
+                  {activeQuiz.subject} • Câu {quizStats.total}/{quizTargetCount}
                 </span>
-                <span className="px-3.5 py-1 rounded-full bg-gradient-to-r from-pink-500 to-amber-500 border border-yellow-200 text-white text-xs font-black">
-                  {quizReason === 'boss_intro'
-                    ? '🎁 Đúng: Siêu Đạn Sao Xanh + Tên Lửa!'
-                    : '🎁 Đúng: Cường Hóa Đội Tàu + Nạp Bão Sao!'}
+                <span
+                  className="sd-pill gold"
+                  style={{
+                    background: 'linear-gradient(135deg, #EC4899, #F59E0B)',
+                    color: '#fff',
+                  }}
+                >
+                  {quizReason === 'stage_fleet_2'
+                    ? '🎁 Đúng: Triệu Hồi Tàu 2 (Kitty & Melody) + Khiên!'
+                    : quizReason === 'stage_fleet_3'
+                      ? '🎁 Đúng: Triệu Hồi 3 Tàu (Nấm, Kitty & Mũ Nấm)!'
+                      : quizReason === 'boss_intro'
+                        ? '🎁 Đúng: Giảm 20% Máu Boss + Đạn Sao Xanh!'
+                        : '🎁 Đúng: Phóng Mưa Tên Lửa + Nạp Bão Sao!'}
                 </span>
                 <button
                   type="button"
                   onClick={() => speakVi(activeQuiz.question)}
-                  className="px-3 py-1 rounded-full bg-yellow-300 text-slate-950 text-xs font-black hover:scale-105 transition"
+                  className="sd-btn"
+                  style={{ background: '#FDE047', color: '#0F172A' }}
                 >
                   🔊 Nghe câu hỏi
                 </button>
               </div>
 
-              <div className="flex items-center gap-3.5 bg-[#0F0726]/80 border border-pink-400/35 rounded-2xl p-3.5 mb-3.5">
+              <div
+                style={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: 14,
+                  background: 'rgba(15, 7, 38, 0.78)',
+                  border: '2px solid rgba(244, 114, 182, 0.4)',
+                  borderRadius: 20,
+                  padding: '12px 16px',
+                  marginBottom: 14,
+                }}
+              >
                 <img
-                  src={stg.bossFile}
-                  alt="Boss"
-                  className="w-16 h-16 object-contain animate-bounce"
+                  src={
+                    quizReason === 'stage_fleet_2'
+                      ? '/assets/space-defender/ship-kitty-melody.webp'
+                      : quizReason === 'stage_fleet_3'
+                        ? '/assets/space-defender/ship-trio-nam-kitty.webp'
+                        : stg.bossFile
+                  }
+                  alt="Quiz Icon"
+                  style={{ width: 68, height: 68, objectFit: 'contain' }}
                 />
-                <div className="text-left flex-1">
-                  <div className="text-xl font-black text-yellow-300 mb-1">{activeQuiz.visual}</div>
-                  <div className="text-base sm:text-lg font-extrabold text-white leading-snug">
+                <div style={{ textAlign: 'left', flex: 1 }}>
+                  <div
+                    style={{
+                      fontSize: 19,
+                      fontWeight: 900,
+                      color: '#FDE047',
+                      marginBottom: 4,
+                    }}
+                  >
+                    {activeQuiz.visual}
+                  </div>
+                  <div style={{ fontSize: 17, fontWeight: 800, lineHeight: 1.35 }}>
                     {activeQuiz.question}
                   </div>
                 </div>
               </div>
 
-              <div className="grid grid-cols-1 gap-2.5 mb-3">
+              <div style={{ display: 'flex', flexDirection: 'column', gap: 9, marginBottom: 12 }}>
                 {activeQuiz.shuffledOptions.map((opt, idx) => {
-                  const letters = ['A', 'B', 'C'];
-                  let btnStyle = 'bg-[#1E1144] border-white/25 hover:border-yellow-300';
+                  const letters = ['A', 'B', 'C', 'D'];
+                  let cls = 'sd-quiz-opt';
                   if (quizSelectedIdx !== null) {
-                    if (opt.isCorrect) {
-                      btnStyle = 'bg-emerald-600 border-emerald-200';
-                    } else if (quizSelectedIdx === idx) {
-                      btnStyle = 'bg-rose-600 border-rose-200';
-                    }
+                    if (opt.isCorrect) cls += ' correct';
+                    else if (quizSelectedIdx === idx) cls += ' wrong';
                   }
                   return (
                     <button
@@ -2073,9 +2793,22 @@ export const EarthDefenderSpaceGame: React.FC<EarthDefenderSpaceGameProps> = ({
                       type="button"
                       disabled={quizSelectedIdx !== null}
                       onClick={() => handleSelectQuizOption(opt, idx)}
-                      className={`flex items-center gap-3 w-full text-left px-4 py-3 rounded-2xl border-2 font-extrabold text-sm sm:text-base transition ${btnStyle}`}
+                      className={cls}
                     >
-                      <span className="w-8 h-8 rounded-xl bg-gradient-to-br from-yellow-300 to-amber-500 text-slate-950 font-black flex items-center justify-center shrink-0">
+                      <span
+                        style={{
+                          width: 30,
+                          height: 30,
+                          borderRadius: 10,
+                          background: 'linear-gradient(135deg, #FDE047, #F59E0B)',
+                          color: '#0F172A',
+                          fontWeight: 900,
+                          display: 'inline-flex',
+                          alignItems: 'center',
+                          justifyContent: 'center',
+                          flexShrink: 0,
+                        }}
+                      >
                         {letters[idx]}
                       </span>
                       <span>{opt.text}</span>
@@ -2084,7 +2817,14 @@ export const EarthDefenderSpaceGame: React.FC<EarthDefenderSpaceGameProps> = ({
                 })}
               </div>
 
-              <div className="text-center text-xs sm:text-sm font-black text-yellow-300">
+              <div
+                style={{
+                  textAlign: 'center',
+                  fontSize: 13,
+                  fontWeight: 900,
+                  color: '#FDE047',
+                }}
+              >
                 {quizFeedback}
               </div>
             </div>
@@ -2093,9 +2833,17 @@ export const EarthDefenderSpaceGame: React.FC<EarthDefenderSpaceGameProps> = ({
 
         {/* MENU / PAUSE / VICTORY / GAMEOVER OVERLAY */}
         {(status === 'menu' || status === 'paused' || status === 'victory' || status === 'gameover') && (
-          <div className="absolute inset-0 bg-[#09031C]/85 backdrop-blur-md flex items-center justify-center p-5 z-30">
-            <div className="max-w-lg w-full bg-gradient-to-b from-[#231048] to-[#110626] border-2 border-pink-400/50 rounded-3xl p-6 text-center shadow-2xl">
-              <div className="flex items-end justify-center gap-3 mb-3">
+          <div className="sd-overlay">
+            <div className="sd-modal-card">
+              <div
+                style={{
+                  display: 'flex',
+                  alignItems: 'flex-end',
+                  justifyContent: 'center',
+                  gap: 12,
+                  marginBottom: 10,
+                }}
+              >
                 <img
                   src={
                     status === 'victory'
@@ -2103,7 +2851,7 @@ export const EarthDefenderSpaceGame: React.FC<EarthDefenderSpaceGameProps> = ({
                       : '/assets/space-defender/ship-kitty-melody.webp'
                   }
                   alt="Left"
-                  className="h-24 w-auto object-contain animate-bounce"
+                  style={{ height: 86, width: 'auto', objectFit: 'contain' }}
                 />
                 <img
                   src={
@@ -2112,7 +2860,12 @@ export const EarthDefenderSpaceGame: React.FC<EarthDefenderSpaceGameProps> = ({
                       : '/assets/space-defender/ship-trio-nam-kitty.webp'
                   }
                   alt="Hero"
-                  className="h-36 w-auto object-contain drop-shadow-[0_10px_25px_rgba(236,72,153,0.5)]"
+                  style={{
+                    height: 126,
+                    width: 'auto',
+                    objectFit: 'contain',
+                    filter: 'drop-shadow(0 10px 22px rgba(236,72,153,0.5))',
+                  }}
                 />
                 <img
                   src={
@@ -2121,26 +2874,106 @@ export const EarthDefenderSpaceGame: React.FC<EarthDefenderSpaceGameProps> = ({
                       : '/assets/space-defender/boss-3-king.webp'
                   }
                   alt="Right"
-                  className="h-24 w-auto object-contain animate-bounce"
+                  style={{ height: 86, width: 'auto', objectFit: 'contain' }}
                 />
               </div>
 
-              <h3 className="text-2xl sm:text-3xl font-black bg-gradient-to-r from-white via-pink-200 to-yellow-200 bg-clip-text text-transparent mb-2">
+              <h3
+                style={{
+                  fontFamily: "'Baloo 2', cursive",
+                  fontSize: 26,
+                  fontWeight: 900,
+                  margin: '0 0 8px',
+                  color: '#FEF08A',
+                }}
+              >
                 {status === 'menu' && 'HELLO KITTY & NẤM BẮN SAO'}
                 {status === 'paused' && 'TẠM DỪNG PHI VỤ'}
                 {status === 'victory' && '🏆 CHIẾN THẮNG VINH QUANG!'}
                 {status === 'gameover' && 'CỐ LÊN NẤM ƠI!'}
               </h3>
 
-              <p className="text-sm text-pink-100/90 leading-relaxed mb-5">
+              <p
+                style={{
+                  fontSize: 13.5,
+                  color: '#F3E8FF',
+                  lineHeight: 1.5,
+                  margin: '0 0 14px',
+                }}
+              >
                 {status === 'menu' &&
-                  'Cùng Hello Kitty & Nấm vượt qua 3 Ải Vũ Trụ! Qua mỗi Ải sẽ mở khóa đội hình 1 Tàu (Nấm & Kitty) ➔ 2 Tàu (+My Melody) ➔ 3 Tàu (Nấm, Kitty & Mũ Nấm), trả lời câu đố bắn Siêu Đạn Sao Xanh + Tên Lửa diệt Boss!'}
-                {status === 'paused' && 'Đội hình phi thuyền của Hello Kitty & Nấm đang nghỉ giải lao.'}
+                  'Cùng Hello Kitty & Nấm vượt qua 3 Ải Vũ Trụ! Qua mỗi Ải sẽ trả lời câu đố triệu hồi thêm Phi thuyền mới: 1 Tàu (Nấm & Kitty) ➔ 2 Tàu (+My Melody) ➔ 3 Tàu (Nấm, Kitty & Mũ Nấm) và giảm máu Đại Boss!'}
+                {status === 'paused' &&
+                  'Đội hình phi thuyền của Hello Kitty & Nấm đang nghỉ giải lao.'}
                 {status === 'victory' &&
                   `Hoan hô Nấm, Hello Kitty & Hội Bạn Sanrio đã tiêu diệt nổ tung cả 3 Đại Boss Vũ Trụ! Tổng điểm: ${score.toLocaleString('vi-VN')} (Kỷ lục: ${bestScore.toLocaleString('vi-VN')}) • Trả lời đúng: ${quizStats.correct}/${quizStats.total} câu!`}
                 {status === 'gameover' &&
                   `Phi thuyền đã chiến đấu tới Ải ${stageIdx + 1}/3 và đạt ${score.toLocaleString('vi-VN')} điểm. Cùng cất cánh phục thù nhé!`}
               </p>
+
+              {/* Quick Question Package & Topic Selector right on Menu */}
+              {status !== 'paused' && (
+                <div
+                  style={{
+                    background: 'rgba(15, 7, 38, 0.72)',
+                    border: '1.5px solid rgba(250, 204, 21, 0.45)',
+                    borderRadius: 18,
+                    padding: '10px 12px',
+                    marginBottom: 14,
+                    textAlign: 'left',
+                  }}
+                >
+                  <div
+                    style={{
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'space-between',
+                      gap: 8,
+                      marginBottom: 8,
+                      flexWrap: 'wrap',
+                    }}
+                  >
+                    <span style={{ fontSize: 12, fontWeight: 900, color: '#FEF08A' }}>
+                      🎯 Gói câu hỏi trong trận ({topicLabels[selectedTopic]}):
+                    </span>
+                    <button
+                      type="button"
+                      onClick={() => setShowQuizEditorModal(true)}
+                      className="sd-btn quiz-cfg"
+                      style={{ fontSize: 11, padding: '4px 10px' }}
+                    >
+                      📝 Soạn / Đổi Bộ Câu Hỏi
+                    </button>
+                  </div>
+                  <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 8 }}>
+                    {([5, 10, 15] as QuizTargetCount[]).map((cnt) => {
+                      const active = quizTargetCount === cnt;
+                      return (
+                        <button
+                          key={cnt}
+                          type="button"
+                          onClick={() => setQuizTargetCount(cnt)}
+                          style={{
+                            cursor: 'pointer',
+                            padding: '7px 8px',
+                            borderRadius: 12,
+                            border: active ? '2px solid #FDE047' : '1.5px solid rgba(255,255,255,0.2)',
+                            background: active
+                              ? 'linear-gradient(135deg, rgba(236,72,153,0.45), rgba(139,92,246,0.45))'
+                              : 'rgba(255,255,255,0.06)',
+                            color: '#fff',
+                            fontFamily: 'inherit',
+                            fontWeight: 900,
+                            fontSize: 12,
+                          }}
+                        >
+                          {cnt} Câu ({cnt === 5 ? 'Nhanh' : cnt === 10 ? 'Chuẩn' : 'Chuyên sâu'})
+                        </button>
+                      );
+                    })}
+                  </div>
+                </div>
+              )}
 
               <button
                 type="button"
@@ -2152,10 +2985,307 @@ export const EarthDefenderSpaceGame: React.FC<EarthDefenderSpaceGameProps> = ({
                     startNewGame();
                   }
                 }}
-                className="w-full py-3.5 px-6 rounded-2xl bg-gradient-to-r from-pink-500 via-purple-500 to-pink-500 hover:from-pink-400 hover:to-purple-400 text-white font-black text-base shadow-[0_8px_25px_rgba(236,72,153,0.5)] border-2 border-yellow-200/80 transition transform active:scale-95"
+                className="sd-primary-cta"
               >
-                {status === 'paused' ? '▶️ TIẾP TỤC CHIẾN ĐẤU' : '🚀 BẮT ĐẦU CHIẾN DỊCH 3 ẢI!'}
+                {status === 'paused'
+                  ? '▶️ TIẾP TỤC CHIẾN ĐẤU'
+                  : `🚀 BẮT ĐẦU CHIẾN DỊCH (${quizTargetCount} CÂU HỎI)!`}
               </button>
+            </div>
+          </div>
+        )}
+
+        {/* QUESTION BANK EDITOR & CONFIGURATION MODAL */}
+        {showQuizEditorModal && (
+          <div className="sd-overlay" style={{ zIndex: 55 }}>
+            <div
+              className="sd-modal-card"
+              style={{
+                maxWidth: 760,
+                maxHeight: '90%',
+                overflowY: 'auto',
+                textAlign: 'left',
+              }}
+            >
+              <div
+                style={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'space-between',
+                  gap: 10,
+                  marginBottom: 12,
+                }}
+              >
+                <h3
+                  style={{
+                    margin: 0,
+                    fontFamily: "'Baloo 2', cursive",
+                    fontSize: 22,
+                    color: '#FEF08A',
+                  }}
+                >
+                  📝 Module Soạn &amp; Chia Mốc Bộ Câu Hỏi Phi Thuyền
+                </h3>
+                <button
+                  type="button"
+                  onClick={() => setShowQuizEditorModal(false)}
+                  className="sd-btn"
+                  style={{ background: '#22C55E', borderColor: '#86EFAC' }}
+                >
+                  ✅ Lưu &amp; Đóng
+                </button>
+              </div>
+
+              {/* 1. Chọn số câu hỏi và giải thích cách chia mốc */}
+              <div
+                style={{
+                  background: 'rgba(15, 7, 38, 0.78)',
+                  border: '1.5px solid rgba(56, 189, 248, 0.4)',
+                  borderRadius: 16,
+                  padding: 12,
+                  marginBottom: 12,
+                }}
+              >
+                <div style={{ fontSize: 13, fontWeight: 900, color: '#BAE6FD', marginBottom: 8 }}>
+                  1️⃣ Chọn số câu hỏi xuất hiện trong 1 chiến dịch (3 Ải):
+                </div>
+                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 8, marginBottom: 8 }}>
+                  {([
+                    {
+                      cnt: 5 as QuizTargetCount,
+                      title: '⚡ Gói 5 Câu (Nhanh)',
+                      desc: 'Nhận Tàu 2 & 3 ở đầu Ải 2, 3 + Trước khi đánh 3 Đại Boss',
+                    },
+                    {
+                      cnt: 10 as QuizTargetCount,
+                      title: '⭐ Gói 10 Câu (Chuẩn)',
+                      desc: 'Mở màn + Nhận Tàu 2, 3 + Trước 3 Boss + Khi Boss còn 50% máu',
+                    },
+                    {
+                      cnt: 15 as QuizTargetCount,
+                      title: '👑 Gói 15 Câu (5 câu/Ải)',
+                      desc: 'Đầu ải + Giữa chặng 50% + Đầu Boss + Boss 65% HP + Boss 30% HP',
+                    },
+                  ]).map((item) => {
+                    const active = quizTargetCount === item.cnt;
+                    return (
+                      <button
+                        key={item.cnt}
+                        type="button"
+                        onClick={() => setQuizTargetCount(item.cnt)}
+                        style={{
+                          cursor: 'pointer',
+                          textAlign: 'left',
+                          padding: '9px 11px',
+                          borderRadius: 14,
+                          border: active ? '2.5px solid #FDE047' : '1.5px solid rgba(255,255,255,0.18)',
+                          background: active
+                            ? 'linear-gradient(135deg, rgba(236,72,153,0.42), rgba(139,92,246,0.42))'
+                            : 'rgba(255,255,255,0.06)',
+                          color: '#fff',
+                          fontFamily: 'inherit',
+                        }}
+                      >
+                        <div style={{ fontWeight: 900, fontSize: 13, color: '#FEF08A' }}>
+                          {item.title}
+                        </div>
+                        <div style={{ fontSize: 11, color: '#E2E8F0', marginTop: 3, lineHeight: 1.3 }}>
+                          {item.desc}
+                        </div>
+                      </button>
+                    );
+                  })}
+                </div>
+              </div>
+
+              {/* 2. Chọn chủ đề có sẵn hoặc Tự soạn */}
+              <div
+                style={{
+                  background: 'rgba(15, 7, 38, 0.78)',
+                  border: '1.5px solid rgba(244, 114, 182, 0.4)',
+                  borderRadius: 16,
+                  padding: 12,
+                  marginBottom: 12,
+                }}
+              >
+                <div style={{ fontSize: 13, fontWeight: 900, color: '#FBCFE8', marginBottom: 8 }}>
+                  2️⃣ Chọn Nguồn Câu Hỏi:
+                </div>
+                <div style={{ display: 'flex', flexWrap: 'wrap', gap: 7 }}>
+                  {(['all', 'math', 'vietnamese', 'english', 'lifeskills', 'custom'] as QuizTopicId[]).map(
+                    (tId) => {
+                      const active = selectedTopic === tId;
+                      return (
+                        <button
+                          key={tId}
+                          type="button"
+                          onClick={() => setSelectedTopic(tId)}
+                          style={{
+                            cursor: 'pointer',
+                            padding: '6px 12px',
+                            borderRadius: 999,
+                            border: active ? '2px solid #FDE047' : '1.5px solid rgba(255,255,255,0.2)',
+                            background: active ? '#EC4899' : 'rgba(255,255,255,0.08)',
+                            color: '#fff',
+                            fontFamily: 'inherit',
+                            fontWeight: 800,
+                            fontSize: 12,
+                          }}
+                        >
+                          {topicLabels[tId]}
+                        </button>
+                      );
+                    }
+                  )}
+                </div>
+              </div>
+
+              {/* 3. Ô Dán Nhanh Câu Hỏi Từ Word / ChatGPT */}
+              <div
+                style={{
+                  background: 'rgba(15, 7, 38, 0.85)',
+                  border: '1.5px solid rgba(250, 204, 21, 0.45)',
+                  borderRadius: 16,
+                  padding: 12,
+                }}
+              >
+                <div
+                  style={{
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'space-between',
+                    gap: 8,
+                    flexWrap: 'wrap',
+                    marginBottom: 6,
+                  }}
+                >
+                  <span style={{ fontSize: 13, fontWeight: 900, color: '#FEF08A' }}>
+                    3️⃣ Dán Nhanh Bộ Câu Hỏi Tự Soạn (Word / ChatGPT dấu * trước đáp án đúng):
+                  </span>
+                  <div style={{ display: 'flex', gap: 6 }}>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setCustomRawText(SAMPLE_CUSTOM_QUIZ_TEXT);
+                        setSelectedTopic('custom');
+                      }}
+                      className="sd-btn"
+                    >
+                      📋 Nạp đề mẫu
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => setHideEditorAnswers((v) => !v)}
+                      className="sd-btn"
+                    >
+                      {hideEditorAnswers ? '👁️ Hiện đáp án' : '🙈 Ẩn đáp án'}
+                    </button>
+                  </div>
+                </div>
+
+                <textarea
+                  value={customRawText}
+                  onChange={(e) => {
+                    setCustomRawText(e.target.value);
+                    if (selectedTopic !== 'custom') setSelectedTopic('custom');
+                  }}
+                  rows={6}
+                  style={{
+                    width: '100%',
+                    borderRadius: 12,
+                    border: '2px solid rgba(255,255,255,0.22)',
+                    background: '#090318',
+                    color: '#F8FAFC',
+                    padding: 10,
+                    fontFamily: 'inherit',
+                    fontSize: 12.5,
+                    fontWeight: 700,
+                    lineHeight: 1.4,
+                    resize: 'vertical',
+                  }}
+                  placeholder="Dán câu hỏi và các đáp án A., B., C. (đặt dấu * trước đáp án đúng)..."
+                />
+
+                <div
+                  style={{
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'space-between',
+                    marginTop: 8,
+                    marginBottom: 6,
+                  }}
+                >
+                  <span className="sd-pill green">
+                    ✅ Đã nhận diện: {parsedCustomQuestions.length} câu hỏi tự soạn
+                  </span>
+                  <span style={{ fontSize: 11, color: '#CBD5E1', fontWeight: 700 }}>
+                    Bấm A / B / C / D để đổi nhanh đáp án đúng:
+                  </span>
+                </div>
+
+                <div
+                  style={{
+                    maxHeight: 135,
+                    overflowY: 'auto',
+                    display: 'flex',
+                    flexDirection: 'column',
+                    gap: 6,
+                  }}
+                >
+                  {parsedCustomQuestions.map((q, qIdx) => (
+                    <div
+                      key={qIdx}
+                      style={{
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'space-between',
+                        gap: 8,
+                        background: 'rgba(255,255,255,0.06)',
+                        borderRadius: 10,
+                        padding: '6px 10px',
+                        fontSize: 12,
+                      }}
+                    >
+                      <span
+                        style={{
+                          flex: 1,
+                          whiteSpace: 'nowrap',
+                          overflow: 'hidden',
+                          textOverflow: 'ellipsis',
+                          fontWeight: 800,
+                        }}
+                      >
+                        Câu {qIdx + 1}: {q.question}
+                      </span>
+                      <div style={{ display: 'flex', gap: 4 }}>
+                        {q.options.map((_, oIdx) => {
+                          const isAns = !hideEditorAnswers && q.correct === oIdx;
+                          return (
+                            <button
+                              key={oIdx}
+                              type="button"
+                              onClick={() => handleOverrideCustomAnswer(qIdx, oIdx)}
+                              style={{
+                                cursor: 'pointer',
+                                width: 24,
+                                height: 24,
+                                borderRadius: 6,
+                                border: isAns ? '1.5px solid #86EFAC' : '1px solid rgba(255,255,255,0.25)',
+                                background: isAns ? '#22C55E' : 'rgba(255,255,255,0.1)',
+                                color: '#fff',
+                                fontWeight: 900,
+                                fontSize: 11,
+                              }}
+                            >
+                              {String.fromCharCode(65 + oIdx)}
+                            </button>
+                          );
+                        })}
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
             </div>
           </div>
         )}

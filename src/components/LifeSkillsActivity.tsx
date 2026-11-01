@@ -2039,6 +2039,17 @@ export function LifeSkillsActivity({
     }
   };
 
+  // Tự động chuyển sang câu An Toàn tiếp theo sau ~1.6s khi Nấm chọn ĐÚNG
+  useEffect(() => {
+    if (viewMode !== "game" || mode !== "safety" || !safetyAnswered) return;
+    if (safetyIdx + 1 >= safetyDeck.length) return;
+    const timer = window.setTimeout(() => {
+      handleNextSafetyQuestion();
+    }, 1600);
+    return () => window.clearTimeout(timer);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [viewMode, mode, safetyAnswered, safetyIdx, safetyDeck.length]);
+
   const isSafetyRoundFinished =
     mode === "safety" &&
     safetyIdx === safetyDeck.length - 1 &&

@@ -439,6 +439,16 @@ export function EnglishActivity({
     }
   };
 
+  // Tự động chuyển sang câu tiếp theo sau ~1.6s khi Nấm trả lời ĐÚNG
+  useEffect(() => {
+    if (viewMode !== "game" || isCorrect !== true) return;
+    const timer = window.setTimeout(() => {
+      handleNextRoundOrFinish();
+    }, 1600);
+    return () => window.clearTimeout(timer);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [viewMode, isCorrect, roundIdx, activeGameId]);
+
   return (
     <div className="wb-content english-wb kuromi-english-suite">
       {/* =====================================================================
