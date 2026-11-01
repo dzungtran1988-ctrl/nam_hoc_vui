@@ -17,6 +17,9 @@ import {
 import {
   ALL_SUBJECT_IDS,
   HALLOWEEN_SPECIAL_STICKERS,
+  STORYBOOK_GARDEN_CAT_SET_3,
+  loadGardenCatStickerInventory,
+  getUnlockedGardenCatStickerCount,
   NAM_MASTER_CUP_IMAGE,
   NAM_SPECIAL_STICKERS,
   SANRIO_CAREER_STICKERS,
@@ -104,11 +107,23 @@ export const STICKER_BOOK_PAGES: StickerBookPageConfig[] = [
       "🎃 Chạm vào Bé Nấm Phù Thủy, các bạn Sanrio hóa trang & Bánh kẹo Halloween ở khay bên phải để dán lên sân gạch lâu đài nhé!",
   },
   {
+    id: "garden-cat-sanctuary",
+    title: "Vườn Cây Thần Tiên & Phòng Mèo Hoàng Gia — Bộ Sưu Tập Cấp 6",
+    shortLabel: "🌱🐱 Cây & Mèo",
+    icon: "🌱",
+    bgImage: "/assets/garden-cat/bg_split_preview.webp",
+    themeColor: "#20C997",
+    category: "character",
+    defaultTab: "garden-cat-special",
+    emptyHint:
+      "🌱🐱 Khi nuôi Cây hoặc Mèo đạt Cấp 6 Tối Thượng, bé sẽ nhận được Sticker Cấp 6 để dán vào Khu Vườn & Phòng Mèo này nhé!",
+  },
+  {
     id: "plushie-shelf",
     title: "Kệ Đựng Thú Bông Sanrio 3D — Gắp Thú Khu Vui Chơi",
     shortLabel: "🧸 Kệ Thú Bông",
     icon: "🧸",
-    bgImage: "/assets/stickerbook/bg-plushie-shelf.jpg?v=wide3d",
+    bgImage: "/assets/stickerbook/bg-plushie-shelf.webp?v=wide3d",
     themeColor: "#FF6B9D",
     category: "character",
     defaultTab: "claw-plushies",
@@ -120,7 +135,7 @@ export const STICKER_BOOK_PAGES: StickerBookPageConfig[] = [
     title: "Kệ Siêu Thị & Tiệm Bánh Ngọt Pastel 3D (Kho Đồ Vật Nhiệm Vụ)",
     shortLabel: "🛒 Siêu Thị",
     icon: "🛒",
-    bgImage: "/assets/stickerbook/bg-supermarket.jpg?v=front3d-restored",
+    bgImage: "/assets/stickerbook/bg-supermarket.webp?v=front3d-restored",
     themeColor: "#EC4899",
     category: "quest-item",
     defaultTab: "quest-sweets",
@@ -132,7 +147,7 @@ export const STICKER_BOOK_PAGES: StickerBookPageConfig[] = [
     title: "Sạp Hoa Quả Nông Trại Nấm 3D (Kho Đồ Vật Nhiệm Vụ)",
     shortLabel: "🍎 Hoa Quả",
     icon: "🍎",
-    bgImage: "/assets/stickerbook/bg-fruit-crates.jpg?v=wide3d",
+    bgImage: "/assets/stickerbook/bg-fruit-crates.webp?v=wide3d",
     themeColor: "#F97316",
     category: "quest-item",
     defaultTab: "quest-fruits",
@@ -144,7 +159,7 @@ export const STICKER_BOOK_PAGES: StickerBookPageConfig[] = [
     title: "Bãi Đỗ Xe & Bến Tàu Thành Phố (Kho Đồ Vật Nhiệm Vụ)",
     shortLabel: "🚗 Bãi Xe",
     icon: "🚗",
-    bgImage: "/assets/stickerbook/bg-parking-lot.jpg?v=clay3d",
+    bgImage: "/assets/stickerbook/bg-parking-lot.webp?v=clay3d",
     themeColor: "#0284C7",
     category: "quest-item",
     defaultTab: "quest-vehicles",
@@ -156,7 +171,7 @@ export const STICKER_BOOK_PAGES: StickerBookPageConfig[] = [
     title: "Công Viên Giải Trí Cầu Vồng (Kho Nhân Vật Bài Học)",
     shortLabel: "🎡 Công Viên",
     icon: "🎡",
-    bgImage: "/assets/stickerbook/bg-park.jpg",
+    bgImage: "/assets/stickerbook/bg-park.webp",
     themeColor: "#FF6B81",
     category: "character",
     defaultTab: "unlocked",
@@ -166,7 +181,7 @@ export const STICKER_BOOK_PAGES: StickerBookPageConfig[] = [
     title: "Bữa Tiệc Sinh Nhật Của Nấm (Kho Nhân Vật Bài Học)",
     shortLabel: "🎂 Sinh Nhật",
     icon: "🎂",
-    bgImage: "/assets/stickerbook/bg-party.jpg",
+    bgImage: "/assets/stickerbook/bg-party.webp",
     themeColor: "#A855F7",
     category: "character",
     defaultTab: "unlocked",
@@ -176,7 +191,7 @@ export const STICKER_BOOK_PAGES: StickerBookPageConfig[] = [
     title: "Bãi Biển Mùa Hè Rực Rỡ 16:9 (Kho Nhân Vật Bài Học)",
     shortLabel: "🏖️ Bãi Biển",
     icon: "🏖️",
-    bgImage: "/assets/stickerbook/bg-beach.jpg?v=wide3d",
+    bgImage: "/assets/stickerbook/bg-beach.webp?v=wide3d",
     themeColor: "#0EA5E9",
     category: "character",
     defaultTab: "unlocked",
@@ -186,7 +201,7 @@ export const STICKER_BOOK_PAGES: StickerBookPageConfig[] = [
     title: "Khu Rừng Nấm Cổ Tích (Kho Nhân Vật Bài Học)",
     shortLabel: "🍄 Rừng Nấm",
     icon: "🍄",
-    bgImage: "/assets/stickerbook/bg-forest.jpg",
+    bgImage: "/assets/stickerbook/bg-forest.webp",
     themeColor: "#10B981",
     category: "character",
     defaultTab: "unlocked",
@@ -244,7 +259,9 @@ export const StickerBookScreen: React.FC<StickerBookScreenProps> = ({
     initialPageId ||
     (initialSubjectFilter === "claw-plushies"
       ? "plushie-shelf"
-      : initialSubjectFilter === "halloween-special"
+      : initialSubjectFilter === "garden-cat-special"
+        ? "garden-cat-sanctuary"
+        : initialSubjectFilter === "halloween-special"
         ? "halloween-night"
         : initialSubjectFilter === "nam-special"
           ? "nam-stage"
@@ -260,7 +277,9 @@ export const StickerBookScreen: React.FC<StickerBookScreenProps> = ({
   const [activeTab, setActiveTab] = useState<DrawerTabId>(
     initialPageId === "plushie-shelf"
       ? "claw-plushies"
-      : initialPageId === "halloween-night"
+      : initialPageId === "garden-cat-sanctuary"
+        ? "garden-cat-special"
+        : initialPageId === "halloween-night"
         ? "halloween-special"
         : initialSubjectFilter,
   );
@@ -282,6 +301,14 @@ export const StickerBookScreen: React.FC<StickerBookScreenProps> = ({
   const totalUnlockedHalloween = React.useMemo(
     () => getUnlockedHalloweenStickerCount(halloweenInv),
     [halloweenInv],
+  );
+  const gardenCatInv = React.useMemo(
+    () => loadGardenCatStickerInventory(),
+    [stickerStore, activePageId, activeTab],
+  );
+  const totalUnlockedGardenCat = React.useMemo(
+    () => getUnlockedGardenCatStickerCount(gardenCatInv),
+    [gardenCatInv],
   );
   const clawPlushieInv = React.useMemo(
     () => loadClawPlushieInventory(),
@@ -377,6 +404,31 @@ export const StickerBookScreen: React.FC<StickerBookScreenProps> = ({
     };
 
     // NHÁNH 0A: TAB BỘ SƯU TẬP STICKER LỄ HỘI HALLOWEEN (8 Nhân vật + 26 Vật phẩm/Bánh kẹo)
+    if (activeTab === "garden-cat-special") {
+      for (const gcStk of STORYBOOK_GARDEN_CAT_SET_3) {
+        const earned = gardenCatInv[gcStk.id] || 0;
+        list.push(
+          makeEntry({
+            id: gcStk.id,
+            name: gcStk.name,
+            image: gcStk.image,
+            totalEarned: earned,
+            sourceType: "character",
+            subjectId: "storybook",
+            categoryLabel: "🌱🐱 Cấp 6 Tối Thượng",
+          }),
+        );
+      }
+      list.sort((a, b) => {
+        if (a.availableCount > 0 && b.availableCount === 0) return -1;
+        if (a.availableCount === 0 && b.availableCount > 0) return 1;
+        if (a.unlocked && !b.unlocked) return -1;
+        if (!a.unlocked && b.unlocked) return 1;
+        return 0;
+      });
+      return list;
+    }
+
     if (activeTab === "halloween-special") {
       for (const hstk of HALLOWEEN_SPECIAL_STICKERS) {
         const earned = halloweenInv[hstk.id] || 0;
@@ -1279,6 +1331,25 @@ export const StickerBookScreen: React.FC<StickerBookScreenProps> = ({
                 onClick={() => setActiveTab("halloween-special")}
               >
                 🎃 Halloween ({totalUnlockedHalloween}/{HALLOWEEN_SPECIAL_STICKERS.length})
+              </button>
+
+              <button
+                type="button"
+                className={`drawer-tab-btn ${
+                  activeTab === "garden-cat-special" ? "active" : ""
+                }`}
+                style={{
+                  background:
+                    activeTab === "garden-cat-special"
+                      ? "linear-gradient(135deg, #12B886 0%, #20C997 100%)"
+                      : "#E6FCF5",
+                  color: activeTab === "garden-cat-special" ? "#FFFFFF" : "#087F5B",
+                  borderColor: "#63E6BE",
+                  fontWeight: 900,
+                }}
+                onClick={() => setActiveTab("garden-cat-special")}
+              >
+                🌱🐱 Cây & Mèo Lớn ({totalUnlockedGardenCat}/{STORYBOOK_GARDEN_CAT_SET_3.length})
               </button>
 
               <button

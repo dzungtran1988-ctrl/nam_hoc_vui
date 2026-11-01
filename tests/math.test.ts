@@ -35,12 +35,12 @@ test("KAWAII_PASTRY_CATALOG has 131 cleanly extracted 3D kawaii item PNGs (with 
       pastry.imageUrl.startsWith("/assets/items/") ||
         pastry.imageUrl.startsWith("/assets/math/pastries16/pastry16_"),
     );
-    assert.ok(pastry.imageUrl.endsWith(".png"));
+    assert.ok(pastry.imageUrl.endsWith(".webp"));
   }
   assert.equal(MATH_MINI_GAMES.length, 4);
-  assert.ok(KAWAII_ITEM_IMAGES.pizzaSlice.endsWith(".png"));
-  assert.ok(KAWAII_ITEM_IMAGES.bakeryBasket.endsWith(".png"));
-  assert.ok(KAWAII_ITEM_IMAGES.goldCoin.endsWith(".png"));
+  assert.ok(KAWAII_ITEM_IMAGES.pizzaSlice.endsWith(".webp"));
+  assert.ok(KAWAII_ITEM_IMAGES.bakeryBasket.endsWith(".webp"));
+  assert.ok(KAWAII_ITEM_IMAGES.goldCoin.endsWith(".webp"));
 });
 
 test("generateBakeryOrders produces Level 1 counting, Level 2 missing-operand equations (3 + ? = 5, 10 − ? = 4), and Level 3 dual order + total sum", () => {

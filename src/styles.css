@@ -12558,14 +12558,27 @@ button.eq-num-box {
   font-size: 13px;
   font-weight: 800;
   border-radius: 999px;
-  background: rgba(255, 252, 246, 0.88);
-  backdrop-filter: blur(10px);
+  background: rgba(255, 252, 246, 0.92);
+  backdrop-filter: blur(8px);
   color: #5c493f;
   border: 2px solid rgba(242, 222, 198, 0.95);
   box-shadow:
+    inset 0 2px 0 rgba(255, 255, 255, 0.85),
     0 3px 0 rgba(218, 190, 160, 0.55),
     0 6px 14px rgba(92, 73, 63, 0.08);
   text-shadow: none;
+  transition:
+    transform 0.22s cubic-bezier(0.34, 1.56, 0.64, 1),
+    box-shadow 0.2s ease;
+  will-change: transform;
+}
+
+.garland-hud.pastel-lobby-hud .hud-pill:hover {
+  transform: translate3d(0, -2px, 0) scale3d(1.03, 1.03, 1);
+}
+
+.garland-hud.pastel-lobby-hud .hud-pill:active {
+  transform: translate3d(0, 2px, 0) scale3d(1.05, 0.92, 1);
 }
 
 .garland-hud.pastel-lobby-hud .hud-pill.hud-gold {
@@ -12619,6 +12632,15 @@ button.eq-num-box {
   z-index: 25;
 }
 
+@keyframes arcadeCardFloat {
+  0%, 100% {
+    transform: translate3d(0, 0, 0);
+  }
+  50% {
+    transform: translate3d(0, -3.5px, 0);
+  }
+}
+
 .game-module-card.pastel-art-card {
   background: transparent !important;
   border: none !important;
@@ -12630,17 +12652,28 @@ button.eq-num-box {
   height: 100% !important;
   width: 100% !important;
   overflow: visible !important;
-  transition: transform 0.22s cubic-bezier(0.34, 1.56, 0.64, 1), filter 0.22s ease !important;
+  animation: arcadeCardFloat 3.6s ease-in-out infinite;
+  transition: transform 0.22s cubic-bezier(0.34, 1.56, 0.64, 1) !important;
+  will-change: transform;
 }
 
+.game-module-card.pastel-art-card:nth-child(2) { animation-delay: -0.45s; }
+.game-module-card.pastel-art-card:nth-child(3) { animation-delay: -0.9s; }
+.game-module-card.pastel-art-card:nth-child(4) { animation-delay: -1.35s; }
+.game-module-card.pastel-art-card:nth-child(5) { animation-delay: -1.8s; }
+.game-module-card.pastel-art-card:nth-child(6) { animation-delay: -2.25s; }
+.game-module-card.pastel-art-card:nth-child(7) { animation-delay: -2.7s; }
+.game-module-card.pastel-art-card:nth-child(8) { animation-delay: -3.15s; }
+
 .game-module-card.pastel-art-card:hover {
-  transform: translateY(-6px) scale(1.028) !important;
-  filter: drop-shadow(0 10px 18px rgba(130, 95, 75, 0.22));
+  animation-play-state: paused;
+  transform: translate3d(0, -6px, 0) scale3d(1.032, 1.032, 1) !important;
   z-index: 30;
 }
 
 .game-module-card.pastel-art-card:active {
-  transform: translateY(1px) scale(0.99) !important;
+  animation-play-state: paused;
+  transform: translate3d(0, 2px, 0) scale3d(1.045, 0.925, 1) !important;
 }
 
 .module-card-thumb.pastel-full-art-thumb {
@@ -12659,7 +12692,16 @@ button.eq-num-box {
   height: 100% !important;
   object-fit: fill !important;
   border-radius: 22px !important;
-  filter: drop-shadow(0 5px 12px rgba(120, 88, 64, 0.14));
+  box-shadow:
+    0 6px 14px rgba(120, 88, 64, 0.15),
+    0 2px 4px rgba(120, 88, 64, 0.08);
+  transition: box-shadow 0.22s ease;
+}
+
+.game-module-card.pastel-art-card:hover .module-card-thumb.pastel-full-art-thumb img {
+  box-shadow:
+    0 12px 22px rgba(130, 95, 75, 0.24),
+    0 0 16px rgba(255, 224, 130, 0.38);
 }
 
 .pastel-art-card .card-quest-badge {
@@ -16983,6 +17025,338 @@ button.eq-num-box {
   border-color: #cbd5e1;
   color: #334155;
   background: #ffffff;
+}
+
+.park-pill-btn.back-to-lobby {
+  background: linear-gradient(135deg, #ec4899 0%, #db2777 100%);
+  border-color: #be185d;
+  color: #ffffff;
+  box-shadow:
+    0 3px 0 #9d174d,
+    0 6px 14px rgba(219, 39, 119, 0.28);
+}
+
+.park-pill-btn.back-to-lobby:hover {
+  filter: brightness(1.06);
+}
+
+.park-active-game-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 5px 14px;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.95);
+  border: 2.5px solid var(--game-accent, #f472b6);
+  color: #1e293b;
+  font-size: 13px;
+  font-weight: 800;
+  box-shadow: 0 3px 10px rgba(15, 23, 42, 0.08);
+}
+
+.park-active-game-badge strong {
+  color: var(--game-accent, #db2777);
+  font-weight: 900;
+}
+
+/* ==========================================================================
+   SẢNH CHỌN GAME THEO TAB CHỦ ĐỀ (PARK GAME LOBBY)
+   ========================================================================== */
+
+.park-games-fullstage.park-lobby-mode {
+  padding: 50px 22px 14px;
+  gap: 10px;
+  background:
+    radial-gradient(circle at 15% 15%, rgba(251, 207, 232, 0.65) 0%, transparent 42%),
+    radial-gradient(circle at 85% 20%, rgba(186, 230, 253, 0.65) 0%, transparent 45%),
+    radial-gradient(circle at 50% 88%, rgba(254, 240, 138, 0.5) 0%, transparent 45%),
+    linear-gradient(180deg, #fff5f9 0%, #eff6ff 52%, #fdf2f8 100%);
+}
+
+.park-lobby-header-bar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  flex-shrink: 0;
+  padding: 0 4px;
+}
+
+.park-lobby-title-banner {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  background: linear-gradient(135deg, #ffffff 0%, #fdf2f8 100%);
+  border: 2.5px solid #f472b6;
+  border-radius: 999px;
+  padding: 5px 18px;
+  color: #be185d;
+  font-size: 15px;
+  box-shadow:
+    0 3px 0 #f9a8d4,
+    0 6px 16px rgba(236, 72, 153, 0.16);
+}
+
+.park-lobby-title-banner strong {
+  font-weight: 900;
+  letter-spacing: 0.01em;
+}
+
+.park-lobby-count-tag {
+  background: linear-gradient(135deg, #ec4899 0%, #db2777 100%);
+  color: #ffffff;
+  font-size: 11.5px;
+  font-weight: 900;
+  padding: 2px 10px;
+  border-radius: 999px;
+}
+
+.park-lobby-category-tabs {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-wrap: wrap;
+  gap: 10px;
+  flex-shrink: 0;
+}
+
+.park-category-tab-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 7px 18px;
+  border-radius: 999px;
+  border: 2.5px solid #fbcfe8;
+  background: rgba(255, 255, 255, 0.94);
+  color: #475569;
+  font-family: inherit;
+  font-size: 13.5px;
+  font-weight: 900;
+  cursor: pointer;
+  box-shadow:
+    0 3px 0 #e2e8f0,
+    0 5px 12px rgba(15, 23, 42, 0.07);
+  transition: transform 0.15s ease, box-shadow 0.15s ease, background 0.15s ease;
+}
+
+.park-category-tab-btn:hover {
+  transform: translateY(-2px);
+}
+
+.park-category-tab-btn.cat-all.active {
+  background: linear-gradient(135deg, #ff6b9d 0%, #db2777 100%);
+  border-color: #be185d;
+  color: #ffffff;
+  box-shadow:
+    0 3px 0 #9d174d,
+    0 6px 16px rgba(219, 39, 119, 0.3);
+}
+
+.park-category-tab-btn.cat-action.active {
+  background: linear-gradient(135deg, #38bdf8 0%, #0284c7 100%);
+  border-color: #0369a1;
+  color: #ffffff;
+  box-shadow:
+    0 3px 0 #075985,
+    0 6px 16px rgba(2, 132, 199, 0.3);
+}
+
+.park-category-tab-btn.cat-explore.active {
+  background: linear-gradient(135deg, #a855f7 0%, #7e22ce 100%);
+  border-color: #6b21a8;
+  color: #ffffff;
+  box-shadow:
+    0 3px 0 #581c87,
+    0 6px 16px rgba(126, 34, 206, 0.3);
+}
+
+.park-category-tab-btn.cat-brain.active {
+  background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%);
+  border-color: #b45309;
+  color: #ffffff;
+  box-shadow:
+    0 3px 0 #92400e,
+    0 6px 16px rgba(217, 119, 6, 0.3);
+}
+
+.park-lobby-cards-grid {
+  flex: 1;
+  min-height: 0;
+  width: 100%;
+  max-width: 1140px;
+  margin: 0 auto;
+  display: grid;
+  gap: 12px;
+  box-sizing: border-box;
+}
+
+.park-lobby-cards-grid.grid-all-7 {
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  grid-template-rows: repeat(2, minmax(0, 1fr));
+}
+
+.park-lobby-cards-grid.grid-filtered-3 {
+  grid-template-columns: repeat(3, minmax(0, 320px));
+  grid-auto-rows: minmax(210px, 260px);
+  justify-content: center;
+  align-content: center;
+}
+
+.park-game-card {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  background: #ffffff;
+  border: 3px solid var(--game-accent, #f472b6);
+  border-radius: 20px;
+  overflow: hidden;
+  cursor: pointer;
+  box-shadow:
+    0 4px 0 var(--game-accent, #f472b6),
+    0 8px 20px rgba(15, 23, 42, 0.12);
+  transition: transform 0.16s ease, box-shadow 0.16s ease;
+  min-height: 0;
+}
+
+.park-game-card:hover {
+  transform: translateY(-4px) scale(1.015);
+  box-shadow:
+    0 6px 0 var(--game-accent, #f472b6),
+    0 14px 26px rgba(15, 23, 42, 0.18);
+}
+
+.park-game-card-thumb {
+  position: relative;
+  flex: 1;
+  min-height: 0;
+  width: 100%;
+  background: linear-gradient(180deg, #fdf2f8 0%, #eff6ff 100%);
+  overflow: hidden;
+}
+
+.park-game-cover-img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+  transition: transform 0.25s ease;
+}
+
+.park-game-card:hover .park-game-cover-img {
+  transform: scale(1.05);
+}
+
+.park-game-char-tag {
+  position: absolute;
+  top: 7px;
+  left: 7px;
+  background: rgba(255, 255, 255, 0.94);
+  border: 1.5px solid var(--game-accent, #f472b6);
+  color: #1e293b;
+  font-size: 10.5px;
+  font-weight: 900;
+  padding: 2px 8px;
+  border-radius: 999px;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.14);
+}
+
+.park-game-reward-tag {
+  position: absolute;
+  top: 7px;
+  right: 7px;
+  background: linear-gradient(135deg, #fffbeb 0%, #fef08a 100%);
+  border: 1.5px solid #f59e0b;
+  color: #92400e;
+  font-size: 10.5px;
+  font-weight: 900;
+  padding: 2px 8px;
+  border-radius: 999px;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.14);
+}
+
+.park-game-speak-btn {
+  position: absolute;
+  bottom: 7px;
+  right: 7px;
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  border: 2px solid #ffffff;
+  background: var(--game-accent, #ec4899);
+  color: #ffffff;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  box-shadow: 0 3px 8px rgba(0, 0, 0, 0.22);
+  transition: transform 0.14s ease;
+}
+
+.park-game-speak-btn:hover {
+  transform: scale(1.12);
+}
+
+.park-game-card-body {
+  padding: 7px 10px 8px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  gap: 3px;
+  background: #ffffff;
+  flex-shrink: 0;
+}
+
+.park-game-card-title {
+  font-size: 13.5px;
+  font-weight: 900;
+  color: #1e293b;
+  line-height: 1.15;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 100%;
+}
+
+.park-game-card-desc {
+  font-size: 11px;
+  font-weight: 700;
+  color: #64748b;
+  line-height: 1.2;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 100%;
+}
+
+.park-game-play-cta {
+  margin-top: 2px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 5px;
+  width: 100%;
+  padding: 4px 10px;
+  border-radius: 999px;
+  background: var(--game-accent, #ec4899);
+  color: #ffffff;
+  font-size: 12px;
+  font-weight: 900;
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.35);
+}
+
+@media (max-width: 900px) {
+  .park-lobby-cards-grid.grid-all-7 {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    overflow-y: auto;
+  }
+  .park-lobby-cards-grid.grid-filtered-3 {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    overflow-y: auto;
+  }
+  .park-lobby-title-banner {
+    display: none;
+  }
 }
 
 .park-pill-btn.reset {

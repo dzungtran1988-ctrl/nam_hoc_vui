@@ -45,18 +45,156 @@ interface EntertainmentVideoItem {
   thumbUrl?: string;
 }
 
+export type ParkGameMode =
+  | "lobby"
+  | "bedrooms"
+  | "claw"
+  | "memory"
+  | "island-race"
+  | "space-defender"
+  | "soccer";
+
+export type ParkGameCategoryTab = "all" | "action" | "explore" | "brain";
+
+interface ParkGameCatalogItem {
+  id: Exclude<ParkGameMode, "lobby"> | "garden-cat";
+  title: string;
+  subtitle: string;
+  characterTag: string;
+  rewardBadge: string;
+  coverUrl: string;
+  accentColor: string;
+  categories: Exclude<ParkGameCategoryTab, "all">[];
+  spokenIntro: string;
+}
+
+const PARK_GAMES_CATALOG: ParkGameCatalogItem[] = [
+  {
+    id: "space-defender",
+    title: "Phi Thuyền Bảo Vệ Trái Đất",
+    subtitle: "Lái tàu vũ trụ bắn thiên thạch & giải đố",
+    characterTag: "🚀 Hello Kitty & Nấm",
+    rewardBadge: "🪙 +10 Xu Vàng",
+    coverUrl: "/assets/canva/game-cover-space.webp",
+    accentColor: "#ec4899",
+    categories: ["action"],
+    spokenIntro:
+      "Trò chơi Phi Thuyền Bảo Vệ Trái Đất! Nấm cùng Hello Kitty lái tàu vũ trụ bắn thiên thạch và giải đố nhé!",
+  },
+  {
+    id: "island-race",
+    title: "Đua Đảo 3D Cinnamoroll",
+    subtitle: "Tung xúc xắc phiêu lưu 6 hòn đảo kỳ diệu",
+    characterTag: "🎲 Cinnamoroll",
+    rewardBadge: "🏆 +10 Xu Vàng",
+    coverUrl: "/assets/canva/game-cover-island.webp",
+    accentColor: "#0284c7",
+    categories: ["action"],
+    spokenIntro:
+      "Trò chơi Đua Đảo Ba Đê cùng Cinnamoroll! Tung xúc xắc chinh phục sáu hòn đảo kỳ diệu nào!",
+  },
+  {
+    id: "soccer",
+    title: "Siêu Cầu Thủ Nhí Nấm",
+    subtitle: "Đố vui thông thái & sút bóng Penalty ghi bàn",
+    characterTag: "⚽ Cầu Thủ Nấm",
+    rewardBadge: "⚽ +5 Xu & Sao",
+    coverUrl: "/assets/nam-stickers/nam-sub-soccer.webp",
+    accentColor: "#10b981",
+    categories: ["action", "brain"],
+    spokenIntro:
+      "Trò chơi Siêu Cầu Thủ Nhí Nấm! Trả lời câu đố thông thái và sút bóng ghi bàn vào lưới Thủ môn Pochacco nhé!",
+  },
+  {
+    id: "bedrooms",
+    title: "Phòng Ngủ Bí Mật Sanrio",
+    subtitle: "Soi đèn tìm 5 ngôi sao ẩn trong 7 căn phòng",
+    characterTag: "🌟 7 Bạn Sanrio",
+    rewardBadge: "🎁 Rương Sticker",
+    coverUrl: "/assets/canva/game-cover-bedroom.webp",
+    accentColor: "#8b5cf6",
+    categories: ["explore", "brain"],
+    spokenIntro:
+      "Trò chơi Phòng Ngủ Bí Mật Sanrio! Khám phá bảy căn phòng xinh xắn và tìm năm ngôi sao mở rương báu nhé!",
+  },
+  {
+    id: "garden-cat",
+    title: "Vườn Cây & Mèo Kawaii",
+    subtitle: "Tưới cây thần kỳ nở hoa & chăm sóc mèo cưng",
+    characterTag: "🌱🐱 Mèo Tiên",
+    rewardBadge: "👑 Sticker Đặc Biệt",
+    coverUrl: "/assets/garden-cat/bg_split_preview.webp",
+    accentColor: "#0d9488",
+    categories: ["explore"],
+    spokenIntro:
+      "Trò chơi Vườn Cây Thần Kỳ và Phòng Nuôi Mèo Kawaii! Nấm vào tưới cây, thu hoạch trái ngọt và chăm sóc mèo cưng nhé!",
+  },
+  {
+    id: "claw",
+    title: "Máy Gắp Thú Bông Sanrio",
+    subtitle: "Điều khiển càng gắp sưu tập 72 thú bông 3D",
+    characterTag: "🧸 72 Thú Bông",
+    rewardBadge: "🪙 10 Xu / Lượt",
+    coverUrl: "/assets/canva/game-cover-claw.webp",
+    accentColor: "#f43f5e",
+    categories: ["explore"],
+    spokenIntro:
+      "Trò chơi Máy Gắp Thú Bông Sanrio! Điều khiển càng gắp để rinh thú bông đáng yêu về kệ sưu tập nhé!",
+  },
+  {
+    id: "memory",
+    title: "Lật Thẻ Trí Nhớ Pochacco",
+    subtitle: "Nhớ vị trí & lật mở các cặp đồ vật giống nhau",
+    characterTag: "🃏 Cún Pochacco",
+    rewardBadge: "🏅 Sticker Pochacco",
+    coverUrl: "/assets/card-pastel-minigame.webp",
+    accentColor: "#f59e0b",
+    categories: ["brain"],
+    spokenIntro:
+      "Trò chơi Lật Thẻ Trí Nhớ cùng Pochacco! Nhìn kỹ vị trí rồi lật tìm hai thẻ hình giống nhau nhé!",
+  },
+];
+
+const PARK_GAME_CATEGORY_TABS: {
+  id: ParkGameCategoryTab;
+  label: string;
+  spokenLabel: string;
+  colorClass: string;
+}[] = [
+  {
+    id: "all",
+    label: "✨ Tất Cả (7)",
+    spokenLabel: "Tất cả bảy trò chơi vui nhộn!",
+    colorClass: "cat-all",
+  },
+  {
+    id: "action",
+    label: "🚀 Hành Động & Đua Tài",
+    spokenLabel: "Chủ đề Hành động và Đua tài!",
+    colorClass: "cat-action",
+  },
+  {
+    id: "explore",
+    label: "🌟 Khám Phá & Sưu Tầm",
+    spokenLabel: "Chủ đề Khám phá và Sưu tầm!",
+    colorClass: "cat-explore",
+  },
+  {
+    id: "brain",
+    label: "🧠 Trí Tuệ & Phản Xạ",
+    spokenLabel: "Chủ đề Trí tuệ và Phản xạ!",
+    colorClass: "cat-brain",
+  },
+];
+
 export interface StorybookActivityProps extends ActivityProps {
   goldCoins?: number;
   onSpendCoins?: (cost: number) => boolean;
   onAddCoins?: (amount: number) => void;
   onOpenPlushieShelf?: () => void;
+  onOpenGardenCat?: () => void;
   initialHubZone?: "hub" | "stories" | "cinema" | "games";
-  initialParkGameMode?:
-    | "bedrooms"
-    | "claw"
-    | "memory"
-    | "island-race"
-    | "space-defender";
+  initialParkGameMode?: ParkGameMode;
 }
 
 export { STORY_BOOKS };
@@ -70,23 +208,25 @@ export function StorybookActivity({
   onSpendCoins: propOnSpendCoins,
   onAddCoins: propOnAddCoins,
   onOpenPlushieShelf,
+  onOpenGardenCat,
   initialHubZone = "hub",
-  initialParkGameMode = "bedrooms",
+  initialParkGameMode = "lobby",
 }: StorybookActivityProps) {
   // 3 Khu chính của Khu Giải Trí (Ô số 6):
   // - "hub": Màn hình Sảnh 3 Ngôi Nhà (1. Lều Đọc Truyện | 2. Rạp Chiếu Phim | 3. Khu Vui Chơi)
   // - "stories": Lều Đọc Truyện
   // - "cinema": Rạp Chiếu Phim Khám Phá (10 Xu / 1 lần vào xem)
-  // - "games": Khu Vui Chơi Công Viên (Phòng Ngủ Bí Mật Sanrio, Máy Gắp Thú & Lật Bài Trí Nhớ)
+  // - "games": Khu Vui Chơi Công Viên (Mở Sảnh Chọn Game theo Tab chủ đề trước khi vào game)
   const [hubZone, setHubZone] = useState<
     "hub" | "stories" | "cinema" | "games"
   >(initialHubZone);
   const [enteringHouse, setEnteringHouse] = useState<
     "stories" | "cinema" | "games" | null
   >(null);
-  const [parkGameMode, setParkGameMode] = useState<
-    "bedrooms" | "claw" | "memory" | "island-race" | "space-defender"
-  >(initialParkGameMode);
+  const [parkGameMode, setParkGameMode] =
+    useState<ParkGameMode>(initialParkGameMode);
+  const [gameCategoryTab, setGameCategoryTab] =
+    useState<ParkGameCategoryTab>("all");
   const [localCoins, setLocalCoins] = useState<number>(() => loadGoldCoins());
   const [hubNotice, setHubNotice] = useState<string | null>(null);
 
@@ -342,7 +482,7 @@ export function StorybookActivity({
             />
           </button>
 
-          {/* NGÔI NHÀ 3 (PHẢI): KHU VUI CHƠI (MÁY GẮP THÚ SANRIO & LẬT THẺ) */}
+          {/* NGÔI NHÀ 3 (PHẢI): KHU VUI CHƠI (MỞ SẢNH CHỌN GAME THEO TAB CHỦ ĐỀ) */}
           <button
             type="button"
             className={`hub-3d-house-btn house-right ${
@@ -353,13 +493,14 @@ export function StorybookActivity({
               setEnteringHouse("games");
               if (soundEnabled) {
                 speech.speak(
-                  "Chào mừng Nấm đến Khu Vui Chơi! Mình cùng gắp thú bông Sanrio xinh xắn nhé!",
+                  "Chào mừng Nấm đến Trung Tâm Trò Chơi! Con chọn chủ đề và bấm vào trò chơi mình thích nhé!",
                   "vi-VN",
                 );
               }
               window.setTimeout(() => {
                 setEnteringHouse(null);
-                setParkGameMode("claw");
+                setGameCategoryTab("all");
+                setParkGameMode("lobby");
                 setHubZone("games");
               }, 380);
             }}
@@ -538,68 +679,218 @@ export function StorybookActivity({
   }
 
   // =========================================================================
-  // KHU 3: KHU CÔNG VIÊN VUI CHƠI (NỀN RỘNG THOÁNG TOÀN MÀN HÌNH - KHÔNG KHUNG)
+  // KHU 3: KHU CÔNG VIÊN VUI CHƠI (SẢNH CHỌN GAME THEO TAB CHỦ ĐỀ -> VÀO GAME)
   // =========================================================================
   if (hubZone === "games") {
-    return (
-      <div className="park-games-fullstage">
-        <div className="park-games-top-strip">
-          <div className="park-games-tabs-left">
+    const filteredGames =
+      gameCategoryTab === "all"
+        ? PARK_GAMES_CATALOG
+        : PARK_GAMES_CATALOG.filter((g) =>
+            g.categories.includes(gameCategoryTab),
+          );
+
+    const activeGameMeta = PARK_GAMES_CATALOG.find(
+      (g) => g.id === parkGameMode,
+    );
+
+    const handleLaunchParkGame = (game: ParkGameCatalogItem) => {
+      speech.stop();
+      if (soundEnabled) {
+        speech.speak(game.spokenIntro, "vi-VN");
+      }
+      if (game.id === "garden-cat") {
+        if (onOpenGardenCat) {
+          onOpenGardenCat();
+        }
+        return;
+      }
+      setParkGameMode(game.id);
+    };
+
+    // 3A. MÀN HÌNH SẢNH CHỌN GAME THEO TAB CHỦ ĐỀ (KHÔNG VÀO THẲNG GAME NGAY)
+    if (parkGameMode === "lobby") {
+      return (
+        <div className="park-games-fullstage park-lobby-mode">
+          <div className="park-lobby-header-bar">
             <button
               type="button"
               className="park-pill-btn back"
-              onClick={() => setHubZone("hub")}
+              onClick={() => {
+                speech.stop();
+                setHubZone("hub");
+              }}
             >
-              <ArrowLeft size={14} /> 3 Khu Giải Trí
+              <ArrowLeft size={15} /> 3 Khu Giải Trí
+            </button>
+
+            <div className="park-lobby-title-banner">
+              <Gamepad2 size={18} />
+              <strong>Trung Tâm Trò Chơi Sanrio</strong>
+              <span className="park-lobby-count-tag">
+                {PARK_GAMES_CATALOG.length} trò chơi
+              </span>
+            </div>
+
+            <div className="park-games-tabs-right">
+              <span className="park-coin-pill">
+                <img
+                  src="/assets/math/items/gold-coin.webp"
+                  alt=""
+                  className="inline-coin-3d-icon"
+                />
+                <strong>{effectiveGoldCoins} Xu Vàng</strong>
+              </span>
+              {onOpenPlushieShelf && (
+                <button
+                  type="button"
+                  className="park-pill-btn shelf"
+                  onClick={onOpenPlushieShelf}
+                >
+                  🧸 Kệ Thú Bông
+                </button>
+              )}
+            </div>
+          </div>
+
+          {/* Thanh 4 Tab Chủ Đề Trò Chơi */}
+          <div className="park-lobby-category-tabs" role="tablist">
+            {PARK_GAME_CATEGORY_TABS.map((tab) => {
+              const isActive = gameCategoryTab === tab.id;
+              return (
+                <button
+                  key={tab.id}
+                  type="button"
+                  role="tab"
+                  aria-selected={isActive}
+                  className={`park-category-tab-btn ${tab.colorClass} ${
+                    isActive ? "active" : ""
+                  }`}
+                  onClick={() => {
+                    setGameCategoryTab(tab.id);
+                    if (soundEnabled) {
+                      speech.speak(tab.spokenLabel, "vi-VN");
+                    }
+                  }}
+                >
+                  <span>{tab.label}</span>
+                </button>
+              );
+            })}
+          </div>
+
+          {/* Lưới Thẻ Bài Game 3D trực quan cho bé chọn */}
+          <div
+            className={`park-lobby-cards-grid ${
+              gameCategoryTab === "all" ? "grid-all-7" : "grid-filtered-3"
+            }`}
+          >
+            {filteredGames.map((game) => (
+              <div
+                key={game.id}
+                className="park-game-card"
+                style={
+                  { "--game-accent": game.accentColor } as React.CSSProperties
+                }
+                onClick={() => handleLaunchParkGame(game)}
+                role="button"
+                tabIndex={0}
+                onKeyDown={(e) => {
+                  if (e.key === "Enter" || e.key === " ") {
+                    e.preventDefault();
+                    handleLaunchParkGame(game);
+                  }
+                }}
+              >
+                <div className="park-game-card-thumb">
+                  <img
+                    src={game.coverUrl}
+                    alt={game.title}
+                    className="park-game-cover-img"
+                    loading="lazy"
+                    draggable={false}
+                  />
+                  <span className="park-game-char-tag">
+                    {game.characterTag}
+                  </span>
+                  <span className="park-game-reward-tag">
+                    {game.rewardBadge}
+                  </span>
+                  <button
+                    type="button"
+                    className="park-game-speak-btn"
+                    title="Nghe giới thiệu trò chơi"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      speech.speak(game.spokenIntro, "vi-VN");
+                    }}
+                  >
+                    <Volume2 size={14} />
+                  </button>
+                </div>
+
+                <div className="park-game-card-body">
+                  <strong className="park-game-card-title">{game.title}</strong>
+                  <span className="park-game-card-desc">{game.subtitle}</span>
+                  <span className="park-game-play-cta">
+                    <Play size={13} fill="currentColor" /> Vào Chơi Ngay
+                  </span>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      );
+    }
+
+    // 3B. MÀN HÌNH ĐANG CHƠI GAME (ẨN DẢI TAB ĐỂ NHƯỜNG 100% MÀN HÌNH CHO GAME)
+    return (
+      <div className="park-games-fullstage in-active-game-mode">
+        <div className="park-games-top-strip in-active-game">
+          <div className="park-games-tabs-left">
+            <button
+              type="button"
+              className="park-pill-btn back-to-lobby"
+              onClick={() => {
+                speech.stop();
+                setParkGameMode("lobby");
+              }}
+            >
+              <ArrowLeft size={15} /> 🎡 Chọn Game Khác
             </button>
             <button
               type="button"
-              className={`park-pill-btn tab-pink ${
-                parkGameMode === "space-defender" ? "active" : ""
-              }`}
-              onClick={() => setParkGameMode("space-defender")}
+              className="park-pill-btn back"
+              onClick={() => {
+                speech.stop();
+                setHubZone("hub");
+              }}
             >
-              🚀 Phi Thuyền Bảo Vệ Trái Đất
+              🏠 3 Khu Giải Trí
             </button>
-            <button
-              type="button"
-              className={`park-pill-btn tab-blue ${
-                parkGameMode === "bedrooms" ? "active" : ""
-              }`}
-              onClick={() => setParkGameMode("bedrooms")}
-            >
-              🌟 Phòng Ngủ Bí Mật
-            </button>
-            <button
-              type="button"
-              className={`park-pill-btn tab-pink ${
-                parkGameMode === "island-race" ? "active" : ""
-              }`}
-              onClick={() => setParkGameMode("island-race")}
-            >
-              🎲 Đua Đảo 3D Cinnamoroll
-            </button>
-            <button
-              type="button"
-              className={`park-pill-btn tab-pink ${
-                parkGameMode === "claw" ? "active" : ""
-              }`}
-              onClick={() => setParkGameMode("claw")}
-            >
-              🧸 Máy Gắp Thú Sanrio
-            </button>
-            <button
-              type="button"
-              className={`park-pill-btn tab-blue ${
-                parkGameMode === "memory" ? "active" : ""
-              }`}
-              onClick={() => setParkGameMode("memory")}
-            >
-              🃏 Lật Thẻ Pochacco
-            </button>
+            {activeGameMeta && (
+              <span
+                className="park-active-game-badge"
+                style={
+                  {
+                    "--game-accent": activeGameMeta.accentColor,
+                  } as React.CSSProperties
+                }
+              >
+                <span>{activeGameMeta.characterTag}</span>
+                <strong>· {activeGameMeta.title}</strong>
+              </span>
+            )}
           </div>
 
           <div className="park-games-tabs-right">
+            <span className="park-coin-pill">
+              <img
+                src="/assets/math/items/gold-coin.webp"
+                alt=""
+                className="inline-coin-3d-icon"
+              />
+              <strong>{effectiveGoldCoins} Xu</strong>
+            </span>
             {onOpenPlushieShelf && (
               <button
                 type="button"
@@ -616,20 +907,20 @@ export function StorybookActivity({
           {parkGameMode === "space-defender" ? (
             <EarthDefenderSpaceGame
               soundEnabled={soundEnabled}
-              onBack={() => setHubZone("hub")}
+              onBack={() => setParkGameMode("lobby")}
               onReaction={onReaction}
               onEarnReward={(coins, summaryText) => {
                 handleEarnCoins(coins);
                 onReaction?.(
                   "happy",
-                  `🚀 ${summaryText}! Bé được thưởng thêm +${coins} Xu Vàng!`
+                  `🚀 ${summaryText}! Bé được thưởng thêm +${coins} Xu Vàng!`,
                 );
               }}
             />
           ) : parkGameMode === "bedrooms" ? (
             <SanrioBedroomExplorer
               soundEnabled={soundEnabled}
-              onBack={() => setHubZone("hub")}
+              onBack={() => setParkGameMode("lobby")}
               onReaction={onReaction}
               onEarnReward={(coins, roomTitle) => {
                 handleEarnCoins(coins);
@@ -645,7 +936,7 @@ export function StorybookActivity({
             />
           ) : parkGameMode === "island-race" ? (
             <CinnamorollIslandRaceEmbed
-              onBack={() => setHubZone("hub")}
+              onBack={() => setParkGameMode("lobby")}
               onEarnReward={(coins, champName) => {
                 handleEarnCoins(coins);
                 onReaction?.(
@@ -659,17 +950,34 @@ export function StorybookActivity({
               goldCoins={effectiveGoldCoins}
               onSpendCoins={handleSpendCoins}
               onOpenPlushieShelf={onOpenPlushieShelf}
+              onBack={() => setParkGameMode("lobby")}
               soundEnabled={soundEnabled}
             />
+          ) : parkGameMode === "soccer" ? (
+            <div className="park-memory-wide-wrap">
+              <PochaccoActivity
+                key="park-soccer-mode"
+                soundEnabled={soundEnabled}
+                onComplete={(res) => {
+                  handleEarnCoins(5);
+                  onComplete(res);
+                }}
+                onReaction={onReaction}
+                onLessonIndexChange={onLessonIndexChange}
+                initialViewMode="soccer"
+                onBackToHub={() => setParkGameMode("lobby")}
+              />
+            </div>
           ) : (
             <div className="park-memory-wide-wrap">
               <PochaccoActivity
+                key="park-memory-mode"
                 soundEnabled={soundEnabled}
                 onComplete={onComplete}
                 onReaction={onReaction}
                 onLessonIndexChange={onLessonIndexChange}
                 initialViewMode="memory"
-                onBackToHub={() => setHubZone("hub")}
+                onBackToHub={() => setParkGameMode("lobby")}
               />
             </div>
           )}

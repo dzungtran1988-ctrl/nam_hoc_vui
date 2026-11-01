@@ -62,6 +62,7 @@ import {
   VictoryVideoScreen,
 } from "./components/screens/VictoryRewardScreens";
 import { StarTrophyScreen } from "./components/screens/StarTrophyScreen";
+import { GardenCatCareScreen } from "./components/screens/GardenCatCareScreen";
 import { DailyQuestChestModal } from "./components/screens/DailyQuestChestModal";
 import {
   VideoTheaterModal,
@@ -147,6 +148,7 @@ type Page =
       initialFilter?: DrawerTabId;
       initialPageId?: string;
     }
+  | { type: "garden-cat" }
   | { type: "parents" };
 
 const activities: Record<SubjectId, React.ComponentType<ActivityProps>> = {
@@ -260,11 +262,19 @@ function App() {
   );
   const [goldCoins, setGoldCoins] = useState<number>(() => loadGoldCoins());
   const [storybookInitialParkMode, setStorybookInitialParkMode] = useState<
-    "bedrooms" | "claw" | "memory" | "island-race" | "space-defender"
-  >("bedrooms");
+    | "lobby"
+    | "bedrooms"
+    | "claw"
+    | "memory"
+    | "island-race"
+    | "space-defender"
+    | "soccer"
+  >("lobby");
   const [storybookInitialHubZone, setStorybookInitialHubZone] = useState<
     "hub" | "stories" | "cinema" | "games"
   >("hub");
+  const [gardenCatOpenedFromGames, setGardenCatOpenedFromGames] =
+    useState(false);
   const [selectedCupSubject, setSelectedCupSubject] =
     useState<SubjectId>("reading");
   const [chestNamBonus, setChestNamBonus] =
@@ -496,6 +506,8 @@ function App() {
   function startLesson(subject: SubjectId) {
     rewarded.current = false;
     setStorybookInitialHubZone("hub");
+    setStorybookInitialParkMode("lobby");
+    setGardenCatOpenedFromGames(false);
     warmupSubjectAudio(subject, progress.soundEnabled);
     setAttemptKey((k) => k + 1);
     const defaultVariantBySubject: Record<SubjectId, 1 | 2 | 3 | 4> = {
@@ -640,6 +652,24 @@ function App() {
               >
                 <BookOpen size={16} />
                 <span>📒 Vở Sticker ({totalUnlockedInBook})</span>
+              </button>
+              <button
+                type="button"
+                className="hud-pill hud-gold"
+                onClick={() => {
+                  speech.stop();
+                  if (progress.soundEnabled) playCharacterTapSound();
+                  setGardenCatOpenedFromGames(false);
+                  setPage({ type: "garden-cat" });
+                }}
+                style={{
+                  background: "linear-gradient(135deg, #20C997, #12B886)",
+                  color: "#FFFFFF",
+                  borderColor: "#FFE066",
+                }}
+                title="Vào Vườn Cây Thần Kỳ & Phòng Nuôi Mèo Kawaii của Nấm!"
+              >
+                <span>🌱🐱 Vườn Cây & Mèo</span>
               </button>
               <button
                 type="button"
@@ -931,6 +961,11 @@ function App() {
                         goldCoins={goldCoins}
                         onSpendCoins={handleSpendGoldCoins}
                         onOpenPlushieShelf={handleOpenPlushieShelf}
+                        onOpenGardenCat={() => {
+                          speech.stop();
+                          setGardenCatOpenedFromGames(true);
+                          setPage({ type: "garden-cat" });
+                        }}
                         initialHubZone={storybookInitialHubZone}
                         initialParkGameMode={storybookInitialParkMode}
                         onAddCoins={(amount) => {
@@ -1103,6 +1138,42 @@ function App() {
       {/* =====================================================================
           5. GÓC PHỤ HUYNH (PARENTS)
          ===================================================================== */}
+      {page.type === "garden-cat" && (
+        <GardenCatCareScreen
+          goldCoins={goldCoins}
+          onSpendCoins={handleSpendGoldCoins}
+          onAddCoins={(amount) => {
+            const next = addGoldCoins(amount);
+            setGoldCoins(next);
+          }}
+          questItemInventory={questItemInventory}
+          onUpdateQuestItemInventory={(nextInv) => setQuestItemInventory(nextInv)}
+          completedLessonsCount={progress.completions.length}
+          soundEnabled={progress.soundEnabled}
+          onSpeak={(text) => {
+            if (progress.soundEnabled) {
+              speech.speak(text, "vi-VN");
+            }
+          }}
+          onGoHome={() => {
+            speech.stop();
+            if (gardenCatOpenedFromGames) {
+              setGardenCatOpenedFromGames(false);
+              setStorybookInitialHubZone("games");
+              setStorybookInitialParkMode("lobby");
+              setAttemptKey((k) => k + 1);
+              setPage({ type: "lesson", subject: "storybook" });
+              return;
+            }
+            setPage({ type: "home" });
+          }}
+          onStartLesson={(subj) => startLesson(subj)}
+          onOpenStickerBook={(filter) =>
+            setPage({ type: "sticker-book", initialFilter: filter })
+          }
+        />
+      )}
+
       {page.type === "parents" && (
         <div className="parents-modal-wrapper">
           <div className="parents-top-back">

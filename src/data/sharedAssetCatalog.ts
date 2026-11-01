@@ -3344,7 +3344,7 @@ const RAW_FRAME_SCENE_SEEDS: RawFrameSceneSeed[] = [
   // --- 5. BỐI CẢNH SỔ STICKER 3D CLAY (STICKERBOOK SCENES) ---
   {
     id: "sticker-scene-supermarket",
-    imageUrl: "/assets/stickerbook/bg-supermarket.jpg",
+    imageUrl: "/assets/stickerbook/bg-supermarket.webp",
     title: "Kệ Siêu Thị & Tiệm Bánh 3D Góc Nhìn Thẳng",
     englishTitle: "3D Front-View Supermarket & Bakery Shelves",
     assetRole: "sticker_scene",
@@ -3360,7 +3360,7 @@ const RAW_FRAME_SCENE_SEEDS: RawFrameSceneSeed[] = [
   },
   {
     id: "sticker-scene-fruit-crates",
-    imageUrl: "/assets/stickerbook/bg-fruit-crates.jpg",
+    imageUrl: "/assets/stickerbook/bg-fruit-crates.webp",
     title: "Sạp Gỗ Trái Cây Tươi 3D",
     englishTitle: "3D Wooden Fruit Crates Stand",
     assetRole: "sticker_scene",
@@ -3376,7 +3376,7 @@ const RAW_FRAME_SCENE_SEEDS: RawFrameSceneSeed[] = [
   },
   {
     id: "sticker-scene-parking-lot",
-    imageUrl: "/assets/stickerbook/bg-parking-lot.jpg",
+    imageUrl: "/assets/stickerbook/bg-parking-lot.webp",
     title: "Bãi Đỗ Xe & Đường Phố 3D",
     englishTitle: "3D Clay Parking Lot & Road",
     assetRole: "sticker_scene",

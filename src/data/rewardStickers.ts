@@ -418,6 +418,45 @@ export const STORYBOOK_HALLOWEEN_SET_2: CharacterStickerItem[] = [
   },
 ];
 
+export const STORYBOOK_GARDEN_CAT_SET_3: CharacterStickerItem[] = [
+  {
+    id: "gc-tree-rainbow",
+    index: 1,
+    name: "Đại Thụ Anh Đào Cầu Vồng (Cấp 6)",
+    image: "/assets/garden-cat/tree_rainbow_6.webp",
+  },
+  {
+    id: "gc-tree-dessert",
+    index: 2,
+    name: "Lâu Đài Tháp Bánh Kem Dâu (Cấp 6)",
+    image: "/assets/garden-cat/tree_dessert_6.webp",
+  },
+  {
+    id: "gc-tree-crystal",
+    index: 3,
+    name: "Thần Mộc Pha Lê Ánh Trăng (Cấp 6)",
+    image: "/assets/garden-cat/tree_crystal_6.webp",
+  },
+  {
+    id: "gc-cat-white",
+    index: 4,
+    name: "Nữ Hoàng Mèo Tuyết Vương Miện (Cấp 6)",
+    image: "/assets/garden-cat/cat_white_6.webp",
+  },
+  {
+    id: "gc-cat-ginger",
+    index: 5,
+    name: "Vua Đầu Bếp Mèo Cam Hoàng Gia (Cấp 6)",
+    image: "/assets/garden-cat/cat_ginger_6.webp",
+  },
+  {
+    id: "gc-cat-fairy",
+    index: 6,
+    name: "Nữ Thần Mèo Tiên Bướm Tím (Cấp 6)",
+    image: "/assets/garden-cat/cat_fairy_6.webp",
+  },
+];
+
 export interface ThemedSpecialStickerItem {
   id: string;
   index: number; // 1..20
@@ -538,6 +577,9 @@ export function getSubjectStickerSet(
 ): CharacterStickerItem[] {
   if (subjectId === "lifeskills") {
     return LIFESKILLS_STICKER_SETS[setNumber] || LIFESKILLS_STICKER_SETS[1];
+  }
+  if (subjectId === "storybook" && setNumber === 3) {
+    return STORYBOOK_GARDEN_CAT_SET_3;
   }
   if (setNumber === 2) {
     return SUBJECT_STICKER_SET_2[subjectId] || SUBJECT_CUPS[subjectId].stickers;
@@ -863,7 +905,21 @@ export function getSubjectSetStickerEarnedCount(
   if (!b) return 0;
   const cycles = b.completedCycles || 0;
   const requiredPrevCycles = setNumber - 1;
+  if (subjectId === "storybook" && setNumber === 3) {
+    const gcItem = STORYBOOK_GARDEN_CAT_SET_3.find(
+      (s) => s.index === stickerIndex,
+    );
+    const gcInv = loadGardenCatStickerInventory();
+    return gcItem ? gcInv[gcItem.id] || 0 : 0;
+  }
   if (cycles < requiredPrevCycles) return 0;
+  if (subjectId === "storybook" && setNumber === 3) {
+    const gcItem = STORYBOOK_GARDEN_CAT_SET_3.find(
+      (s) => s.index === stickerIndex,
+    );
+    const gcInv = loadGardenCatStickerInventory();
+    return gcItem ? gcInv[gcItem.id] || 0 : 0;
+  }
   const completedFullRunsOfThisSet = Math.max(0, cycles - requiredPrevCycles);
   const inCurrentRun =
     cycles === requiredPrevCycles && b.litIndices.includes(stickerIndex)
@@ -906,6 +962,15 @@ export function getSubjectSetUnlockedCount(
   if (!b) return 0;
   const cycles = b.completedCycles || 0;
   const requiredPrevCycles = setNumber - 1;
+  if (subjectId === "storybook" && setNumber === 3) {
+    let unlocked = 0;
+    for (let i = 1; i <= 6; i++) {
+      if (getSubjectSetStickerEarnedCount(store, "storybook", 3, i) > 0) {
+        unlocked++;
+      }
+    }
+    return unlocked;
+  }
   if (cycles > requiredPrevCycles) return 6;
   if (cycles === requiredPrevCycles) return b.litIndices.length;
   return 0;
@@ -991,6 +1056,7 @@ export type DrawerTabId =
   | "unlocked"
   | "nam-special"
   | "halloween-special"
+  | "garden-cat-special"
   | "careers"
   | "countries"
   | "instruments"
@@ -2073,6 +2139,74 @@ export function awardThemedStickerForSubject(
   };
   saveThemedStickerInventory(nextInv);
   return chosen;
+}
+
+// ============================================================================
+// BỘ 3 KHU GIẢI TRÍ: 6 STICKER VƯỜN CÂY & PHÒNG MÈO CẤP 6 (3 CÂY + 3 MÈO LỚN)
+// ============================================================================
+
+export type GardenCatStickerInventory = Record<string, number>;
+
+const GARDEN_CAT_STICKER_STORAGE_KEY = "nam-hoc-vui.garden-cat-stickers.v1";
+
+export function loadGardenCatStickerInventory(): GardenCatStickerInventory {
+  try {
+    const raw = window.localStorage.getItem(GARDEN_CAT_STICKER_STORAGE_KEY);
+    if (!raw) return {};
+    const parsed = JSON.parse(raw);
+    if (!parsed || typeof parsed !== "object") return {};
+    const out: GardenCatStickerInventory = {};
+    for (const [k, v] of Object.entries(parsed)) {
+      if (typeof v === "number" && v > 0) {
+        out[k] = Math.floor(v);
+      }
+    }
+    return out;
+  } catch {
+    return {};
+  }
+}
+
+export function saveGardenCatStickerInventory(
+  inv: GardenCatStickerInventory,
+): void {
+  try {
+    window.localStorage.setItem(
+      GARDEN_CAT_STICKER_STORAGE_KEY,
+      JSON.stringify(inv),
+    );
+  } catch {
+    // ignore storage errors
+  }
+}
+
+export function getUnlockedGardenCatStickerCount(
+  inv?: GardenCatStickerInventory,
+): number {
+  const store = inv || loadGardenCatStickerInventory();
+  return STORYBOOK_GARDEN_CAT_SET_3.filter((s) => (store[s.id] || 0) > 0).length;
+}
+
+export function awardGardenCatGraduationSticker(
+  stickerId:
+    | "gc-tree-rainbow"
+    | "gc-tree-dessert"
+    | "gc-tree-crystal"
+    | "gc-cat-white"
+    | "gc-cat-ginger"
+    | "gc-cat-fairy",
+): CharacterStickerItem {
+  const inv = loadGardenCatStickerInventory();
+  const nextInv: GardenCatStickerInventory = {
+    ...inv,
+    [stickerId]: (inv[stickerId] || 0) + 1,
+  };
+  saveGardenCatStickerInventory(nextInv);
+  return (
+    STORYBOOK_GARDEN_CAT_SET_3.find((s) => s.id === stickerId) ||
+    STORYBOOK_GARDEN_CAT_SET_3[0]
+  );
+
 }
 
 

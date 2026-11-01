@@ -83,6 +83,63 @@ interface AmbientMote {
   alpha: number;
   phase: number;
   color: string;
+  isStarflare: boolean;
+}
+
+const MOTE_SPRITE_SIZE = 48;
+const MOTE_HALF = MOTE_SPRITE_SIZE / 2;
+const lobbyMoteSpriteCache = new Map<string, HTMLCanvasElement>();
+
+/**
+ * Pre-renders glowing ambient mote sprites once per color.
+ * Replaces expensive per-frame ctx.shadowBlur with fast GPU drawImage + 'lighter'.
+ */
+function getMoteSprite(color: string, isStarflare: boolean): HTMLCanvasElement {
+  const key = `${color}_${isStarflare ? "star" : "orb"}`;
+  const cached = lobbyMoteSpriteCache.get(key);
+  if (cached) return cached;
+
+  const off = document.createElement("canvas");
+  off.width = MOTE_SPRITE_SIZE;
+  off.height = MOTE_SPRITE_SIZE;
+  const c = off.getContext("2d");
+  if (c) {
+    const grad = c.createRadialGradient(
+      MOTE_HALF,
+      MOTE_HALF,
+      1,
+      MOTE_HALF,
+      MOTE_HALF,
+      MOTE_HALF - 2,
+    );
+    grad.addColorStop(0, "#FFFFFF");
+    grad.addColorStop(0.28, color);
+    grad.addColorStop(1, "rgba(0, 0, 0, 0)");
+    c.fillStyle = grad;
+    c.beginPath();
+    c.arc(MOTE_HALF, MOTE_HALF, MOTE_HALF - 2, 0, Math.PI * 2);
+    c.fill();
+
+    if (isStarflare) {
+      c.save();
+      c.translate(MOTE_HALF, MOTE_HALF);
+      c.fillStyle = "#FFFFFF";
+      const arm = MOTE_HALF - 4;
+      const w = 2.2;
+      c.beginPath();
+      c.moveTo(0, -arm);
+      c.quadraticCurveTo(w, -w, arm, 0);
+      c.quadraticCurveTo(w, w, 0, arm);
+      c.quadraticCurveTo(-w, w, -arm, 0);
+      c.quadraticCurveTo(-w, -w, 0, -arm);
+      c.closePath();
+      c.fill();
+      c.restore();
+    }
+  }
+
+  lobbyMoteSpriteCache.set(key, off);
+  return off;
 }
 
 interface LobbyLiveStageProps {
@@ -120,57 +177,68 @@ export function LobbyLiveStage({
     let rafId = 0;
     const startTime = performance.now();
 
-    // Soft pastel floating sparkles in the top hero area
-    const motes: AmbientMote[] = Array.from({ length: 22 }, (_, i) => ({
+    // Soft pastel floating sparkles across hero & upper-card transition zone
+    const palette = ["#FFE066", "#FF8FA3", "#72EFDD", "#A8DADC"];
+    const motes: AmbientMote[] = Array.from({ length: 24 }, (_, i) => ({
       x: Math.random(),
-      y: 0.05 + Math.random() * 0.38,
-      vx: (Math.random() - 0.45) * 0.00022,
-      vy: -0.00014 - Math.random() * 0.00018,
-      r: 2.0 + (i % 3) * 1.0,
-      alpha: 0.3 + Math.random() * 0.42,
+      y: 0.04 + Math.random() * 0.48,
+      vx: (Math.random() - 0.48) * 0.0002,
+      vy: -0.00012 - Math.random() * 0.00016,
+      r: 3.5 + (i % 3) * 1.6,
+      alpha: 0.38 + Math.random() * 0.42,
       phase: Math.random() * Math.PI * 2,
-      color: i % 3 === 0 ? "#FFF4BD" : i % 3 === 1 ? "#FFD6E0" : "#CDE8FF",
+      color: palette[i % palette.length],
+      isStarflare: i % 4 === 0,
     }));
 
     const render = (now: number) => {
-      const t = (now - startTime) * 0.001;
-      if (
-        canvas.width !== canvas.clientWidth ||
-        canvas.height !== canvas.clientHeight
-      ) {
-        canvas.width = canvas.clientWidth;
-        canvas.height = canvas.clientHeight;
-      }
-      const W = canvas.width;
-      const H = canvas.height;
-      const ctx = canvas.getContext("2d");
-      if (!ctx || W === 0 || H === 0) {
+      if (document.hidden) {
         rafId = requestAnimationFrame(render);
         return;
       }
 
-      ctx.clearRect(0, 0, W, H);
+      const t = (now - startTime) * 0.001;
+      const dpr = Math.min(window.devicePixelRatio || 1, 2);
+      const cw = canvas.clientWidth;
+      const ch = canvas.clientHeight;
+      const targetW = Math.round(cw * dpr);
+      const targetH = Math.round(ch * dpr);
 
-      // 1. Soft warm morning sunbeams from top-left window
+      if (canvas.width !== targetW || canvas.height !== targetH) {
+        canvas.width = targetW;
+        canvas.height = targetH;
+      }
+
+      const ctx = canvas.getContext("2d");
+      if (!ctx || cw === 0 || ch === 0) {
+        rafId = requestAnimationFrame(render);
+        return;
+      }
+
       ctx.save();
-      ctx.globalCompositeOperation = "screen";
+      ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+      ctx.clearRect(0, 0, cw, ch);
+
+      // 1. Soft warm morning sunbeams from top-left window (Additive Bloom 'lighter')
+      ctx.save();
+      ctx.globalCompositeOperation = "lighter";
       for (let ray = 0; ray < 2; ray++) {
-        const shimmer = 0.035 + 0.018 * Math.sin(t * 1.0 + ray * 1.6);
+        const shimmer = 0.032 + 0.016 * Math.sin(t * 1.0 + ray * 1.6);
         const grad = ctx.createLinearGradient(
-          W * (0.08 + ray * 0.12),
+          cw * (0.08 + ray * 0.12),
           0,
-          W * (0.42 + ray * 0.12),
-          H * 0.44,
+          cw * (0.42 + ray * 0.12),
+          ch * 0.46,
         );
-        grad.addColorStop(0, `rgba(255, 248, 214, ${shimmer * 1.3})`);
-        grad.addColorStop(0.6, `rgba(255, 240, 195, ${shimmer * 0.7})`);
-        grad.addColorStop(1, "rgba(255, 240, 195, 0)");
+        grad.addColorStop(0, `rgba(255, 246, 205, ${shimmer * 1.25})`);
+        grad.addColorStop(0.6, `rgba(255, 236, 179, ${shimmer * 0.65})`);
+        grad.addColorStop(1, "rgba(255, 236, 179, 0)");
         ctx.fillStyle = grad;
         ctx.beginPath();
-        ctx.moveTo(W * (0.02 + ray * 0.1), 0);
-        ctx.lineTo(W * (0.22 + ray * 0.12), 0);
-        ctx.lineTo(W * (0.52 + ray * 0.12), H * 0.44);
-        ctx.lineTo(W * (0.28 + ray * 0.1), H * 0.44);
+        ctx.moveTo(cw * (0.02 + ray * 0.1), 0);
+        ctx.lineTo(cw * (0.22 + ray * 0.12), 0);
+        ctx.lineTo(cw * (0.52 + ray * 0.12), ch * 0.46);
+        ctx.lineTo(cw * (0.28 + ray * 0.1), ch * 0.46);
         ctx.closePath();
         ctx.fill();
       }
@@ -179,43 +247,62 @@ export function LobbyLiveStage({
       // 2. Tap ripple halo around tapped character
       if (pulseRef.current && pulseRef.current.alpha > 0.01) {
         const p = pulseRef.current;
-        p.radius += 2.6;
-        p.alpha *= 0.92;
+        p.radius += 2.8;
+        p.alpha *= 0.91;
         ctx.save();
-        ctx.strokeStyle = `rgba(255, 182, 193, ${p.alpha})`;
-        ctx.lineWidth = 3.5;
+        ctx.globalCompositeOperation = "lighter";
+        ctx.strokeStyle = `rgba(255, 143, 163, ${p.alpha})`;
+        ctx.lineWidth = 3.2;
         ctx.beginPath();
-        ctx.arc(p.x * W, p.y * H, p.radius, 0, Math.PI * 2);
+        ctx.arc(p.x * cw, p.y * ch, p.radius, 0, Math.PI * 2);
         ctx.stroke();
         ctx.restore();
       }
 
-      // 3. Floating pastel sparkles in the hero stage
+      // 3. Floating pastel sparkles using pre-rendered Sprite Cache (Zero shadowBlur)
       for (const m of motes) {
         m.x += m.vx + Math.sin(t * 1.1 + m.phase) * 0.00012;
         m.y += m.vy;
         if (m.y < 0.03) {
-          m.y = 0.41;
+          m.y = 0.52;
           m.x = Math.random();
         }
         if (m.x < 0.02) m.x = 0.98;
         if (m.x > 0.98) m.x = 0.02;
 
-        const twinkle = 0.45 + 0.55 * (0.5 + 0.5 * Math.sin(t * 2.8 + m.phase));
-        const px = m.x * W;
-        const py = m.y * H;
+        const twinkle = 0.42 + 0.58 * (0.5 + 0.5 * Math.sin(t * 2.6 + m.phase));
+        // Gentle vertical fade near the card dock so cards stay 100% readable
+        const verticalFade = m.y > 0.4 ? Math.max(0, 1 - (m.y - 0.4) / 0.14) : 1;
+        const finalAlpha = m.alpha * twinkle * verticalFade;
+        if (finalAlpha <= 0.02) continue;
 
+        const px = m.x * cw;
+        const py = m.y * ch;
+        const sprite = getMoteSprite(m.color, m.isStarflare);
+        const drawR = m.r * (m.isStarflare ? 1.85 : 1.45);
+
+        // Pass 1: Soft pastel tint anchor
         ctx.save();
-        ctx.globalAlpha = m.alpha * twinkle;
-        ctx.fillStyle = m.color;
-        ctx.shadowColor = m.color;
-        ctx.shadowBlur = 6;
-        ctx.beginPath();
-        ctx.arc(px, py, m.r, 0, Math.PI * 2);
-        ctx.fill();
+        ctx.globalCompositeOperation = "source-over";
+        ctx.globalAlpha = finalAlpha * 0.65;
+        ctx.drawImage(sprite, px - drawR, py - drawR, drawR * 2, drawR * 2);
+        ctx.restore();
+
+        // Pass 2: Additive Bloom core
+        ctx.save();
+        ctx.globalCompositeOperation = "lighter";
+        ctx.globalAlpha = finalAlpha * 0.55;
+        ctx.drawImage(
+          sprite,
+          px - drawR * 0.75,
+          py - drawR * 0.75,
+          drawR * 1.5,
+          drawR * 1.5,
+        );
         ctx.restore();
       }
 
+      ctx.restore();
       rafId = requestAnimationFrame(render);
     };
 

@@ -7,6 +7,8 @@ export interface ParticleBurstHandle {
 interface Particle {
   x: number;
   y: number;
+  prevX: number;
+  prevY: number;
   vx: number;
   vy: number;
   gravity: number;
@@ -18,9 +20,10 @@ interface Particle {
   alpha: number;
   life: number;
   maxLife: number;
-  shape: "heart" | "star" | "bubble" | "sparkle";
+  twinklePhase: number;
+  twinkleSpeed: number;
+  kind: "ember" | "starflare" | "glitter";
   color: string;
-  glow: string;
 }
 
 interface ShockRing {
@@ -30,106 +33,100 @@ interface ShockRing {
   maxRadius: number;
   alpha: number;
   color: string;
+  flashAlpha: number;
 }
 
-const PALETTES = {
-  pink: ["#FF477E", "#FF7096", "#FF85A1", "#FFB3C6", "#FFD166", "#72EFDD"],
-  gold: ["#FFD166", "#FFB703", "#FB8500", "#FF4D6D", "#4CC9F0", "#A855F7"],
-  rainbow: ["#FF477E", "#FFB703", "#06D6A0", "#118AB2", "#8338EC", "#FF9F1C"],
+const PALETTES: Record<"pink" | "gold" | "rainbow", string[]> = {
+  pink: ["#FF477E", "#FF7096", "#FF9EBB", "#FFD166", "#72EFDD", "#C77DFF"],
+  gold: ["#FFD166", "#FFB703", "#FB8500", "#FF5D8F", "#4CC9F0", "#FDE047"],
+  rainbow: ["#FF477E", "#FFB703", "#06D6A0", "#38BDF8", "#A855F7", "#FF9F1C"],
 };
 
-function drawHeart(ctx: CanvasRenderingContext2D, r: number, color: string) {
-  ctx.save();
-  ctx.beginPath();
-  const topCurveHeight = r * 0.3;
-  ctx.moveTo(0, topCurveHeight);
-  ctx.bezierCurveTo(0, 0, -r, 0, -r, topCurveHeight);
-  ctx.bezierCurveTo(-r, (r + topCurveHeight) / 2, 0, (r + topCurveHeight) * 0.85, 0, r * 1.15);
-  ctx.bezierCurveTo(0, (r + topCurveHeight) * 0.85, r, (r + topCurveHeight) / 2, r, topCurveHeight);
-  ctx.bezierCurveTo(r, 0, 0, 0, 0, topCurveHeight);
-  ctx.closePath();
+const MAX_ACTIVE_PARTICLES = 110;
+const SPRITE_SIZE = 64;
+const HALF_SPRITE = SPRITE_SIZE / 2;
 
-  const grad = ctx.createRadialGradient(-r * 0.28, -r * 0.1, r * 0.1, 0, r * 0.3, r * 1.2);
-  grad.addColorStop(0, "#FFFFFF");
-  grad.addColorStop(0.28, color);
-  grad.addColorStop(1, color);
-  ctx.fillStyle = grad;
-  ctx.fill();
-
-  ctx.lineWidth = Math.max(1.5, r * 0.14);
-  ctx.strokeStyle = "rgba(255, 255, 255, 0.9)";
-  ctx.stroke();
-  ctx.restore();
+interface CachedSprites {
+  orb: HTMLCanvasElement;
+  flare: HTMLCanvasElement;
 }
 
-function drawStar(ctx: CanvasRenderingContext2D, r: number, color: string) {
-  ctx.save();
-  const spikes = 5;
-  const outerRadius = r;
-  const innerRadius = r * 0.48;
-  let rot = (Math.PI / 2) * 3;
-  const step = Math.PI / spikes;
+const spriteCache = new Map<string, CachedSprites>();
 
-  ctx.beginPath();
-  ctx.moveTo(0, -outerRadius);
-  for (let i = 0; i < spikes; i++) {
-    ctx.lineTo(Math.cos(rot) * outerRadius, Math.sin(rot) * outerRadius);
-    rot += step;
-    ctx.lineTo(Math.cos(rot) * innerRadius, Math.sin(rot) * innerRadius);
-    rot += step;
+/**
+ * Pre-renders a soft glowing orb and a delicate 4-point starflare ONCE per color.
+ * Eliminates expensive ctx.shadowBlur and ctx.createRadialGradient calls from the 60fps loop.
+ */
+function getCachedSprites(color: string): CachedSprites {
+  const existing = spriteCache.get(color);
+  if (existing) return existing;
+
+  // 1. Soft Glowing Ember Orb (Dual-layer: rich color halo + white-hot core)
+  const orb = document.createElement("canvas");
+  orb.width = SPRITE_SIZE;
+  orb.height = SPRITE_SIZE;
+  const oCtx = orb.getContext("2d");
+  if (oCtx) {
+    const grad = oCtx.createRadialGradient(
+      HALF_SPRITE,
+      HALF_SPRITE,
+      1,
+      HALF_SPRITE,
+      HALF_SPRITE,
+      HALF_SPRITE - 2,
+    );
+    grad.addColorStop(0, "#FFFFFF");
+    grad.addColorStop(0.22, "#FFFDF5");
+    grad.addColorStop(0.48, color);
+    grad.addColorStop(1, "rgba(0, 0, 0, 0)");
+    oCtx.fillStyle = grad;
+    oCtx.beginPath();
+    oCtx.arc(HALF_SPRITE, HALF_SPRITE, HALF_SPRITE - 2, 0, Math.PI * 2);
+    oCtx.fill();
   }
-  ctx.lineTo(0, -outerRadius);
-  ctx.closePath();
 
-  const grad = ctx.createRadialGradient(-r * 0.2, -r * 0.2, r * 0.08, 0, 0, r);
-  grad.addColorStop(0, "#FFFDF0");
-  grad.addColorStop(0.4, color);
-  grad.addColorStop(1, color);
-  ctx.fillStyle = grad;
-  ctx.fill();
+  // 2. Delicate 4-Point Arcade Starflare (Crisp needle rays + soft bloom center)
+  const flare = document.createElement("canvas");
+  flare.width = SPRITE_SIZE;
+  flare.height = SPRITE_SIZE;
+  const fCtx = flare.getContext("2d");
+  if (fCtx) {
+    const halo = fCtx.createRadialGradient(
+      HALF_SPRITE,
+      HALF_SPRITE,
+      1,
+      HALF_SPRITE,
+      HALF_SPRITE,
+      HALF_SPRITE - 4,
+    );
+    halo.addColorStop(0, "#FFFFFF");
+    halo.addColorStop(0.3, color);
+    halo.addColorStop(1, "rgba(0, 0, 0, 0)");
+    fCtx.fillStyle = halo;
+    fCtx.beginPath();
+    fCtx.arc(HALF_SPRITE, HALF_SPRITE, HALF_SPRITE - 4, 0, Math.PI * 2);
+    fCtx.fill();
 
-  ctx.lineWidth = Math.max(1.5, r * 0.14);
-  ctx.strokeStyle = "rgba(255, 255, 255, 0.92)";
-  ctx.stroke();
-  ctx.restore();
-}
+    // Slender 4-point diamond star
+    fCtx.save();
+    fCtx.translate(HALF_SPRITE, HALF_SPRITE);
+    fCtx.fillStyle = "#FFFFFF";
+    const arm = HALF_SPRITE - 3;
+    const waist = 3.2;
+    fCtx.beginPath();
+    fCtx.moveTo(0, -arm);
+    fCtx.quadraticCurveTo(waist, -waist, arm, 0);
+    fCtx.quadraticCurveTo(waist, waist, 0, arm);
+    fCtx.quadraticCurveTo(-waist, waist, -arm, 0);
+    fCtx.quadraticCurveTo(-waist, -waist, 0, -arm);
+    fCtx.closePath();
+    fCtx.fill();
+    fCtx.restore();
+  }
 
-function drawBubble(ctx: CanvasRenderingContext2D, r: number, color: string) {
-  ctx.save();
-  ctx.beginPath();
-  ctx.arc(0, 0, r, 0, Math.PI * 2);
-  const grad = ctx.createRadialGradient(-r * 0.35, -r * 0.35, r * 0.1, 0, 0, r);
-  grad.addColorStop(0, "rgba(255,255,255,0.95)");
-  grad.addColorStop(0.5, `${color}88`);
-  grad.addColorStop(1, color);
-  ctx.fillStyle = grad;
-  ctx.fill();
-  ctx.lineWidth = 1.5;
-  ctx.strokeStyle = "rgba(255,255,255,0.85)";
-  ctx.stroke();
-
-  // Specular dot
-  ctx.beginPath();
-  ctx.arc(-r * 0.32, -r * 0.32, r * 0.22, 0, Math.PI * 2);
-  ctx.fillStyle = "rgba(255,255,255,0.9)";
-  ctx.fill();
-  ctx.restore();
-}
-
-function drawSparkle(ctx: CanvasRenderingContext2D, r: number, color: string) {
-  ctx.save();
-  ctx.beginPath();
-  ctx.moveTo(0, -r * 1.2);
-  ctx.quadraticCurveTo(0, 0, r * 1.2, 0);
-  ctx.quadraticCurveTo(0, 0, 0, r * 1.2);
-  ctx.quadraticCurveTo(0, 0, -r * 1.2, 0);
-  ctx.quadraticCurveTo(0, 0, 0, -r * 1.2);
-  ctx.closePath();
-  ctx.fillStyle = "#FFFFFF";
-  ctx.shadowColor = color;
-  ctx.shadowBlur = 10;
-  ctx.fill();
-  ctx.restore();
+  const entry = { orb, flare };
+  spriteCache.set(color, entry);
+  return entry;
 }
 
 export const ParticleBurstCanvas = forwardRef<ParticleBurstHandle>((_, ref) => {
@@ -137,6 +134,17 @@ export const ParticleBurstCanvas = forwardRef<ParticleBurstHandle>((_, ref) => {
   const particlesRef = useRef<Particle[]>([]);
   const ringsRef = useRef<ShockRing[]>([]);
   const rafRef = useRef<number | null>(null);
+  const lastTrailTimeRef = useRef<number>(0);
+  const lastTrailPosRef = useRef<{ x: number; y: number } | null>(null);
+
+  const pushParticle = (p: Particle) => {
+    const list = particlesRef.current;
+    if (list.length >= MAX_ACTIVE_PARTICLES) {
+      // Recycle the oldest particle to guarantee zero lag under rapid multi-touch
+      list.shift();
+    }
+    list.push(p);
+  };
 
   const startLoop = () => {
     if (rafRef.current !== null) return;
@@ -153,48 +161,76 @@ export const ParticleBurstCanvas = forwardRef<ParticleBurstHandle>((_, ref) => {
         return;
       }
 
-      if (canvas.width !== canvas.clientWidth || canvas.height !== canvas.clientHeight) {
-        canvas.width = canvas.clientWidth;
-        canvas.height = canvas.clientHeight;
+      // Retina 2D Engine (capped at dpr = 2 for optimal mobile/tablet fill-rate)
+      const dpr = Math.min(window.devicePixelRatio || 1, 2);
+      const cw = canvas.clientWidth;
+      const ch = canvas.clientHeight;
+      const targetW = Math.round(cw * dpr);
+      const targetH = Math.round(ch * dpr);
+      if (canvas.width !== targetW || canvas.height !== targetH) {
+        canvas.width = targetW;
+        canvas.height = targetH;
       }
 
-      ctx.clearRect(0, 0, canvas.width, canvas.height);
+      ctx.save();
+      ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+      ctx.clearRect(0, 0, cw, ch);
 
-      // Update & draw shock rings
+      // 1. Update & draw soft expanding shock rings + initial core flash
       const nextRings: ShockRing[] = [];
       for (const ring of ringsRef.current) {
-        ring.radius += (ring.maxRadius - ring.radius) * 0.16;
-        ring.alpha *= 0.89;
-        if (ring.alpha > 0.02) {
+        ring.radius += (ring.maxRadius - ring.radius) * 0.18;
+        ring.alpha *= 0.87;
+        ring.flashAlpha *= 0.78;
+
+        if (ring.alpha > 0.015) {
           ctx.save();
+          // Subtle additive core flash on initial pop
+          if (ring.flashAlpha > 0.03) {
+            ctx.globalCompositeOperation = "lighter";
+            const sprite = getCachedSprites(ring.color).orb;
+            const flashSize = ring.radius * 1.35;
+            ctx.globalAlpha = ring.flashAlpha * 0.55;
+            ctx.drawImage(
+              sprite,
+              ring.x - flashSize,
+              ring.y - flashSize,
+              flashSize * 2,
+              flashSize * 2,
+            );
+          }
+
+          // Crisp thin shockwave halo
+          ctx.globalCompositeOperation = "source-over";
           ctx.beginPath();
           ctx.arc(ring.x, ring.y, ring.radius, 0, Math.PI * 2);
           ctx.strokeStyle = ring.color;
-          ctx.globalAlpha = ring.alpha;
-          ctx.lineWidth = Math.max(2, 8 * ring.alpha);
+          ctx.globalAlpha = ring.alpha * 0.55;
+          ctx.lineWidth = Math.max(1.2, 3.5 * ring.alpha);
           ctx.stroke();
           ctx.restore();
+
           nextRings.push(ring);
         }
       }
       ringsRef.current = nextRings;
 
-      // Update & draw 60fps particles with spring scale-in and gravity
+      // 2. Update & draw fine glowing firework particles (Dual-Pass: contrast base + 'lighter' bloom)
       const nextParticles: Particle[] = [];
       for (const p of particlesRef.current) {
         p.life += 1;
         const progress = p.life / p.maxLife;
         if (progress >= 1) continue;
 
-        // Spring pop-in during first 18% of life, then gentle shrink at end
-        if (progress < 0.18) {
-          const t = progress / 0.18;
-          const overshoot = 1 + Math.sin(t * Math.PI) * 0.35;
-          p.size = p.targetSize * t * overshoot;
-        } else if (progress > 0.72) {
-          p.size = p.targetSize * (1 - (progress - 0.72) / 0.28);
+        p.prevX = p.x;
+        p.prevY = p.y;
+
+        // Smooth pop-in during first 12%, then silky taper out
+        if (progress < 0.12) {
+          const t = progress / 0.12;
+          p.size = p.targetSize * (0.4 + t * 0.6);
         } else {
-          p.size = p.targetSize;
+          p.size = p.targetSize * (1 - (progress - 0.12) * 0.78);
         }
 
         p.vx *= p.drag;
@@ -202,28 +238,77 @@ export const ParticleBurstCanvas = forwardRef<ParticleBurstHandle>((_, ref) => {
         p.x += p.vx;
         p.y += p.vy;
         p.rotation += p.vRot;
-        p.alpha = progress > 0.68 ? Math.max(0, 1 - (progress - 0.68) / 0.32) : 1;
 
-        ctx.save();
-        ctx.globalAlpha = p.alpha;
-        ctx.translate(p.x, p.y);
-        ctx.rotate(p.rotation);
+        const fadeOut =
+          progress > 0.52 ? Math.max(0, 1 - (progress - 0.52) / 0.48) : 1;
+        const twinkle =
+          p.kind === "glitter"
+            ? 0.45 + 0.55 * Math.sin(p.life * p.twinkleSpeed + p.twinklePhase)
+            : 0.78 + 0.22 * Math.sin(p.life * p.twinkleSpeed + p.twinklePhase);
+        p.alpha = fadeOut * twinkle;
 
-        if (p.shape === "heart") {
-          drawHeart(ctx, Math.max(1, p.size), p.color);
-        } else if (p.shape === "star") {
-          drawStar(ctx, Math.max(1, p.size), p.color);
-        } else if (p.shape === "bubble") {
-          drawBubble(ctx, Math.max(1, p.size), p.color);
-        } else {
-          drawSparkle(ctx, Math.max(1, p.size), p.color);
+        const sprites = getCachedSprites(p.color);
+        const drawRadius = Math.max(2, p.size);
+
+        // Micro-comet velocity tail for fast-moving firework embers
+        const speedSq = p.vx * p.vx + p.vy * p.vy;
+        if (p.kind === "ember" && speedSq > 1.8 && progress < 0.65) {
+          ctx.save();
+          ctx.globalAlpha = p.alpha * 0.42;
+          ctx.strokeStyle = p.color;
+          ctx.lineWidth = Math.max(1, drawRadius * 0.36);
+          ctx.lineCap = "round";
+          ctx.beginPath();
+          ctx.moveTo(p.x, p.y);
+          ctx.lineTo(p.x - p.vx * 2.1, p.y - p.vy * 2.1);
+          ctx.stroke();
+          ctx.restore();
         }
+
+        // Pass A: Soft contrast base ('source-over') so colors stay vivid on light Pastel backgrounds
+        ctx.save();
+        ctx.globalCompositeOperation = "source-over";
+        ctx.globalAlpha = p.alpha * 0.68;
+        ctx.translate(p.x, p.y);
+        if (p.kind === "starflare") {
+          ctx.rotate(p.rotation);
+          ctx.drawImage(
+            sprites.flare,
+            -drawRadius * 1.45,
+            -drawRadius * 1.45,
+            drawRadius * 2.9,
+            drawRadius * 2.9,
+          );
+        } else {
+          ctx.drawImage(
+            sprites.orb,
+            -drawRadius * 1.2,
+            -drawRadius * 1.2,
+            drawRadius * 2.4,
+            drawRadius * 2.4,
+          );
+        }
+        ctx.restore();
+
+        // Pass B: Additive Bloom Core ('lighter') for genuine Arcade luminescence
+        ctx.save();
+        ctx.globalCompositeOperation = "lighter";
+        ctx.globalAlpha = p.alpha * 0.62;
+        ctx.drawImage(
+          sprites.orb,
+          p.x - drawRadius * 0.85,
+          p.y - drawRadius * 0.85,
+          drawRadius * 1.7,
+          drawRadius * 1.7,
+        );
         ctx.restore();
 
         nextParticles.push(p);
       }
       particlesRef.current = nextParticles;
+      ctx.restore();
 
+      // Sleep-on-Idle: completely stop requestAnimationFrame (0% CPU/GPU) when no particles remain
       if (particlesRef.current.length > 0 || ringsRef.current.length > 0) {
         rafRef.current = requestAnimationFrame(tick);
       } else {
@@ -234,55 +319,167 @@ export const ParticleBurstCanvas = forwardRef<ParticleBurstHandle>((_, ref) => {
     rafRef.current = requestAnimationFrame(tick);
   };
 
+  const spawnBurstInternal = (
+    x: number,
+    y: number,
+    theme: "pink" | "gold" | "rainbow" = "pink",
+    scale: "full" | "micro" = "full",
+  ) => {
+    const palette = PALETTES[theme] || PALETTES.pink;
+
+    ringsRef.current.push({
+      x,
+      y,
+      radius: scale === "full" ? 6 : 4,
+      maxRadius: scale === "full" ? 78 : 36,
+      alpha: scale === "full" ? 0.72 : 0.45,
+      color: palette[0],
+      flashAlpha: scale === "full" ? 0.75 : 0.35,
+    });
+
+    const count = scale === "full" ? 30 : 10;
+    for (let i = 0; i < count; i++) {
+      // Radial chrysanthemum firework distribution with organic speed layering
+      const baseAngle = (i / count) * Math.PI * 2;
+      const angle = baseAngle + (Math.random() - 0.5) * 0.28;
+      const isInnerLayer = i % 3 === 0;
+      const speed =
+        scale === "full"
+          ? isInnerLayer
+            ? 1.8 + Math.random() * 2.8
+            : 3.6 + Math.random() * 5.4
+          : 1.6 + Math.random() * 3.0;
+
+      const color = palette[i % palette.length];
+      const kind: Particle["kind"] =
+        i % 6 === 0 ? "starflare" : i % 3 === 1 ? "glitter" : "ember";
+
+      pushParticle({
+        x: x + (Math.random() - 0.5) * 6,
+        y: y + (Math.random() - 0.5) * 6,
+        prevX: x,
+        prevY: y,
+        vx: Math.cos(angle) * speed,
+        vy: Math.sin(angle) * speed - (scale === "full" ? 1.1 : 0.5),
+        gravity: kind === "glitter" ? 0.05 : 0.11,
+        drag: 0.935,
+        size: 1,
+        targetSize:
+          scale === "full"
+            ? kind === "starflare"
+              ? 6.2 + Math.random() * 2.8
+              : 3.8 + Math.random() * 3.2
+            : 2.8 + Math.random() * 2.2,
+        rotation: Math.random() * Math.PI,
+        vRot: (Math.random() - 0.5) * 0.06,
+        alpha: 1,
+        life: 0,
+        maxLife:
+          scale === "full"
+            ? 34 + Math.floor(Math.random() * 18)
+            : 20 + Math.floor(Math.random() * 10),
+        twinklePhase: Math.random() * Math.PI * 2,
+        twinkleSpeed: 0.22 + Math.random() * 0.18,
+        kind,
+        color,
+      });
+    }
+
+    startLoop();
+  };
+
   useImperativeHandle(ref, () => ({
     burstAt(x: number, y: number, theme = "pink") {
-      const palette = PALETTES[theme] || PALETTES.pink;
-      const shapes: Particle["shape"][] = ["heart", "star", "bubble", "sparkle"];
-
-      ringsRef.current.push({
-        x,
-        y,
-        radius: 12,
-        maxRadius: 125,
-        alpha: 0.85,
-        color: palette[0],
-      });
-
-      const count = 26;
-      for (let i = 0; i < count; i++) {
-        // Fan upwards mostly (-PI to 0, with full radial spread)
-        const angle = -Math.PI / 2 + (Math.random() - 0.5) * Math.PI * 1.45;
-        const speed = 4.2 + Math.random() * 8.5;
-        const color = palette[i % palette.length];
-        const shape = shapes[i % shapes.length];
-        particlesRef.current.push({
-          x: x + (Math.random() - 0.5) * 24,
-          y: y + (Math.random() - 0.5) * 24,
-          vx: Math.cos(angle) * speed,
-          vy: Math.sin(angle) * speed - 2.2,
-          gravity: shape === "bubble" ? -0.05 : 0.22,
-          drag: 0.96,
-          size: 1,
-          targetSize: shape === "sparkle" ? 9 + Math.random() * 6 : 11 + Math.random() * 9,
-          rotation: (Math.random() - 0.5) * 0.6,
-          vRot: (Math.random() - 0.5) * 0.08,
-          alpha: 1,
-          life: 0,
-          maxLife: 44 + Math.floor(Math.random() * 22),
-          shape,
-          color,
-          glow: color,
-        });
-      }
-
-      startLoop();
+      spawnBurstInternal(x, y, theme, "full");
     },
   }));
 
   useEffect(() => {
+    const canvas = canvasRef.current;
+    if (!canvas) return;
+
+    const getCanvasLocalCoords = (clientX: number, clientY: number) => {
+      const rect = canvas.getBoundingClientRect();
+      if (rect.width === 0 || rect.height === 0) return null;
+      return {
+        x: ((clientX - rect.left) / rect.width) * canvas.clientWidth,
+        y: ((clientY - rect.top) / rect.height) * canvas.clientHeight,
+      };
+    };
+
+    // Universal interactive touch/click micro-sparkle & gentle stardust trail
+    const onPointerDown = (e: PointerEvent) => {
+      const target = e.target as HTMLElement | null;
+      if (!target) return;
+      // Skip if it's a lobby character or sign that already calls triggerTapBurst directly
+      if (
+        target.closest(".lobby-char-hitbox") ||
+        target.closest(".wooden-sign-banner")
+      ) {
+        return;
+      }
+      const interactive = target.closest(
+        "button, [role='button'], .game-module-card, .hud-pill",
+      );
+      if (!interactive) return;
+
+      const pt = getCanvasLocalCoords(e.clientX, e.clientY);
+      if (!pt) return;
+      spawnBurstInternal(pt.x, pt.y, "gold", "micro");
+    };
+
+    const onPointerMove = (e: PointerEvent) => {
+      // Only emit gentle stardust trail when dragging or moving swiftly across stage
+      const now = performance.now();
+      if (now - lastTrailTimeRef.current < 32) return;
+      const pt = getCanvasLocalCoords(e.clientX, e.clientY);
+      if (!pt) return;
+
+      const prev = lastTrailPosRef.current;
+      lastTrailPosRef.current = pt;
+      if (!prev) return;
+
+      const dx = pt.x - prev.x;
+      const dy = pt.y - prev.y;
+      if (dx * dx + dy * dy < 140) return;
+
+      lastTrailTimeRef.current = now;
+      const palette = PALETTES.gold;
+      const color = palette[Math.floor(Math.random() * palette.length)];
+
+      pushParticle({
+        x: pt.x + (Math.random() - 0.5) * 8,
+        y: pt.y + (Math.random() - 0.5) * 8,
+        prevX: pt.x,
+        prevY: pt.y,
+        vx: (Math.random() - 0.5) * 0.8,
+        vy: -0.35 - Math.random() * 0.55,
+        gravity: 0.02,
+        drag: 0.95,
+        size: 1,
+        targetSize: 2.6 + Math.random() * 1.8,
+        rotation: Math.random() * Math.PI,
+        vRot: 0.04,
+        alpha: 0.85,
+        life: 0,
+        maxLife: 18 + Math.floor(Math.random() * 8),
+        twinklePhase: Math.random() * Math.PI * 2,
+        twinkleSpeed: 0.25,
+        kind: "glitter",
+        color,
+      });
+      startLoop();
+    };
+
+    window.addEventListener("pointerdown", onPointerDown, { passive: true });
+    window.addEventListener("pointermove", onPointerMove, { passive: true });
+
     return () => {
+      window.removeEventListener("pointerdown", onPointerDown);
+      window.removeEventListener("pointermove", onPointerMove);
       if (rafRef.current !== null) {
         cancelAnimationFrame(rafRef.current);
+        rafRef.current = null;
       }
     };
   }, []);

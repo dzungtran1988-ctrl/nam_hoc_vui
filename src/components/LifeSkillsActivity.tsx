@@ -953,7 +953,7 @@ const DAILY_HABITS: DailyHabitQuest[] = [
       {
         id: "ex-shoes",
         name: "Giày thể thao",
-        imageUrl: "/assets/english/items/shop_16_shoes_blue.webp",
+        imageUrl: "/assets/english/items/toy_02_shoes.webp",
         isCorrect: true,
       },
       {

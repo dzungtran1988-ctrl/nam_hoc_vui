@@ -141,7 +141,7 @@ export function resolve3DKawaiiShopImage(item: EnglishShopItem): {
       if (c === "pink") {
         return { src: "/assets/items/sweets/sweet_12.webp" };
       }
-      return { src: "/assets/english/items/shop_06_milk.webp" };
+      return { src: "/assets/english/items/shop_03_milk.webp" };
     case "cake":
       if (c === "pink" || c === "red") {
         return { src: "/assets/items/sweets/sweet_01.webp" };
@@ -173,10 +173,10 @@ export function resolve3DKawaiiShopImage(item: EnglishShopItem): {
       return { src: "/assets/items/sweets/sweet_11.webp" };
     case "hat":
       if (c === "pink" || c === "red") {
-        return { src: "/assets/english/items/color_09_hat_pink.webp" };
+        return { src: "/assets/english/items/color_10_hat_pink.webp" };
       }
       if (c === "blue" || c === "purple") {
-        return { src: "/assets/english/items/color_10_hat_blue.webp" };
+        return { src: "/assets/english/items/color_09_hat_blue.webp" };
       }
       return { src: "/assets/english/items/shop_10_hat_yellow.webp" };
     case "bag":
@@ -185,44 +185,44 @@ export function resolve3DKawaiiShopImage(item: EnglishShopItem): {
       }
       if (c === "pink" || c === "red") {
         return {
-          src: "/assets/english/items/shop_11_bag_purple.webp",
+          src: "/assets/english/items/shop_12_bag_pink.webp",
           filter: "hue-rotate(55deg) saturate(1.2)",
         };
       }
-      return { src: "/assets/english/items/shop_11_bag_purple.webp" };
+      return { src: "/assets/english/items/shop_11_bag_blue.webp" };
     case "cup":
       if (c === "pink" || c === "red") {
         return {
-          src: "/assets/english/items/shop_12_cup_blue.webp",
+          src: "/assets/english/items/shop_04_juice.webp",
           filter: "hue-rotate(120deg) saturate(1.2)",
         };
       }
       if (c === "green") {
         return {
-          src: "/assets/english/items/shop_12_cup_blue.webp",
+          src: "/assets/english/items/shop_04_juice.webp",
           filter: "hue-rotate(285deg) saturate(1.15)",
         };
       }
-      return { src: "/assets/english/items/shop_12_cup_blue.webp" };
+      return { src: "/assets/english/items/shop_04_juice.webp" };
     case "dress":
       if (c === "purple" || c === "blue") {
-        return { src: "/assets/english/items/color_11_dress_purple.webp" };
+        return { src: "/assets/english/items/shop_14_dress_purple.webp" };
       }
       if (c === "yellow" || c === "orange") {
-        return { src: "/assets/english/items/color_12_dress_yellow.webp" };
+        return { src: "/assets/english/items/shop_13_dress_pink.webp", filter: "hue-rotate(52deg) saturate(1.18)" };
       }
       return { src: "/assets/english/items/shop_13_dress_pink.webp" };
     case "flower":
       if (c === "yellow" || c === "orange") {
-        return { src: "/assets/items/nature/nature_02.webp" };
+        return { src: "/assets/english/items/toy_04_star.webp" };
       }
       if (c === "purple" || c === "blue") {
         return {
-          src: "/assets/english/items/shop_14_flower_pink.webp",
+          src: "/assets/english/items/shop_08_lollipop.webp",
           filter: "hue-rotate(265deg) saturate(1.15)",
         };
       }
-      return { src: "/assets/english/items/shop_14_flower_pink.webp" };
+      return { src: "/assets/english/items/shop_08_lollipop.webp" };
     case "car":
       if (c === "blue") {
         return { src: "/assets/english/items/color_13_car_blue.webp" };

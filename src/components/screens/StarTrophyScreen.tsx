@@ -65,7 +65,11 @@ export function StarTrophyScreen({
   const effectiveSet: 1 | 2 | 3 | 4 =
     selectedCupSubject === "lifeskills"
       ? selectedStickerSet
-      : selectedStickerSet > 2
+      : selectedCupSubject === "storybook"
+        ? selectedStickerSet > 3
+          ? 1
+          : selectedStickerSet
+        : selectedStickerSet > 2
         ? 1
         : selectedStickerSet;
   const currentStickers = getSubjectStickerSet(selectedCupSubject, effectiveSet);
@@ -368,7 +372,9 @@ export function StarTrophyScreen({
                         ? "✨ Đã mở đủ 6/6 ô môn này! Bấm Mở Cúp Vàng để nhận ngay +1 Sticker Bé Nấm xịn nhất nhé!"
                         : effectiveSet === 1
                           ? `Học môn ${getSubject(selectedCupSubject).name} để mở đủ 6/6 ô (${set1LitCount}/6) ➔ Nhận ngay +1 Sticker Bé Nấm xịn nhất!`
-                          : selectedCupSubject === "storybook" && effectiveSet === 2
+                          : selectedCupSubject === "storybook" && effectiveSet === 3
+                            ? `🌱🐱 Bộ 3 Khu Giải Trí: Bộ 3 Cây Đại Thụ & 3 Mèo Hoàng Gia Cấp 6 (${set3LitCount}/6) nhận được khi nuôi đạt Cấp 6 trong Vườn Cây & Mèo!`
+                            : selectedCupSubject === "storybook" && effectiveSet === 2
                             ? `🎃 Bộ 2 Khu Giải Trí: Nhận ngay Sticker Nhân Vật Hóa Trang Halloween (${set2LitCount}/6) khi chơi Khu Giải Trí, mở Giỏ Bí Ngô hoặc đổi 10 Xu!`
                             : selectedCupSubject === "reading" ||
                                 selectedCupSubject === "math" ||
@@ -423,6 +429,19 @@ export function StarTrophyScreen({
                             ? `🌍 Bộ 2: Quốc Gia (${set2LitCount}/6)`
                             : `🎸 Bộ 2: Nhạc Cụ (${set2LitCount}/6)`}
                   </button>
+                  {selectedCupSubject === "storybook" && (
+                    <button
+                      type="button"
+                      role="tab"
+                      aria-selected={effectiveSet === 3}
+                      className={`sticker-set-tab-btn ${
+                        effectiveSet === 3 ? "active" : ""
+                      }`}
+                      onClick={() => setSelectedStickerSet(3)}
+                    >
+                      {`🌱🐱 Bộ 3: Cây & Mèo Lớn (${set3LitCount}/6)`}
+                    </button>
+                  )}
                   {selectedCupSubject === "lifeskills" && (
                     <>
                       <button
