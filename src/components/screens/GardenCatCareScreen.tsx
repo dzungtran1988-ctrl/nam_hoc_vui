@@ -45,6 +45,10 @@ export interface BreedEntityState {
   dailyCareUsed: number;
   /** Date key YYYY-MM-DD for daily care tracking */
   dailyCareDate: string;
+  /** Daily specialty drops claimed from the 2 side pedestals today */
+  dailyDropsClaimed?: number;
+  /** Date key YYYY-MM-DD for daily side-pedestal drop tracking */
+  dailyDropsDate?: string;
 }
 
 export interface GardenCatSaveState {
@@ -501,6 +505,8 @@ function createDefaultBreedState(today: string): BreedEntityState {
     totalCareActions: 0,
     dailyCareUsed: 0,
     dailyCareDate: today,
+    dailyDropsClaimed: 0,
+    dailyDropsDate: today,
   };
 }
 
@@ -511,12 +517,15 @@ function normalizeBreedState(
   const def = createDefaultBreedState(today);
   if (!raw) return def;
   const isSameDay = raw.dailyCareDate === today;
+  const isSameDropDay = raw.dailyDropsDate === today;
   return {
     exp: typeof raw.exp === "number" ? Math.min(STAGE_THRESHOLDS[5], Math.max(0, raw.exp)) : 0,
     graduatedCount: typeof raw.graduatedCount === "number" ? Math.max(0, raw.graduatedCount) : 0,
     totalCareActions: typeof raw.totalCareActions === "number" ? Math.max(0, raw.totalCareActions) : 0,
     dailyCareUsed: isSameDay && typeof raw.dailyCareUsed === "number" ? raw.dailyCareUsed : 0,
     dailyCareDate: today,
+    dailyDropsClaimed: isSameDropDay && typeof raw.dailyDropsClaimed === "number" ? raw.dailyDropsClaimed : 0,
+    dailyDropsDate: today,
   };
 }
 
@@ -861,6 +870,57 @@ interface TossedCatToy {
   timer: number;
 }
 
+type CatStationId = "center" | "left" | "right";
+
+interface SidePedestalDrop {
+  id: number;
+  side: "left" | "right";
+  slotIdx: number;
+  iconUrl: string;
+  label: string;
+  coinValue: number;
+  dropProgress: number;
+  startX: number;
+  startY: number;
+  targetX: number;
+  targetY: number;
+  collecting: boolean;
+  collectProgress: number;
+  phase: number;
+}
+
+export function getDailyDropQuota(stage: 1 | 2 | 3 | 4 | 5 | 6): number {
+  const table = [3, 3, 4, 4, 5, 6] as const;
+  return table[stage - 1];
+}
+
+export function getDropCoinReward(stage: 1 | 2 | 3 | 4 | 5 | 6): number {
+  const table = [2, 2, 3, 3, 4, 5] as const;
+  return table[stage - 1];
+}
+
+function getTreeBreedDropSpec(breedId: TreeBreedId, indexSeed: number) {
+  if (breedId === "rainbow") {
+    const isBerry = indexSeed % 2 === 1;
+    return {
+      iconUrl: isBerry
+        ? "/assets/items/fruits/fruit_02.webp"
+        : "/assets/items/fruits/fruit_01.webp",
+      label: isBerry ? "Quả Dâu Cầu Vồng" : "Quả Táo Cầu Vồng",
+    };
+  }
+  if (breedId === "dessert") {
+    return {
+      iconUrl: "/assets/garden-cat/icon_cupcake.webp",
+      label: "Bánh Kem Ngọt Ngào",
+    };
+  }
+  return {
+    iconUrl: "/assets/english/items/toy_04_star.webp",
+    label: "Pha Lê Ánh Sao",
+  };
+}
+
 export interface GardenCatCareScreenProps {
   goldCoins: number;
   onSpendCoins: (cost: number) => boolean;
@@ -884,6 +944,9 @@ const PEDESTAL_CENTER = {
   x: Math.round(LOGICAL_W * 0.498),
   y: Math.round(LOGICAL_H * 0.755),
 };
+// Left & Right Circular Side Pedestals / Cat Beds in the 3 room backgrounds
+const LEFT_STAGE = { x: 248, y: 416 };
+const RIGHT_STAGE = { x: 832, y: 416 };
 // Compact Mini Shelf on the top-left corner for the 2 inactive varieties
 const MINI_SLOT_1 = { x: 86, y: 158 };
 const MINI_SLOT_2 = { x: 204, y: 158 };
@@ -1023,6 +1086,19 @@ export function GardenCatCareScreen({
     catOffsetX: number;
     catTargetX: number;
     catJumpY: number;
+    catStation: CatStationId;
+    catPosX: number;
+    catPosY: number;
+    catScale: number;
+    catFromX: number;
+    catFromY: number;
+    catFromScale: number;
+    catToX: number;
+    catToY: number;
+    catToScale: number;
+    catJumpProgress: number;
+    catStationTimer: number;
+    catStationActivityTimer: number;
     activeToolIcon: string | null;
     activeToolActionId: string | null;
     activeToolTimer: number;
@@ -1030,6 +1106,7 @@ export function GardenCatCareScreen({
     particles: GlowParticle[];
     popups: FloatingTextPopup[];
     fruits: HangingFruit[];
+    sideDrops: SidePedestalDrop[];
     tossedToy: TossedCatToy;
     fireflies: {
       x: number;
@@ -1048,6 +1125,19 @@ export function GardenCatCareScreen({
     catOffsetX: 0,
     catTargetX: 0,
     catJumpY: 0,
+    catStation: "center",
+    catPosX: PEDESTAL_CENTER.x,
+    catPosY: PEDESTAL_CENTER.y,
+    catScale: 1,
+    catFromX: PEDESTAL_CENTER.x,
+    catFromY: PEDESTAL_CENTER.y,
+    catFromScale: 1,
+    catToX: PEDESTAL_CENTER.x,
+    catToY: PEDESTAL_CENTER.y,
+    catToScale: 1,
+    catJumpProgress: 1,
+    catStationTimer: 260,
+    catStationActivityTimer: 0,
     activeToolIcon: null,
     activeToolActionId: null,
     activeToolTimer: 0,
@@ -1055,6 +1145,7 @@ export function GardenCatCareScreen({
     particles: [],
     popups: [],
     fruits: [],
+    sideDrops: [],
     tossedToy: {
       active: false,
       iconKey: "",
@@ -1097,6 +1188,9 @@ export function GardenCatCareScreen({
       "/assets/garden-cat/icon_trophy_tree.webp",
       "/assets/garden-cat/icon_trophy_cat.webp",
       "/assets/garden-cat/icon_nam_mascot.webp",
+      "/assets/items/fruits/fruit_01.webp",
+      "/assets/items/fruits/fruit_02.webp",
+      "/assets/english/items/toy_04_star.webp",
     ];
     for (let i = 1; i <= 6; i++) {
       urls.push(`/assets/garden-cat/tree_rainbow_${i}.webp`);
@@ -1114,6 +1208,107 @@ export function GardenCatCareScreen({
       }
     });
   }, []);
+
+  function spawnSidePedestalDrops(
+    breedId: TreeBreedId,
+    stage: 1 | 2 | 3 | 4 | 5 | 6,
+    countToSpawn: number,
+  ) {
+    if (countToSpawn <= 0) return;
+    const activeDrops = animRef.current.sideDrops.filter((d) => !d.collecting);
+    const maxOnFloor = 6;
+    const allowed = Math.min(countToSpawn, maxOnFloor - activeDrops.length);
+    if (allowed <= 0) return;
+
+    const slotOffsets: [number, number][] = [
+      [-32, -8],
+      [32, -8],
+      [0, 14],
+    ];
+    const coinVal = getDropCoinReward(stage);
+
+    for (let k = 0; k < allowed; k++) {
+      const currentActive = animRef.current.sideDrops.filter((d) => !d.collecting);
+      const leftCount = currentActive.filter((d) => d.side === "left").length;
+      const rightCount = currentActive.filter((d) => d.side === "right").length;
+      const side: "left" | "right" = leftCount <= rightCount ? "left" : "right";
+      const usedSlots = currentActive
+        .filter((d) => d.side === side)
+        .map((d) => d.slotIdx);
+      const freeSlot = [0, 1, 2].find((s) => !usedSlots.includes(s)) ?? (currentActive.length % 3);
+      const stageAnchor = side === "left" ? LEFT_STAGE : RIGHT_STAGE;
+      const [ox, oy] = slotOffsets[freeSlot] || [0, 0];
+      const spec = getTreeBreedDropSpec(breedId, Date.now() + k + currentActive.length);
+
+      animRef.current.sideDrops.push({
+        id: Date.now() + Math.random() * 1000 + k,
+        side,
+        slotIdx: freeSlot,
+        iconUrl: spec.iconUrl,
+        label: spec.label,
+        coinValue: coinVal,
+        dropProgress: 0,
+        startX: PEDESTAL_CENTER.x + (side === "left" ? -42 : 42),
+        startY: PEDESTAL_CENTER.y - 175,
+        targetX: stageAnchor.x + ox,
+        targetY: stageAnchor.y + oy,
+        collecting: false,
+        collectProgress: 0,
+        phase: (currentActive.length + k) * 1.15,
+      });
+    }
+  }
+
+  function jumpCatToStation(targetStation: CatStationId, activityDuration = 170) {
+    const anim = animRef.current;
+    anim.catFromX = anim.catPosX;
+    anim.catFromY = anim.catPosY;
+    anim.catFromScale = anim.catScale;
+
+    if (targetStation === "left") {
+      anim.catToX = LEFT_STAGE.x;
+      anim.catToY = LEFT_STAGE.y + 8;
+      anim.catToScale = 0.78;
+    } else if (targetStation === "right") {
+      anim.catToX = RIGHT_STAGE.x;
+      anim.catToY = RIGHT_STAGE.y + 8;
+      anim.catToScale = 0.78;
+    } else {
+      anim.catToX = PEDESTAL_CENTER.x;
+      anim.catToY = PEDESTAL_CENTER.y;
+      anim.catToScale = 1.0;
+    }
+
+    anim.catStation = targetStation;
+    anim.catJumpProgress = 0;
+    anim.catOffsetX = 0;
+    anim.catTargetX = 0;
+    anim.catStationTimer = 240 + Math.floor(Math.random() * 140);
+    anim.catStationActivityTimer = activityDuration;
+    triggerSquashStretch(0.86, 1.18);
+  }
+
+  // Spawn daily specialty drops onto the 2 side pedestals for ANY tree stage (Stages 1..6)!
+  useEffect(() => {
+    if (state.activeTab !== "tree") return;
+    const today = getTodayDateKey();
+    const treeState = state.trees[state.activeTreeBreed];
+    const stage = getStageFromExp(treeState.exp);
+    const quota = getDailyDropQuota(stage);
+    const claimedToday =
+      treeState.dailyDropsDate === today ? treeState.dailyDropsClaimed || 0 : 0;
+    const remainingDaily = Math.max(0, quota - claimedToday);
+
+    // Clear previous breed's uncollected drops when switching breed
+    animRef.current.sideDrops = [];
+    if (remainingDaily > 0) {
+      spawnSidePedestalDrops(
+        state.activeTreeBreed,
+        stage,
+        Math.min(4, remainingDaily),
+      );
+    }
+  }, [state.activeTab, state.activeTreeBreed]);
 
   // Spawn hanging fruits on Stage 4-6 trees (scaled to fit the new balanced tree size)
   useEffect(() => {
@@ -1258,33 +1453,51 @@ export function GardenCatCareScreen({
 
       const centerY = PEDESTAL_CENTER.y - 135;
       spawnParticleBurst(
-        PEDESTAL_CENTER.x + (isTree ? 0 : animRef.current.catOffsetX),
-        centerY,
+        isTree ? PEDESTAL_CENTER.x : animRef.current.catPosX,
+        isTree ? centerY : animRef.current.catPosY - 95,
         pColor1,
         pColor2,
         36,
         actionId === "tree_water" ? "droplet" : "sparkle",
       );
       addFloatingPopup(
-        PEDESTAL_CENTER.x,
-        centerY - 55,
+        isTree ? PEDESTAL_CENTER.x : animRef.current.catPosX,
+        (isTree ? centerY : animRef.current.catPosY - 110) - 45,
         customPopupText || `+${finalGain} EXP ✨`,
         "#FFF3BF",
       );
 
+      // In Tree Mode: when caring with a tool/dew, shake the tree and drop 1 specialty gift onto the left/right pedestal!
+      if (isTree && actionIconSrc) {
+        spawnSidePedestalDrops(prev.activeTreeBreed, newStage, 1);
+      }
+
+      // In Cat Mode: jump to the Left Eating Bed for food/milk/cupcake, or Right Toy Bed for yarn!
       if (!isTree && actionIconSrc) {
-        const targetOffset =
-          (Math.random() > 0.5 ? 1 : -1) * (65 + Math.random() * 55);
+        const targetStation: CatStationId =
+          actionId === "cat_yarn"
+            ? "right"
+            : actionId === "cat_milk" ||
+                actionId === "cat_fish" ||
+                actionId === "cat_cupcake"
+              ? "left"
+              : animRef.current.catStation;
+        jumpCatToStation(targetStation, 200);
+        const anchor =
+          targetStation === "left"
+            ? LEFT_STAGE
+            : targetStation === "right"
+              ? RIGHT_STAGE
+              : PEDESTAL_CENTER;
         animRef.current.tossedToy = {
           active: true,
           iconKey: actionIconSrc,
-          x: PEDESTAL_CENTER.x + targetOffset,
-          y: PEDESTAL_CENTER.y - 180,
+          x: anchor.x + (targetStation === "left" ? -18 : targetStation === "right" ? 18 : 35),
+          y: anchor.y - 125,
           vy: 2,
-          groundY: PEDESTAL_CENTER.y - 18,
-          timer: 105,
+          groundY: anchor.y - 10,
+          timer: 115,
         };
-        animRef.current.catTargetX = targetOffset;
       }
 
       if (newStage > oldStage) {
@@ -1665,8 +1878,57 @@ export function GardenCatCareScreen({
     }
   }
 
+  function collectSidePedestalDropItem(drop: SidePedestalDrop) {
+    if (drop.collecting) return;
+    drop.collecting = true;
+    drop.collectProgress = 0;
+    drop.startX = drop.targetX;
+    drop.startY = drop.targetY;
+
+    if (soundEnabled) playArcadeCareSfx(860, "harvest");
+    onAddCoins(drop.coinValue);
+    spawnParticleBurst(
+      drop.targetX,
+      drop.targetY - 12,
+      "#FFE066",
+      "#FF6B9D",
+      22,
+      "star",
+    );
+    applyExpToActiveEntity(
+      5,
+      null,
+      "#FFD43B",
+      "#FF6B9D",
+      false,
+      `🎁 ${drop.label}: +${drop.coinValue} Xu & +5 EXP!`,
+    );
+
+    const today = getTodayDateKey();
+    setState((prev) => {
+      const curBreed = prev.activeTreeBreed;
+      const curTree = prev.trees[curBreed];
+      const sameDay = curTree.dailyDropsDate === today;
+      const nextClaimed = (sameDay ? curTree.dailyDropsClaimed || 0 : 0) + 1;
+      const next: GardenCatSaveState = {
+        ...prev,
+        harvestedFruitTotal: prev.harvestedFruitTotal + 1,
+        trees: {
+          ...prev.trees,
+          [curBreed]: {
+            ...curTree,
+            dailyDropsClaimed: nextClaimed,
+            dailyDropsDate: today,
+          },
+        },
+      };
+      saveGardenCatState(next);
+      return next;
+    });
+  }
+
   // ============================================================================
-  // CANVAS CLICK / TOUCH HIT-TESTING (Mini Corner Shelf Swap, Petting, Fruits)
+  // CANVAS CLICK / TOUCH HIT-TESTING (Mini Corner Shelf Swap, Petting, Fruits, Side Pedestals)
   // ============================================================================
   function handleCanvasPointerDown(e: React.PointerEvent<HTMLCanvasElement>) {
     const canvas = canvasRef.current;
@@ -1675,8 +1937,40 @@ export function GardenCatCareScreen({
     const lx = ((e.clientX - rect.left) / rect.width) * LOGICAL_W;
     const ly = ((e.clientY - rect.top) / rect.height) * LOGICAL_H;
 
-    // 1. Check if tapping a hanging fruit on the Tree
+    // 1. Check if tapping a specialty drop on the Left/Right Pedestal OR a hanging fruit in Tree Mode
     if (state.activeTab === "tree") {
+      for (const d of animRef.current.sideDrops) {
+        if (!d.collecting) {
+          const p = Math.min(1, d.dropProgress);
+          const curX = d.startX + (d.targetX - d.startX) * p;
+          const curY = d.startY + (d.targetY - d.startY) * p;
+          if (Math.hypot(lx - curX, ly - (curY - 14)) <= 48) {
+            collectSidePedestalDropItem(d);
+            setSpeechBubble(
+              `Nấm nhặt được ${d.label} ở bệ phụ, đổi ngay +${d.coinValue} Xu Vàng và +5 EXP! 🪙✨`,
+            );
+            return;
+          }
+        }
+      }
+
+      // Also allow tapping anywhere on the Left or Right Pedestal surface to collect a gift resting there
+      const nearLeftStage = Math.hypot(lx - LEFT_STAGE.x, ly - LEFT_STAGE.y) <= 95;
+      const nearRightStage = Math.hypot(lx - RIGHT_STAGE.x, ly - RIGHT_STAGE.y) <= 95;
+      if (nearLeftStage || nearRightStage) {
+        const targetSide = nearLeftStage ? "left" : "right";
+        const candidate = animRef.current.sideDrops.find(
+          (d) => !d.collecting && d.side === targetSide,
+        );
+        if (candidate) {
+          collectSidePedestalDropItem(candidate);
+          setSpeechBubble(
+            `Nấm thu hoạch ${candidate.label} ở bệ ${targetSide === "left" ? "trái" : "phải"}, nhận +${candidate.coinValue} Xu Vàng! 🪙✨`,
+          );
+          return;
+        }
+      }
+
       for (const f of animRef.current.fruits) {
         if (!f.flying) {
           const fx = PEDESTAL_CENTER.x + f.relX;
@@ -1707,6 +2001,42 @@ export function GardenCatCareScreen({
             return;
           }
         }
+      }
+    }
+
+    // 1B. In Cat Mode: Check if tapping the Left Eating Bed, Right Toy Bed, or Center Rug to make the cat jump!
+    if (state.activeTab === "cat") {
+      if (Math.hypot(lx - LEFT_STAGE.x, ly - (LEFT_STAGE.y - 25)) <= 105) {
+        jumpCatToStation("left", 190);
+        if (soundEnabled) {
+          playCharacterTapSound();
+          playArcadeCareSfx(680, "care", "cat_fish");
+        }
+        spawnParticleBurst(LEFT_STAGE.x, LEFT_STAGE.y - 45, "#FF92B2", "#FFE066", 20, "heart");
+        addFloatingPopup(LEFT_STAGE.x, LEFT_STAGE.y - 95, "🍽️ Măm măm ngon quá ~!", "#FFF3BF");
+        setSpeechBubble("Meo ~ Mình nhảy sang Bệ Ăn bên trái măm sữa ấm và bánh cá đây! 🍼🐟");
+        return;
+      }
+      if (Math.hypot(lx - RIGHT_STAGE.x, ly - (RIGHT_STAGE.y - 25)) <= 105) {
+        jumpCatToStation("right", 190);
+        if (soundEnabled) {
+          playCharacterTapSound();
+          playArcadeCareSfx(740, "care", "cat_yarn");
+        }
+        spawnParticleBurst(RIGHT_STAGE.x, RIGHT_STAGE.y - 45, "#DA77F2", "#74C0FC", 20, "star");
+        addFloatingPopup(RIGHT_STAGE.x, RIGHT_STAGE.y - 95, "🧶 Vờn cuộn len vui ghê ~!", "#E5DBFF");
+        setSpeechBubble("Meo ~ Mình nhảy phóc sang Đệm Đồ Chơi bên phải vờn cuộn len cầu vồng! 🧶🌟");
+        return;
+      }
+      if (
+        animRef.current.catStation !== "center" &&
+        Math.hypot(lx - PEDESTAL_CENTER.x, ly - (PEDESTAL_CENTER.y - 50)) <= 125
+      ) {
+        jumpCatToStation("center", 120);
+        if (soundEnabled) playCharacterTapSound();
+        spawnParticleBurst(PEDESTAL_CENTER.x, PEDESTAL_CENTER.y - 60, "#FFE066", "#FF6B9D", 18, "heart");
+        addFloatingPopup(PEDESTAL_CENTER.x, PEDESTAL_CENTER.y - 120, "🐾 Về thảm chính nào ~!", "#FFF3BF");
+        return;
       }
     }
 
@@ -1756,12 +2086,15 @@ export function GardenCatCareScreen({
       return;
     }
 
-    // 4. Check if tapping Center Active Tree/Cat
-    const centerCharX =
-      PEDESTAL_CENTER.x +
-      (state.activeTab === "cat" ? animRef.current.catOffsetX : 0);
-    const centerCharY = PEDESTAL_CENTER.y - 125;
-    if (Math.hypot(lx - centerCharX, ly - centerCharY) <= 150) {
+    // 4. Check if tapping Active Tree (at PEDESTAL_CENTER) or Active Cat (at its current station!)
+    const activeCharX =
+      state.activeTab === "cat"
+        ? animRef.current.catPosX + animRef.current.catOffsetX
+        : PEDESTAL_CENTER.x;
+    const activeCharY =
+      (state.activeTab === "cat" ? animRef.current.catPosY : PEDESTAL_CENTER.y) -
+      115 * (state.activeTab === "cat" ? animRef.current.catScale : 1);
+    if (Math.hypot(lx - activeCharX, ly - activeCharY) <= 145) {
       triggerSquashStretch(1.2, 0.82);
       if (soundEnabled) playCharacterTapSound();
       spawnParticleBurst(lx, ly, "#FF6B9D", "#FFE066", 20, "heart");
@@ -1773,7 +2106,13 @@ export function GardenCatCareScreen({
       setSpeechBubble(line);
       if (soundEnabled) onSpeak(line);
       if (state.activeTab === "cat") {
-        animRef.current.catTargetX = (Math.random() - 0.5) * 120;
+        // Cycle jumping between Center -> Left Eating Bed -> Right Toy Bed when tapped!
+        const nextOrder: Record<CatStationId, CatStationId> = {
+          center: "left",
+          left: "right",
+          right: "center",
+        };
+        jumpCatToStation(nextOrder[animRef.current.catStation], 180);
       }
     }
   }
@@ -1813,21 +2152,108 @@ export function GardenCatCareScreen({
           anim.scaleX += anim.velX;
           anim.scaleY += anim.velY;
 
-          // Update Cat Roaming / Chasing AI
+          // Update Cat 3-Station Jumping & Eating/Playing AI
           if (curState.activeTab === "cat") {
-            const dx = anim.catTargetX - anim.catOffsetX;
-            if (Math.abs(dx) > 2.5) {
-              anim.catOffsetX += Math.sign(dx) * Math.min(Math.abs(dx), 3.4);
-              anim.catJumpY = -Math.abs(Math.sin(frameCount * 0.22)) * 18;
+            if (anim.catJumpProgress < 1) {
+              anim.catJumpProgress = Math.min(1, anim.catJumpProgress + 0.036);
+              const p = anim.catJumpProgress;
+              const ease = p < 0.5 ? 2 * p * p : 1 - Math.pow(-2 * p + 2, 2) / 2;
+              const arcHeight = Math.sin(p * Math.PI) * 118;
+              anim.catPosX = anim.catFromX + (anim.catToX - anim.catFromX) * ease;
+              anim.catPosY =
+                anim.catFromY + (anim.catToY - anim.catFromY) * ease - arcHeight;
+              anim.catScale =
+                anim.catFromScale + (anim.catToScale - anim.catFromScale) * ease;
+              anim.catJumpY = 0;
+              if (anim.catJumpProgress >= 1) {
+                triggerSquashStretch(1.22, 0.8);
+                if (anim.catStation === "left") {
+                  spawnParticleBurst(
+                    LEFT_STAGE.x,
+                    LEFT_STAGE.y - 36,
+                    "#FF92B2",
+                    "#FFE066",
+                    14,
+                    "heart",
+                  );
+                } else if (anim.catStation === "right") {
+                  spawnParticleBurst(
+                    RIGHT_STAGE.x,
+                    RIGHT_STAGE.y - 36,
+                    "#DA77F2",
+                    "#74C0FC",
+                    14,
+                    "star",
+                  );
+                }
+              }
             } else {
-              anim.catJumpY *= 0.8;
-              if (frameCount % 260 === 0 && !anim.tossedToy.active) {
-                anim.catTargetX = (Math.random() - 0.5) * 95;
+              // At rest on current station (`center`, `left`, or `right`)
+              const dx = anim.catTargetX - anim.catOffsetX;
+              if (Math.abs(dx) > 2.0) {
+                anim.catOffsetX += Math.sign(dx) * Math.min(Math.abs(dx), 2.8);
+                anim.catJumpY = -Math.abs(Math.sin(frameCount * 0.22)) * 12;
+              } else {
+                anim.catJumpY *= 0.8;
+              }
+
+              // Munching at Left Bed or Batting Yarn at Right Bed
+              if (anim.catStationActivityTimer > 0) {
+                anim.catStationActivityTimer--;
+                if (anim.catStation === "left") {
+                  anim.catJumpY = -Math.abs(Math.sin(frameCount * 0.28)) * 9;
+                  if (frameCount % 38 === 0) {
+                    spawnParticleBurst(
+                      LEFT_STAGE.x - 16,
+                      LEFT_STAGE.y - 52,
+                      "#FF6B9D",
+                      "#FFE066",
+                      4,
+                      "heart",
+                    );
+                  }
+                } else if (anim.catStation === "right") {
+                  anim.catJumpY = -Math.abs(Math.sin(frameCount * 0.34)) * 18;
+                  if (frameCount % 36 === 0) {
+                    spawnParticleBurst(
+                      RIGHT_STAGE.x + 16,
+                      RIGHT_STAGE.y - 56,
+                      "#DA77F2",
+                      "#74C0FC",
+                      4,
+                      "star",
+                    );
+                  }
+                }
+              }
+
+              // Autonomous station hopping every ~6–7 seconds so the cat explores all 3 beds!
+              anim.catStationTimer--;
+              if (anim.catStationTimer <= 0 && !anim.tossedToy.active) {
+                const stations: CatStationId[] = ["center", "left", "right"];
+                const choices = stations.filter((s) => s !== anim.catStation);
+                const nextSt = choices[Math.floor(Math.random() * choices.length)];
+                jumpCatToStation(nextSt, 165);
               }
             }
           } else {
             anim.catOffsetX = 0;
             anim.catJumpY = 0;
+            // In Tree Mode: periodically drop unclaimed daily gifts onto the 2 side pedestals
+            if (frameCount % 360 === 120) {
+              const today = getTodayDateKey();
+              const treeEntity = curState.trees[curState.activeTreeBreed];
+              const stage = getStageFromExp(treeEntity.exp);
+              const quota = getDailyDropQuota(stage);
+              const claimed =
+                treeEntity.dailyDropsDate === today
+                  ? treeEntity.dailyDropsClaimed || 0
+                  : 0;
+              const onFloor = anim.sideDrops.filter((d) => !d.collecting).length;
+              if (claimed + onFloor < quota && onFloor < 6) {
+                spawnSidePedestalDrops(curState.activeTreeBreed, stage, 1);
+              }
+            }
           }
 
           // 2. Draw Room Background
@@ -1979,8 +2405,173 @@ export function GardenCatCareScreen({
           drawMiniCornerSlot(curSideList[0], MINI_SLOT_1.x, MINI_SLOT_1.y);
           drawMiniCornerSlot(curSideList[1], MINI_SLOT_2.x, MINI_SLOT_2.y);
 
-          // 5. Draw Center Active Tree or Cat (Balanced Size ~225px - 275px!)
+          // 4B. Draw Interactive Left & Right Stations (Cat Feeding/Toy Beds OR Tree Gift Pedestals!)
           const isTree = curState.activeTab === "tree";
+          if (!isTree) {
+            // LEFT STATION: 🍽️ Góc Măm Măm (Milk + Fish + Cupcake)
+            const milkImg = imageCacheRef.current["/assets/garden-cat/icon_milk.webp"];
+            const fishImg = imageCacheRef.current["/assets/garden-cat/icon_fish.webp"];
+            const cakeImg = imageCacheRef.current["/assets/garden-cat/icon_cupcake.webp"];
+            const yarnImg = imageCacheRef.current["/assets/garden-cat/icon_yarn.webp"];
+            const starToyImg = imageCacheRef.current["/assets/english/items/toy_04_star.webp"];
+
+            // Highlight ring on Left Eating Bed
+            ctx.save();
+            ctx.globalCompositeOperation = "lighter";
+            const leftGlow = ctx.createRadialGradient(
+              LEFT_STAGE.x,
+              LEFT_STAGE.y,
+              6,
+              LEFT_STAGE.x,
+              LEFT_STAGE.y,
+              82,
+            );
+            leftGlow.addColorStop(
+              0,
+              anim.catStation === "left"
+                ? "rgba(255, 165, 195, 0.55)"
+                : "rgba(255, 210, 225, 0.25)",
+            );
+            leftGlow.addColorStop(1, "rgba(255, 255, 255, 0)");
+            ctx.fillStyle = leftGlow;
+            ctx.beginPath();
+            ctx.ellipse(LEFT_STAGE.x, LEFT_STAGE.y, 82, 34, 0, 0, Math.PI * 2);
+            ctx.fill();
+            ctx.restore();
+
+            // Draw Food & Milk Bowls on Left Bed
+            const munchBounce =
+              anim.catStation === "left" && anim.catJumpProgress >= 1
+                ? Math.sin(t * 7) * 3.5
+                : Math.sin(t * 2) * 1.5;
+            if (milkImg && milkImg.complete && milkImg.naturalWidth > 0) {
+              ctx.save();
+              ctx.drawImage(
+                milkImg,
+                LEFT_STAGE.x - 68,
+                LEFT_STAGE.y - 34 + munchBounce,
+                48,
+                48,
+              );
+              ctx.restore();
+            }
+            if (fishImg && fishImg.complete && fishImg.naturalWidth > 0) {
+              ctx.save();
+              ctx.drawImage(
+                fishImg,
+                LEFT_STAGE.x + 22,
+                LEFT_STAGE.y - 30 - munchBounce,
+                48,
+                48,
+              );
+              ctx.restore();
+            }
+            if (cakeImg && cakeImg.complete && cakeImg.naturalWidth > 0) {
+              ctx.save();
+              ctx.drawImage(
+                cakeImg,
+                LEFT_STAGE.x - 20,
+                LEFT_STAGE.y - 12 + munchBounce * 0.6,
+                42,
+                42,
+              );
+              ctx.restore();
+            }
+
+            // Pill Label under Left Eating Bed
+            ctx.save();
+            ctx.fillStyle =
+              anim.catStation === "left"
+                ? "rgba(230, 73, 128, 0.94)"
+                : "rgba(255, 255, 255, 0.88)";
+            ctx.strokeStyle = "#F783AC";
+            ctx.lineWidth = 2;
+            ctx.beginPath();
+            ctx.roundRect(LEFT_STAGE.x - 68, LEFT_STAGE.y + 34, 136, 24, 12);
+            ctx.fill();
+            ctx.stroke();
+            ctx.fillStyle = anim.catStation === "left" ? "#FFFFFF" : "#A61E4D";
+            ctx.font = "bold 11.5px 'Nunito', sans-serif";
+            ctx.textAlign = "center";
+            ctx.textBaseline = "middle";
+            ctx.fillText(
+              anim.catStation === "left" ? "🍼 Đang Măm Măm ~" : "🍽️ Góc Măm Măm",
+              LEFT_STAGE.x,
+              LEFT_STAGE.y + 46,
+            );
+            ctx.restore();
+
+            // RIGHT STATION: 🧶 Góc Đồ Chơi (Rainbow Yarn + Star Toy)
+            ctx.save();
+            ctx.globalCompositeOperation = "lighter";
+            const rightGlow = ctx.createRadialGradient(
+              RIGHT_STAGE.x,
+              RIGHT_STAGE.y,
+              6,
+              RIGHT_STAGE.x,
+              RIGHT_STAGE.y,
+              82,
+            );
+            rightGlow.addColorStop(
+              0,
+              anim.catStation === "right"
+                ? "rgba(185, 135, 255, 0.55)"
+                : "rgba(210, 180, 255, 0.25)",
+            );
+            rightGlow.addColorStop(1, "rgba(255, 255, 255, 0)");
+            ctx.fillStyle = rightGlow;
+            ctx.beginPath();
+            ctx.ellipse(RIGHT_STAGE.x, RIGHT_STAGE.y, 82, 34, 0, 0, Math.PI * 2);
+            ctx.fill();
+            ctx.restore();
+
+            const playRoll =
+              anim.catStation === "right" && anim.catJumpProgress >= 1
+                ? Math.sin(t * 8) * 10
+                : Math.sin(t * 2.2) * 3;
+            if (yarnImg && yarnImg.complete && yarnImg.naturalWidth > 0) {
+              ctx.save();
+              ctx.translate(RIGHT_STAGE.x - 36 + playRoll, RIGHT_STAGE.y - 6);
+              ctx.rotate(playRoll * 0.08);
+              ctx.drawImage(yarnImg, -26, -26, 52, 52);
+              ctx.restore();
+            }
+            if (starToyImg && starToyImg.complete && starToyImg.naturalWidth > 0) {
+              ctx.save();
+              ctx.translate(
+                RIGHT_STAGE.x + 38,
+                RIGHT_STAGE.y - 10 - Math.abs(playRoll * 0.7),
+              );
+              ctx.rotate(-playRoll * 0.06);
+              ctx.drawImage(starToyImg, -23, -23, 46, 46);
+              ctx.restore();
+            }
+
+            // Pill Label under Right Toy Bed
+            ctx.save();
+            ctx.fillStyle =
+              anim.catStation === "right"
+                ? "rgba(156, 54, 181, 0.94)"
+                : "rgba(255, 255, 255, 0.88)";
+            ctx.strokeStyle = "#CC5DE8";
+            ctx.lineWidth = 2;
+            ctx.beginPath();
+            ctx.roundRect(RIGHT_STAGE.x - 68, RIGHT_STAGE.y + 34, 136, 24, 12);
+            ctx.fill();
+            ctx.stroke();
+            ctx.fillStyle = anim.catStation === "right" ? "#FFFFFF" : "#5F3DC4";
+            ctx.font = "bold 11.5px 'Nunito', sans-serif";
+            ctx.textAlign = "center";
+            ctx.textBaseline = "middle";
+            ctx.fillText(
+              anim.catStation === "right" ? "🧶 Đang Vờn Đồ Chơi ~" : "🧶 Góc Đồ Chơi",
+              RIGHT_STAGE.x,
+              RIGHT_STAGE.y + 46,
+            );
+            ctx.restore();
+          }
+
+          // 5. Draw Center Active Tree or 3-Station Jumping Cat!
           const centerBreedId = isTree
             ? curState.activeTreeBreed
             : curState.activeCatBreed;
@@ -2009,23 +2600,34 @@ export function GardenCatCareScreen({
                   0.075 +
                 Math.sin(t * 9) * 0.015
               : 1;
-          const centerSize = baseCenterSize * careSwellBoost;
-          const drawX =
-            PEDESTAL_CENTER.x + (!isTree ? anim.catOffsetX : 0);
-          const drawY =
-            PEDESTAL_CENTER.y + (!isTree ? anim.catJumpY : 0);
+          const entityPerspectiveScale = isTree ? 1 : anim.catScale;
+          const centerSize =
+            baseCenterSize * entityPerspectiveScale * careSwellBoost;
+          const drawX = isTree
+            ? PEDESTAL_CENTER.x
+            : anim.catPosX + anim.catOffsetX;
+          const drawY = isTree
+            ? PEDESTAL_CENTER.y
+            : anim.catPosY + anim.catJumpY;
+          const shadowBaseY = isTree
+            ? PEDESTAL_CENTER.y - 4
+            : (anim.catStation === "left"
+                ? LEFT_STAGE.y + 4
+                : anim.catStation === "right"
+                  ? RIGHT_STAGE.y + 4
+                  : PEDESTAL_CENTER.y - 4);
 
           // Pedestal Magic Aura (`globalCompositeOperation = 'lighter'`)
           ctx.save();
           ctx.globalCompositeOperation = "lighter";
-          const auraRadius = Math.max(76, baseCenterSize * 0.44);
+          const auraRadius = Math.max(62, centerSize * 0.44);
           const pulse = 1 + Math.sin(t * 1.6) * 0.08;
           const auraGrad = ctx.createRadialGradient(
             drawX,
-            PEDESTAL_CENTER.y - 8,
+            shadowBaseY - 4,
             8,
             drawX,
-            PEDESTAL_CENTER.y - 8,
+            shadowBaseY - 4,
             auraRadius * pulse,
           );
           auraGrad.addColorStop(0, centerMeta.glowColor);
@@ -2035,7 +2637,7 @@ export function GardenCatCareScreen({
           ctx.beginPath();
           ctx.ellipse(
             drawX,
-            PEDESTAL_CENTER.y - 8,
+            shadowBaseY - 4,
             auraRadius * pulse,
             auraRadius * 0.34 * pulse,
             0,
@@ -2045,13 +2647,13 @@ export function GardenCatCareScreen({
           ctx.fill();
           ctx.restore();
 
-          // Contact Shadow on the center of the circular stage/rug
+          // Contact Shadow on the center or side bed
           ctx.save();
           ctx.fillStyle = "rgba(65, 35, 60, 0.24)";
           ctx.beginPath();
           ctx.ellipse(
             drawX,
-            PEDESTAL_CENTER.y - 4,
+            shadowBaseY,
             centerSize * 0.31,
             centerSize * 0.08,
             0,
@@ -2108,8 +2710,129 @@ export function GardenCatCareScreen({
             ctx.restore();
           }
 
-          // 6. Render Harvest Basket & Hanging Fruits in Tree Mode
+          // 6. Render Harvest Basket, Side Pedestal Specialty Drops & Hanging Fruits in Tree Mode
           if (isTree) {
+            // Draw Left & Right Pedestal Gift Labels
+            const leftHasDrop = anim.sideDrops.some(
+              (d) => !d.collecting && d.side === "left",
+            );
+            const rightHasDrop = anim.sideDrops.some(
+              (d) => !d.collecting && d.side === "right",
+            );
+            const drawSidePedestalTag = (
+              stagePos: { x: number; y: number },
+              hasDrop: boolean,
+              title: string,
+            ) => {
+              ctx.save();
+              ctx.fillStyle = hasDrop
+                ? "rgba(255, 243, 191, 0.94)"
+                : "rgba(255, 255, 255, 0.78)";
+              ctx.strokeStyle = hasDrop ? "#F59F00" : "rgba(218, 119, 242, 0.6)";
+              ctx.lineWidth = 2;
+              ctx.beginPath();
+              ctx.roundRect(stagePos.x - 68, stagePos.y + 34, 136, 24, 12);
+              ctx.fill();
+              ctx.stroke();
+              ctx.fillStyle = hasDrop ? "#B45309" : "#6741D9";
+              ctx.font = "bold 11.5px 'Nunito', sans-serif";
+              ctx.textAlign = "center";
+              ctx.textBaseline = "middle";
+              ctx.fillText(title, stagePos.x, stagePos.y + 46);
+              ctx.restore();
+            };
+
+            drawSidePedestalTag(
+              LEFT_STAGE,
+              leftHasDrop,
+              leftHasDrop ? "🎁 Bấm nhặt quà đổi Xu!" : "🌸 Bệ Quà Bên Trái",
+            );
+            drawSidePedestalTag(
+              RIGHT_STAGE,
+              rightHasDrop,
+              rightHasDrop ? "🎁 Bấm nhặt quà đổi Xu!" : "🌸 Bệ Quà Bên Phải",
+            );
+
+            // Render Specialty Drops on Left & Right Pedestals (Fruits / Cupcakes / Star Crystals)
+            for (let i = anim.sideDrops.length - 1; i >= 0; i--) {
+              const d = anim.sideDrops[i];
+              let dx = d.targetX;
+              let dy = d.targetY;
+
+              if (!d.collecting && d.dropProgress < 1) {
+                d.dropProgress = Math.min(1, d.dropProgress + 0.032);
+                const p = d.dropProgress;
+                const ctrlX = (d.startX + d.targetX) * 0.5;
+                const ctrlY = Math.min(d.startY, d.targetY) - 115;
+                dx =
+                  (1 - p) * (1 - p) * d.startX +
+                  2 * (1 - p) * p * ctrlX +
+                  p * p * d.targetX;
+                dy =
+                  (1 - p) * (1 - p) * d.startY +
+                  2 * (1 - p) * p * ctrlY +
+                  p * p * d.targetY;
+              } else if (d.collecting) {
+                d.collectProgress = Math.min(1, d.collectProgress + 0.05);
+                const p = d.collectProgress;
+                const ctrlX = (d.startX + BASKET_POS.x) * 0.5;
+                const ctrlY = Math.min(d.startY, BASKET_POS.y) - 135;
+                dx =
+                  (1 - p) * (1 - p) * d.startX +
+                  2 * (1 - p) * p * ctrlX +
+                  p * p * BASKET_POS.x;
+                dy =
+                  (1 - p) * (1 - p) * d.startY +
+                  2 * (1 - p) * p * ctrlY +
+                  p * p * BASKET_POS.y;
+                if (p >= 1) {
+                  anim.sideDrops.splice(i, 1);
+                  continue;
+                }
+              } else {
+                dy = d.targetY + Math.sin(t * 2.5 + d.phase) * 4.5;
+              }
+
+              // Golden sparkle halo under the gift item
+              ctx.save();
+              ctx.globalCompositeOperation = "lighter";
+              const dg = ctx.createRadialGradient(dx, dy - 14, 4, dx, dy - 14, 34);
+              dg.addColorStop(0, "rgba(255, 224, 102, 0.85)");
+              dg.addColorStop(1, "rgba(255, 255, 255, 0)");
+              ctx.fillStyle = dg;
+              ctx.beginPath();
+              ctx.arc(dx, dy - 14, 34, 0, Math.PI * 2);
+              ctx.fill();
+              ctx.restore();
+
+              const dropImg = imageCacheRef.current[d.iconUrl];
+              if (dropImg && dropImg.complete && dropImg.naturalWidth > 0) {
+                ctx.save();
+                ctx.translate(dx, dy - 16);
+                ctx.rotate(Math.sin(t * 2.2 + d.phase) * 0.08);
+                ctx.drawImage(dropImg, -25, -25, 50, 50);
+                ctx.restore();
+              }
+
+              // Coin reward mini-tag on resting drops
+              if (!d.collecting && d.dropProgress >= 1) {
+                ctx.save();
+                ctx.fillStyle = "#FFF3BF";
+                ctx.strokeStyle = "#F59F00";
+                ctx.lineWidth = 1.5;
+                ctx.beginPath();
+                ctx.roundRect(dx - 24, dy + 6, 48, 17, 8);
+                ctx.fill();
+                ctx.stroke();
+                ctx.fillStyle = "#B45309";
+                ctx.font = "bold 10px 'Nunito', sans-serif";
+                ctx.textAlign = "center";
+                ctx.textBaseline = "middle";
+                ctx.fillText(`+${d.coinValue} Xu`, dx, dy + 14.5);
+                ctx.restore();
+              }
+            }
+
             const basketImg =
               imageCacheRef.current["/assets/garden-cat/icon_basket.webp"];
             if (basketImg && basketImg.complete && basketImg.naturalWidth > 0) {
@@ -2133,7 +2856,7 @@ export function GardenCatCareScreen({
               ctx.textAlign = "center";
               ctx.textBaseline = "middle";
               ctx.fillText(
-                `🧺 Giỏ: ${curState.harvestedFruitTotal} quả`,
+                `🧺 Giỏ: ${curState.harvestedFruitTotal} món`,
                 BASKET_POS.x,
                 BASKET_POS.y + 46,
               );
