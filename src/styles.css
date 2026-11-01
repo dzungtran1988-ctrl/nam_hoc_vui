@@ -21297,3 +21297,521 @@ button.eq-num-box {
     grid-template-columns: 1fr;
   }
 }
+
+
+/* ============================================================================
+   NHỊP NGHỈ MẮT 30 PHÚT HỌC - 10 PHÚT GIỜ RA CHƠI (EYE REST OVERLAY & BANNER)
+   ============================================================================ */
+
+.eye-rest-grace-banner {
+  position: fixed;
+  bottom: 12px;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 950;
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  background: linear-gradient(135deg, #312e81 0%, #4c1d95 100%);
+  border: 2.5px solid #fde047;
+  color: #fef9c3;
+  padding: 7px 16px;
+  border-radius: 999px;
+  font-size: clamp(12px, 1.15vw, 14px);
+  font-weight: 800;
+  box-shadow: 0 8px 24px rgba(30, 27, 75, 0.45);
+  max-width: 94vw;
+}
+
+.eye-rest-grace-now-btn {
+  background: #fde047;
+  color: #1e1b4b;
+  border: none;
+  border-radius: 999px;
+  padding: 4px 12px;
+  font-weight: 900;
+  font-size: 12px;
+  cursor: pointer;
+  white-space: nowrap;
+}
+
+.eye-rest-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 9999;
+  background: radial-gradient(
+    ellipse at 50% 20%,
+    #2e2963 0%,
+    #1e1b4b 55%,
+    #13112e 100%
+  );
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: clamp(10px, 2vw, 24px);
+  overflow-y: auto;
+  color: #f8fafc;
+}
+
+.eye-rest-stars-bg {
+  position: absolute;
+  inset: 0;
+  background-image:
+    radial-gradient(2px 2px at 15% 22%, rgba(254, 240, 138, 0.8), transparent),
+    radial-gradient(2.5px 2.5px at 82% 18%, rgba(196, 181, 253, 0.85), transparent),
+    radial-gradient(2px 2px at 28% 76%, rgba(167, 243, 208, 0.7), transparent),
+    radial-gradient(2.5px 2.5px at 74% 80%, rgba(253, 186, 116, 0.75), transparent),
+    radial-gradient(1.5px 1.5px at 52% 12%, rgba(255, 255, 255, 0.7), transparent);
+  pointer-events: none;
+  opacity: 0.8;
+}
+
+.eye-rest-card {
+  position: relative;
+  z-index: 2;
+  width: min(920px, 96vw);
+  max-height: 95vh;
+  background: linear-gradient(
+    180deg,
+    rgba(49, 46, 129, 0.88) 0%,
+    rgba(30, 27, 75, 0.94) 100%
+  );
+  border: 3px solid rgba(196, 181, 253, 0.55);
+  border-radius: 28px;
+  padding: clamp(12px, 2vw, 22px);
+  box-shadow:
+    0 20px 50px rgba(9, 8, 26, 0.65),
+    inset 0 1px 0 rgba(255, 255, 255, 0.22);
+  display: flex;
+  flex-direction: column;
+  gap: clamp(10px, 1.5vh, 16px);
+  overflow-y: auto;
+}
+
+.eye-rest-top-bar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.eye-rest-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  background: rgba(254, 240, 138, 0.16);
+  border: 2px solid #fde047;
+  color: #fef08a;
+  padding: 5px 14px;
+  border-radius: 999px;
+  font-size: clamp(11.5px, 1.15vw, 13.5px);
+  font-weight: 900;
+  letter-spacing: 0.03em;
+}
+
+.eye-rest-speak-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  background: linear-gradient(135deg, #ec4899 0%, #8b5cf6 100%);
+  border: 2px solid #ffffff;
+  color: #ffffff;
+  padding: 6px 14px;
+  border-radius: 999px;
+  font-size: clamp(12px, 1.15vw, 14px);
+  font-weight: 900;
+  cursor: pointer;
+  box-shadow: 0 4px 12px rgba(236, 72, 153, 0.35);
+  transition: transform 0.15s ease;
+}
+
+.eye-rest-speak-btn:hover {
+  transform: translateY(-2px);
+}
+
+.eye-rest-hero-row {
+  display: grid;
+  grid-template-columns: 220px 1fr;
+  gap: clamp(12px, 2vw, 22px);
+  align-items: center;
+  background: rgba(15, 23, 42, 0.38);
+  border: 2px solid rgba(165, 180, 252, 0.28);
+  border-radius: 22px;
+  padding: clamp(10px, 1.6vw, 18px);
+}
+
+.eye-rest-mascot-duo {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 150px;
+}
+
+.eye-rest-main-img {
+  width: clamp(120px, 15vw, 165px);
+  height: auto;
+  object-fit: contain;
+  filter: drop-shadow(0 8px 16px rgba(0, 0, 0, 0.45));
+  animation: eyeRestFloat 3.2s ease-in-out infinite alternate;
+}
+
+.eye-rest-moon-img {
+  position: absolute;
+  right: 4px;
+  bottom: 0;
+  width: clamp(64px, 8vw, 86px);
+  height: auto;
+  object-fit: contain;
+  filter: drop-shadow(0 4px 10px rgba(250, 204, 21, 0.4));
+  animation: eyeRestFloat 2.6s ease-in-out infinite alternate-reverse;
+}
+
+@keyframes eyeRestFloat {
+  from {
+    transform: translateY(0);
+  }
+  to {
+    transform: translateY(-7px);
+  }
+}
+
+.eye-rest-hero-text {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.eye-rest-hero-text h1 {
+  margin: 0;
+  font-size: clamp(17px, 2.05vw, 24px);
+  line-height: 1.3;
+  color: #fef08a;
+  text-shadow: 0 2px 10px rgba(0, 0, 0, 0.4);
+}
+
+.eye-rest-subtitle {
+  margin: 0;
+  font-size: clamp(12.5px, 1.2vw, 15px);
+  color: #e2e8f0;
+  line-height: 1.45;
+}
+
+.eye-rest-timer-box {
+  margin-top: 4px;
+  background: rgba(30, 27, 75, 0.75);
+  border: 2px solid rgba(167, 243, 208, 0.45);
+  border-radius: 18px;
+  padding: 10px 14px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.eye-rest-timer-digits {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  color: #6ee7b7;
+  font-size: clamp(24px, 3vw, 36px);
+  font-weight: 900;
+  letter-spacing: 0.06em;
+  line-height: 1;
+}
+
+.eye-rest-progress-track {
+  width: 100%;
+  height: 10px;
+  background: rgba(255, 255, 255, 0.14);
+  border-radius: 999px;
+  overflow: hidden;
+}
+
+.eye-rest-progress-fill {
+  height: 100%;
+  background: linear-gradient(90deg, #34d399 0%, #fde047 100%);
+  border-radius: 999px;
+  transition: width 0.5s ease;
+}
+
+.eye-rest-timer-caption {
+  font-size: clamp(11px, 1.05vw, 13px);
+  color: #cbd5e1;
+  font-weight: 700;
+}
+
+.eye-rest-activities-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: clamp(8px, 1.2vw, 14px);
+}
+
+.eye-rest-activity-card {
+  background: rgba(255, 255, 255, 0.08);
+  border: 2px solid rgba(196, 181, 253, 0.35);
+  border-radius: 18px;
+  padding: 10px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  text-align: left;
+  color: #f8fafc;
+  cursor: pointer;
+  transition: transform 0.15s ease, border-color 0.15s ease, background 0.15s ease;
+}
+
+.eye-rest-activity-card:hover {
+  transform: translateY(-2px);
+  background: rgba(255, 255, 255, 0.14);
+  border-color: #fde047;
+}
+
+.eye-rest-act-thumb {
+  width: clamp(50px, 6vw, 68px);
+  height: clamp(50px, 6vw, 68px);
+  object-fit: contain;
+  flex-shrink: 0;
+  filter: drop-shadow(0 4px 8px rgba(0, 0, 0, 0.35));
+}
+
+.eye-rest-act-body {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+}
+
+.eye-rest-act-badge {
+  font-size: 11px;
+  font-weight: 900;
+  color: #fde047;
+}
+
+.eye-rest-act-body strong {
+  font-size: clamp(12.5px, 1.15vw, 14.5px);
+  color: #ffffff;
+}
+
+.eye-rest-act-body p {
+  margin: 0;
+  font-size: clamp(11px, 1vw, 12.5px);
+  color: #cbd5e1;
+  line-height: 1.3;
+}
+
+.eye-rest-footer {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding-top: 2px;
+}
+
+.eye-rest-parent-trigger {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  background: rgba(255, 255, 255, 0.1);
+  border: 1.5px dashed rgba(203, 213, 225, 0.45);
+  color: #cbd5e1;
+  padding: 6px 14px;
+  border-radius: 999px;
+  font-size: 12.5px;
+  font-weight: 800;
+  cursor: pointer;
+  transition: background 0.15s ease, color 0.15s ease;
+}
+
+.eye-rest-parent-trigger:hover {
+  background: rgba(255, 255, 255, 0.18);
+  color: #ffffff;
+}
+
+.eye-rest-parent-gate,
+.eye-rest-parent-actions {
+  width: 100%;
+  background: rgba(15, 23, 42, 0.65);
+  border: 2px solid rgba(250, 204, 21, 0.55);
+  border-radius: 16px;
+  padding: 10px 14px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.eye-rest-gate-header {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 13px;
+  font-weight: 800;
+  color: #fef08a;
+}
+
+.eye-rest-gate-refresh {
+  background: rgba(255, 255, 255, 0.12);
+  border: 1px solid rgba(255, 255, 255, 0.3);
+  color: #ffffff;
+  border-radius: 8px;
+  padding: 4px 6px;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+}
+
+.eye-rest-gate-controls {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.eye-rest-math-label {
+  font-size: 16px;
+  font-weight: 900;
+  color: #ffffff;
+  background: rgba(99, 102, 241, 0.35);
+  padding: 5px 12px;
+  border-radius: 10px;
+  border: 1.5px solid rgba(165, 180, 252, 0.5);
+}
+
+.eye-rest-math-input {
+  width: 100px;
+  padding: 6px 10px;
+  border-radius: 10px;
+  border: 2px solid #a5b4fc;
+  background: #ffffff;
+  color: #1e1b4b;
+  font-size: 15px;
+  font-weight: 900;
+  text-align: center;
+}
+
+.eye-rest-gate-submit {
+  background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+  border: 2px solid #ffffff;
+  color: #ffffff;
+  padding: 6px 14px;
+  border-radius: 10px;
+  font-weight: 900;
+  font-size: 13.5px;
+  cursor: pointer;
+}
+
+.eye-rest-gate-cancel {
+  background: rgba(255, 255, 255, 0.12);
+  border: 1.5px solid rgba(255, 255, 255, 0.3);
+  color: #e2e8f0;
+  padding: 6px 12px;
+  border-radius: 10px;
+  font-weight: 800;
+  font-size: 13px;
+  cursor: pointer;
+}
+
+.eye-rest-gate-error {
+  margin: 0;
+  font-size: 12.5px;
+  font-weight: 800;
+  color: #fca5a5;
+}
+
+.eye-rest-unlocked-label {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 13.5px;
+  font-weight: 900;
+  color: #6ee7b7;
+}
+
+.eye-rest-unlocked-btns {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.eye-rest-action-btn {
+  border: 2px solid #ffffff;
+  border-radius: 12px;
+  padding: 7px 14px;
+  font-weight: 900;
+  font-size: 13.5px;
+  cursor: pointer;
+  color: #ffffff;
+}
+
+.eye-rest-action-btn.snooze {
+  background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%);
+}
+
+.eye-rest-action-btn.reset {
+  background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+}
+
+/* Cài đặt Nhịp nghỉ mắt trong Góc Phụ Huynh */
+.parent-eye-rest-box {
+  margin: 12px 0;
+  padding: 12px 14px;
+  background: #f8fafc;
+  border: 2px solid #e2e8f0;
+  border-radius: 16px;
+}
+
+.parent-eye-rest-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  flex-wrap: wrap;
+  font-weight: 800;
+  color: #1e293b;
+}
+
+.parent-eye-rest-header span {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.parent-eye-rest-pills {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+  margin-top: 8px;
+}
+
+@media screen and (max-width: 768px), screen and (max-height: 540px) {
+  .eye-rest-hero-row {
+    grid-template-columns: 120px 1fr;
+    padding: 8px 10px;
+  }
+
+  .eye-rest-mascot-duo {
+    min-height: 100px;
+  }
+
+  .eye-rest-main-img {
+    width: 96px;
+  }
+
+  .eye-rest-moon-img {
+    width: 52px;
+  }
+
+  .eye-rest-activities-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .eye-rest-activity-card {
+    padding: 6px 10px;
+  }
+
+  .eye-rest-act-thumb {
+    width: 42px;
+    height: 42px;
+  }
+}

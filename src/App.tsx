@@ -1,6 +1,7 @@
 import { Suspense, lazy, useEffect, useRef, useState } from "react";
 import {
   BookOpen,
+  Clock,
   Film,
   Gift,
   Home,
@@ -12,7 +13,14 @@ import {
   VolumeX,
 } from "lucide-react";
 import { useProgress } from "./hooks/useProgress";
-import { useSpeech } from "./hooks/useSpeech";
+import { prefetchSpeech, useSpeech } from "./hooks/useSpeech";
+import {
+  EYE_REST_BREAK_END_LINE,
+  EYE_REST_BREAK_START_LINE,
+  EYE_REST_GRACE_REMINDER_LINE,
+  useEyeRestTimer,
+} from "./hooks/useEyeRestTimer";
+import { EyeRestBreakOverlay } from "./components/EyeRestBreakOverlay";
 import { subjects, getSubject } from "./data/subjects";
 import {
   SUBJECT_CUPS,
@@ -303,6 +311,39 @@ function App() {
   const speech = useSpeech(progress.soundEnabled);
   const rewarded = useRef(false);
 
+  const isBusyInLesson =
+    page.type === "lesson" ||
+    page.type === "victory-video" ||
+    page.type === "reward" ||
+    videoModalOpen ||
+    Boolean(ceremonySubject);
+
+  const eyeRest = useEyeRestTimer({
+    isBusyInLesson,
+    onBreakStart: () => {
+      setVideoModalOpen(false);
+      speech.stop();
+    },
+    onBreakEnd: () => {
+      if (progress.soundEnabled) {
+        playRewardTone();
+        speech.speak(EYE_REST_BREAK_END_LINE, "vi-VN");
+      }
+    },
+    onGracePendingStart: () => {
+      if (progress.soundEnabled && !speech.speaking) {
+        speech.speak(EYE_REST_GRACE_REMINDER_LINE, "vi-VN");
+      }
+    },
+  });
+
+  useEffect(() => {
+    if (!progress.soundEnabled) return;
+    void prefetchSpeech(EYE_REST_BREAK_START_LINE, "vi-VN");
+    void prefetchSpeech(EYE_REST_BREAK_END_LINE, "vi-VN");
+    void prefetchSpeech(EYE_REST_GRACE_REMINDER_LINE, "vi-VN");
+  }, [progress.soundEnabled]);
+
   const totalLitStickers = getTotalLitStickers(stickerStore);
   const totalUnlockedInBook = getTotalUnlockedInBook(stickerStore);
   const doneQuestCount = dailyQuests.quests.filter((q) => q.done).length;
@@ -504,6 +545,10 @@ function App() {
   }, [reaction]);
 
   function startLesson(subject: SubjectId) {
+    if (eyeRest.pendingBreak || eyeRest.isResting) {
+      eyeRest.triggerBreakNow();
+      return;
+    }
     rewarded.current = false;
     setStorybookInitialHubZone("hub");
     setStorybookInitialParkMode("lobby");
@@ -704,6 +749,28 @@ function App() {
             </div>
 
             <div className="hud-right-group">
+              {eyeRest.studyLimitMinutes > 0 && (
+                <button
+                  type="button"
+                  className="hud-pill hud-purple"
+                  onClick={() => {
+                    const minsLeft = Math.max(
+                      1,
+                      Math.ceil(eyeRest.remainingStudySeconds / 60),
+                    );
+                    if (progress.soundEnabled) {
+                      speech.speak(
+                        `Còn khoảng ${minsLeft} phút học nữa là đến giờ ra chơi nghỉ mắt mười phút nhé!`,
+                        "vi-VN",
+                      );
+                    }
+                  }}
+                  title={`Nhịp nghỉ mắt: Còn ${Math.ceil(eyeRest.remainingStudySeconds / 60)} phút nữa đến giờ ra chơi`}
+                >
+                  <Clock size={15} />
+                  <span>{Math.ceil(eyeRest.remainingStudySeconds / 60)}&apos;</span>
+                </button>
+              )}
               <button
                 type="button"
                 className="hud-pill hud-blue"
@@ -1191,6 +1258,14 @@ function App() {
               onImport={importProgress}
               onReset={resetProgress}
               onSoundChange={setSoundEnabled}
+              studyLimitMinutes={eyeRest.studyLimitMinutes}
+              todayStudySeconds={eyeRest.todayStudySeconds}
+              remainingStudySeconds={eyeRest.remainingStudySeconds}
+              onChangeStudyLimitMinutes={eyeRest.setStudyLimitMinutes}
+              onTriggerBreakNow={() => {
+                setPage({ type: "home" });
+                eyeRest.triggerBreakNow();
+              }}
             />
           </Suspense>
         </div>
@@ -1230,6 +1305,47 @@ function App() {
           onSelectVideo={setActiveVideoId}
           onClose={() => setVideoModalOpen(false)}
           onStartLesson={startLesson}
+        />
+      )}
+
+      {/* =====================================================================
+          8. NHẮC NHẸ SẮP ĐẾN GIỜ RA CHƠI (CHỜ NẤM LÀM NỐT BÀI ĐANG DỞ)
+         ===================================================================== */}
+      {eyeRest.pendingBreak && !eyeRest.isResting && (
+        <div className="eye-rest-grace-banner" role="status" aria-live="polite">
+          <span>
+            🌙 Sắp đến giờ ra chơi rồi! Nấm hoàn thành nốt bài này rồi mình nghỉ mắt 10 phút nhé!
+          </span>
+          <button
+            type="button"
+            className="eye-rest-grace-now-btn"
+            onClick={() => eyeRest.triggerBreakNow()}
+          >
+            Nghỉ ngay
+          </button>
+        </div>
+      )}
+
+      {/* =====================================================================
+          9. MÀN HÌNH GIỜ RA CHƠI NGHỈ MẮT 10 PHÚT (CÓ KHÓA MẸ)
+         ===================================================================== */}
+      {eyeRest.isResting && (
+        <EyeRestBreakOverlay
+          remainingBreakSeconds={eyeRest.remainingBreakSeconds}
+          breakDurationMinutes={eyeRest.breakDurationMinutes}
+          onSpeak={(text) => {
+            if (progress.soundEnabled) {
+              speech.speak(text, "vi-VN");
+            }
+          }}
+          onUnlockReset={() => {
+            speech.stop();
+            eyeRest.unlockAndResetCycle();
+          }}
+          onSnooze={(extraMins) => {
+            speech.stop();
+            eyeRest.snoozeBreak(extraMins);
+          }}
         />
       )}
     </div>

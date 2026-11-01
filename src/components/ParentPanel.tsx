@@ -2,8 +2,11 @@ import { useRef, useState } from "react";
 import {
   BookOpen,
   CalendarDays,
+  Clock,
   Download,
   Heart,
+  Moon,
+  RefreshCw,
   ShieldCheck,
   Sparkles,
   Star,
@@ -18,12 +21,21 @@ import {
   serializeProgress,
 } from "../lib/progress";
 import type { Progress } from "../lib/progress";
+import {
+  generateParentMathChallenge,
+  type ParentMathChallenge,
+} from "../hooks/useEyeRestTimer";
 
 interface ParentPanelProps {
   progress: Progress;
   onImport: (json: string) => void;
   onReset: () => void;
   onSoundChange: (enabled: boolean) => void;
+  studyLimitMinutes?: number;
+  todayStudySeconds?: number;
+  remainingStudySeconds?: number;
+  onChangeStudyLimitMinutes?: (minutes: number) => void;
+  onTriggerBreakNow?: () => void;
 }
 
 const lessonNames: Record<string, string> = {
@@ -48,8 +60,16 @@ export function ParentPanel({
   onImport,
   onReset,
   onSoundChange,
+  studyLimitMinutes = 30,
+  todayStudySeconds = 0,
+  remainingStudySeconds = 1800,
+  onChangeStudyLimitMinutes,
+  onTriggerBreakNow,
 }: ParentPanelProps) {
   const [unlocked, setUnlocked] = useState(false);
+  const [challenge, setChallenge] = useState<ParentMathChallenge>(() =>
+    generateParentMathChallenge(),
+  );
   const [gateAnswer, setGateAnswer] = useState("");
   const [gateError, setGateError] = useState("");
   const [notice, setNotice] = useState("");
@@ -76,14 +96,34 @@ export function ParentPanel({
           <form
             onSubmit={(event) => {
               event.preventDefault();
-              if (gateAnswer.trim() === "21") {
+              const num = Number.parseInt(gateAnswer.trim(), 10);
+              if (!Number.isNaN(num) && num === challenge.expectedAnswer) {
                 setUnlocked(true);
                 setGateError("");
-              } else setGateError("Ba mẹ thử tính lại phép cộng này nhé.");
+              } else {
+                setGateError("Ba mẹ thử tính lại phép tính này nhé.");
+                setChallenge(generateParentMathChallenge());
+                setGateAnswer("");
+              }
             }}
           >
             <label className="form-field" htmlFor="parent-answer">
-              <span>Ba mẹ tính giúp: 12 + 9 = ?</span>
+              <span style={{ display: "flex", alignItems: "center", gap: 8 }}>
+                Ba mẹ tính giúp: <strong>{challenge.questionText}</strong>
+                <button
+                  type="button"
+                  className="button button-ghost"
+                  style={{ padding: "4px 8px", minHeight: "auto" }}
+                  onClick={() => {
+                    setChallenge(generateParentMathChallenge());
+                    setGateAnswer("");
+                    setGateError("");
+                  }}
+                  title="Đổi phép tính khác"
+                >
+                  <RefreshCw size={14} />
+                </button>
+              </span>
               <input
                 id="parent-answer"
                 value={gateAnswer}
@@ -105,7 +145,7 @@ export function ParentPanel({
             </button>
           </form>
           <p className="hint-note">
-            Thao tác dành cho người lớn, không phải mật khẩu bảo mật.
+            Phép tính thay đổi ngẫu nhiên mỗi lần mở để bé không nhớ vẹt đáp án.
           </p>
         </div>
       </section>
@@ -164,6 +204,7 @@ export function ParentPanel({
           className="button button-ghost"
           onClick={() => {
             setUnlocked(false);
+            setChallenge(generateParentMathChallenge());
             setGateAnswer("");
             setPendingImport(null);
             setConfirmReset(false);
@@ -209,6 +250,48 @@ export function ParentPanel({
               onChange={(event) => onSoundChange(event.target.checked)}
             />
           </label>
+
+          <div className="parent-eye-rest-box">
+            <div className="parent-eye-rest-header">
+              <span>
+                <Clock size={18} aria-hidden="true" /> Nhịp nghỉ mắt (Giờ ra chơi 10&apos;)
+              </span>
+              <strong>
+                Hôm nay: {Math.floor(todayStudySeconds / 60)} phút
+              </strong>
+            </div>
+            <p className="hint-note" style={{ marginTop: 4 }}>
+              {studyLimitMinutes > 0
+                ? `Mỗi ${studyLimitMinutes} phút học sẽ nhắc Nấm nghỉ giải lao 10 phút (Còn khoảng ${Math.ceil(remainingStudySeconds / 60)} phút nữa đến giờ ra chơi).`
+                : "Đang tắt hẹn giờ nghỉ mắt tự động."}
+            </p>
+            <div className="parent-eye-rest-pills">
+              {[20, 30, 45, 0].map((mins) => (
+                <button
+                  key={mins}
+                  type="button"
+                  className={`button ${
+                    studyLimitMinutes === mins ? "button-primary" : "button-ghost"
+                  }`}
+                  style={{ padding: "6px 12px", fontSize: "0.9rem" }}
+                  onClick={() => onChangeStudyLimitMinutes?.(mins)}
+                >
+                  {mins === 0 ? "Tắt" : `${mins} phút`}
+                </button>
+              ))}
+            </div>
+            {onTriggerBreakNow && (
+              <button
+                type="button"
+                className="button button-secondary"
+                style={{ marginTop: 8, width: "100%" }}
+                onClick={onTriggerBreakNow}
+              >
+                <Moon size={16} aria-hidden="true" /> Bật Giờ Ra Chơi (10&apos;) ngay bây giờ
+              </button>
+            )}
+          </div>
+
           <p className="hint-note">
             Giọng đọc chỉ phát khi được bấm. Con luôn có thể học bằng chữ và
             hình, không cần micro hay camera.
