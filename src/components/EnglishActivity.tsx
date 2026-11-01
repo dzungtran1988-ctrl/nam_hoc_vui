@@ -52,6 +52,7 @@ export function EnglishActivity({
   const [deckSeed, setDeckSeed] = useState(1);
 
   const [selectedItemId, setSelectedItemId] = useState<string | null>(null);
+  const [wrongShopItemIds, setWrongShopItemIds] = useState<string[]>([]);
   const [isCorrect, setIsCorrect] = useState<boolean | null>(null);
   const [hasSpokenAloud, setHasSpokenAloud] = useState(false);
   const [attemptsCount, setAttemptsCount] = useState(0);
@@ -62,13 +63,14 @@ export function EnglishActivity({
     null,
   );
   const [matchedPairIds, setMatchedPairIds] = useState<string[]>([]);
-  const [wrongRightPairId, setWrongRightPairId] = useState<string | null>(null);
+  const [wrongRightPairIds, setWrongRightPairIds] = useState<string[]>([]);
   const [shuffledRightPairs, setShuffledRightPairs] = useState<
     PronounMatchPair[]
   >([]);
 
   const [bagStepIdx, setBagStepIdx] = useState<0 | 1 | 2>(0);
   const [bagSelectedOptId, setBagSelectedOptId] = useState<string | null>(null);
+  const [wrongBagOptIds, setWrongBagOptIds] = useState<string[]>([]);
   const [bagStepCorrect, setBagStepCorrect] = useState<boolean | null>(null);
 
   const [englishClips, setEnglishClips] = useState<LocalEnglishClip[]>(
@@ -171,14 +173,16 @@ export function EnglishActivity({
 
   useEffect(() => {
     setSelectedItemId(null);
+    setWrongShopItemIds([]);
     setIsCorrect(null);
     setHasSpokenAloud(false);
     setBasketCount(0);
     setSelectedLeftPairId(null);
     setMatchedPairIds([]);
-    setWrongRightPairId(null);
+    setWrongRightPairIds([]);
     setBagStepIdx(0);
     setBagSelectedOptId(null);
+    setWrongBagOptIds([]);
     setBagStepCorrect(null);
     completedRef.current = false;
 
@@ -252,7 +256,7 @@ export function EnglishActivity({
   };
 
   const handlePickShopItem = (item: EnglishShopItem) => {
-    if (isCorrect === true) return;
+    if (isCorrect === true || wrongShopItemIds.includes(item.id)) return;
     setSelectedItemId(item.id);
     setAttemptsCount((c) => c + 1);
 
@@ -286,6 +290,9 @@ export function EnglishActivity({
       speech.speak(`Awesome! ${item.englishName}!`, "en-US");
     } else {
       setIsCorrect(false);
+      setWrongShopItemIds((prev) =>
+        prev.includes(item.id) ? prev : [...prev, item.id],
+      );
       if (soundEnabled) playAttentionChime();
       onReaction?.(
         "sad",
@@ -299,12 +306,17 @@ export function EnglishActivity({
     if (matchedPairIds.includes(pair.id)) return;
     if (soundEnabled) playCardPlaceSound();
     setSelectedLeftPairId(pair.id);
-    setWrongRightPairId(null);
+    setWrongRightPairIds([]);
     speech.speak(pair.pronounEn, "en-US");
   };
 
   const handleSelectRightAction = (rightPair: PronounMatchPair) => {
-    if (matchedPairIds.includes(rightPair.id)) return;
+    if (
+      matchedPairIds.includes(rightPair.id) ||
+      wrongRightPairIds.includes(rightPair.id)
+    ) {
+      return;
+    }
     setAttemptsCount((c) => c + 1);
 
     if (!selectedLeftPairId) {
@@ -321,7 +333,7 @@ export function EnglishActivity({
       const nextMatched = [...matchedPairIds, rightPair.id];
       setMatchedPairIds(nextMatched);
       setSelectedLeftPairId(null);
-      setWrongRightPairId(null);
+      setWrongRightPairIds([]);
       if (soundEnabled) playRewardTone();
       speech.speak(rightPair.fullSentenceEn, "en-US");
 
@@ -341,7 +353,9 @@ export function EnglishActivity({
         );
       }
     } else {
-      setWrongRightPairId(rightPair.id);
+      setWrongRightPairIds((prev) =>
+        prev.includes(rightPair.id) ? prev : [...prev, rightPair.id],
+      );
       if (soundEnabled) playAttentionChime();
       speech.speak(rightPair.actionEn, "en-US");
       onReaction?.(
@@ -352,7 +366,13 @@ export function EnglishActivity({
   };
 
   const handlePickMysteryBagOption = (opt: MysteryBagOption) => {
-    if (!currentMysteryStep || bagStepCorrect === true) return;
+    if (
+      !currentMysteryStep ||
+      bagStepCorrect === true ||
+      wrongBagOptIds.includes(opt.id)
+    ) {
+      return;
+    }
     setBagSelectedOptId(opt.id);
     setAttemptsCount((c) => c + 1);
 
@@ -370,6 +390,7 @@ export function EnglishActivity({
           const nextStep = (bagStepIdx + 1) as 0 | 1 | 2;
           setBagStepIdx(nextStep);
           setBagSelectedOptId(null);
+          setWrongBagOptIds([]);
           setBagStepCorrect(null);
           const nextStepObj = currentMysteryBagRound.steps[nextStep];
           if (soundEnabled && nextStepObj) {
@@ -385,6 +406,9 @@ export function EnglishActivity({
       }
     } else {
       setBagStepCorrect(false);
+      setWrongBagOptIds((prev) =>
+        prev.includes(opt.id) ? prev : [...prev, opt.id],
+      );
       if (soundEnabled) playAttentionChime();
       speech.speak(opt.en, "en-US");
       onReaction?.("sad", `💡 ${currentMysteryStep.hintVi}`);
@@ -640,19 +664,19 @@ export function EnglishActivity({
 
                 <div className="kuromi-shelf-grid">
                   {currentRound.items.map((item) => {
-                    const isSelected = selectedItemId === item.id;
                     const isRightItem = item.id === currentRound.correctItemId;
+                    const isEliminated = wrongShopItemIds.includes(item.id);
                     const palette = item.colorKey
                       ? ENGLISH_COLOR_PALETTE[item.colorKey]
                       : null;
 
                     let stateClass = "";
-                    if (isSelected && isCorrect === true) {
-                      stateClass = "item-correct";
-                    } else if (isSelected && isCorrect === false) {
-                      stateClass = "item-wrong";
-                    } else if (isCorrect === true && isRightItem) {
-                      stateClass = "item-correct";
+                    if (isCorrect === true && isRightItem) {
+                      stateClass = "item-correct kawaii-answer-correct";
+                    } else if (isEliminated) {
+                      stateClass = "kawaii-answer-eliminated";
+                    } else if (isCorrect === true && !isRightItem) {
+                      stateClass = "kawaii-answer-dimmed-others";
                     } else if (
                       activeGameId === "kuromi-shop" &&
                       targetBasketQty > 1 &&
@@ -743,7 +767,7 @@ export function EnglishActivity({
                           </span>
                         )}
 
-                        {stateClass === "item-correct" && (
+                        {stateClass.includes("item-correct") && (
                           <span className="kuromi-correct-stamp">
                             <CheckCircle2 size={18} /> Đúng rồi!
                           </span>
@@ -899,7 +923,7 @@ export function EnglishActivity({
                   <div className="pronoun-cards-stack">
                     {shuffledRightPairs.map((rightPair) => {
                       const isMatched = matchedPairIds.includes(rightPair.id);
-                      const isWrong = wrongRightPairId === rightPair.id;
+                      const isWrong = wrongRightPairIds.includes(rightPair.id);
                       const origIdx = currentPronounMatchRound.pairs.findIndex(
                         (p) => p.id === rightPair.id,
                       );
@@ -908,10 +932,15 @@ export function EnglishActivity({
                         <button
                           key={rightPair.id}
                           type="button"
+                          disabled={isMatched || isWrong}
                           className={`pronoun-match-card right-action-card pair-color-${
                             origIdx + 1
-                          } ${isMatched ? "card-matched" : ""} ${
-                            isWrong ? "card-wrong" : ""
+                          } ${
+                            isMatched
+                              ? "card-matched kawaii-answer-correct"
+                              : isWrong
+                                ? "kawaii-answer-eliminated"
+                                : ""
                           }`}
                           onClick={() => handleSelectRightAction(rightPair)}
                         >
@@ -1068,24 +1097,26 @@ export function EnglishActivity({
 
                   <div className="mystery-options-grid">
                     {currentMysteryStep.options.map((opt) => {
-                      const isPicked = bagSelectedOptId === opt.id;
                       const isRight =
-                        isPicked &&
+                        bagStepCorrect === true &&
                         opt.id === currentMysteryStep.correctOptionId;
-                      const isWrong =
-                        isPicked &&
-                        opt.id !== currentMysteryStep.correctOptionId;
+                      const isWrong = wrongBagOptIds.includes(opt.id);
+                      const isDimmedOther =
+                        bagStepCorrect === true && !isRight;
 
                       return (
                         <button
                           key={opt.id}
                           type="button"
+                          disabled={isWrong || bagStepCorrect === true}
                           className={`mystery-option-card ${
                             isRight
-                              ? "opt-correct"
+                              ? "opt-correct kawaii-answer-correct"
                               : isWrong
-                                ? "opt-wrong"
-                                : ""
+                                ? "kawaii-answer-eliminated"
+                                : isDimmedOther
+                                  ? "kawaii-answer-dimmed-others"
+                                  : ""
                           }`}
                           onClick={() => handlePickMysteryBagOption(opt)}
                         >

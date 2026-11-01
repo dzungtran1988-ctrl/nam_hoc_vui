@@ -832,12 +832,16 @@ function localMediaAndTtsPlugin() {
         if (existing) return existing;
 
         const job = (async () => {
-          if (voice === "vi-VN-North-Female") {
+          const tl = voice.toLowerCase().startsWith("en") ? "en" : "vi";
+          try {
             const gUrl =
-              "https://translate.google.com/translate_tts?ie=UTF-8&tl=vi&client=tw-ob&q=" +
-              encodeURIComponent(text);
+              `https://translate.google.com/translate_tts?ie=UTF-8&tl=${tl}&client=tw-ob&q=` +
+              encodeURIComponent(text.slice(0, 190));
             const gRes = await fetch(gUrl, {
-              headers: { "User-Agent": "Mozilla/5.0" },
+              headers: {
+                "User-Agent": "Mozilla/5.0",
+                Referer: "https://translate.google.com/",
+              },
             });
             if (gRes.ok) {
               const arrBuf = await gRes.arrayBuffer();
@@ -847,6 +851,8 @@ function localMediaAndTtsPlugin() {
                 return;
               }
             }
+          } catch {
+            // fallback to edge-tts worker below
           }
 
           const worker = ensureTtsWorker();

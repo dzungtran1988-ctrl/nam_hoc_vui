@@ -1877,15 +1877,15 @@ export function LifeSkillsActivity({
   const [cookingStep, setCookingStep] = useState<1 | 2 | 3>(1);
   const [selectedIngIds, setSelectedIngIds] = useState<string[]>([]);
   const [preppedIngIds, setPreppedIngIds] = useState<string[]>([]);
-  const [wrongIngId, setWrongIngId] = useState<string | null>(null);
+  const [wrongIngIds, setWrongIngIds] = useState<string[]>([]);
   const [dishCooked, setDishCooked] = useState(false);
 
   // Trạng thái Bé Tự Lập 2 Chặng
   const [habitStage, setHabitStage] = useState<1 | 2>(1);
   const [pickedToolIds, setPickedToolIds] = useState<string[]>([]);
-  const [wrongToolId, setWrongToolId] = useState<string | null>(null);
+  const [wrongToolIds, setWrongToolIds] = useState<string[]>([]);
   const [completedStepOrders, setCompletedStepOrders] = useState<number[]>([]);
-  const [wrongStepId, setWrongStepId] = useState<string | null>(null);
+  const [wrongStepIds, setWrongStepIds] = useState<string[]>([]);
 
   // Trạng thái Thường Thức & An Toàn (5 câu / lượt không trùng lặp)
   const [safetyDeck, setSafetyDeck] = useState<SafetyCommonSenseQuestion[]>(() =>
@@ -1898,8 +1898,8 @@ export function LifeSkillsActivity({
   );
   const [safetyIdx, setSafetyIdx] = useState(0);
   const [safetyAnswered, setSafetyAnswered] = useState(false);
-  const [wrongSafetyChoiceId, setWrongSafetyChoiceId] = useState<string | null>(
-    null,
+  const [wrongSafetyChoiceIds, setWrongSafetyChoiceIds] = useState<string[]>(
+    [],
   );
 
   const [attempts, setAttempts] = useState(1);
@@ -1946,7 +1946,7 @@ export function LifeSkillsActivity({
     setCookingStep(1);
     setSelectedIngIds([]);
     setPreppedIngIds([]);
-    setWrongIngId(null);
+    setWrongIngIds([]);
     setDishCooked(false);
     setAttempts(1);
     setShuffleSeed((s) => s + 1);
@@ -1955,9 +1955,9 @@ export function LifeSkillsActivity({
   const resetHabitState = () => {
     setHabitStage(1);
     setPickedToolIds([]);
-    setWrongToolId(null);
+    setWrongToolIds([]);
     setCompletedStepOrders([]);
-    setWrongStepId(null);
+    setWrongStepIds([]);
     setAttempts(1);
     setShuffleSeed((s) => s + 1);
   };
@@ -1982,7 +1982,7 @@ export function LifeSkillsActivity({
     setSafetyDeck(finalDeck);
     setSafetyIdx(0);
     setSafetyAnswered(false);
-    setWrongSafetyChoiceId(null);
+    setWrongSafetyChoiceIds([]);
     setAttempts(1);
     setShuffleSeed((s) => s + 1);
     setMode("safety");
@@ -2009,12 +2009,13 @@ export function LifeSkillsActivity({
   };
 
   const handleSelectSafetyChoice = (choice: SafetyChoice) => {
-    if (safetyAnswered) return;
+    if (safetyAnswered || wrongSafetyChoiceIds.includes(choice.id)) return;
     if (!choice.isCorrect) {
       setAttempts((a) => a + 1);
-      setWrongSafetyChoiceId(choice.id);
+      setWrongSafetyChoiceIds((prev) =>
+        prev.includes(choice.id) ? prev : [...prev, choice.id],
+      );
       playWrongBuzzSound();
-      window.setTimeout(() => setWrongSafetyChoiceId(null), 650);
       return;
     }
     playCorrectDingSound();
@@ -2031,7 +2032,7 @@ export function LifeSkillsActivity({
       const nextIdx = safetyIdx + 1;
       setSafetyIdx(nextIdx);
       setSafetyAnswered(false);
-      setWrongSafetyChoiceId(null);
+      setWrongSafetyChoiceIds([]);
       setShuffleSeed((s) => s + 1);
       if (safetyDeck[nextIdx]) {
         speech.speak(safetyDeck[nextIdx].question, "vi-VN");
@@ -2067,13 +2068,12 @@ export function LifeSkillsActivity({
   // HANDLERS: ĐẦU BẾP NHÍ (CHỈ DÙNG TIẾNG "TINH!" / "TÈNG!" 0ms)
   // ==========================================================================
   const handleSelectIngredient = (ing: IngredientOption) => {
-    if (dishCooked) return;
+    if (dishCooked || wrongIngIds.includes(ing.id)) return;
 
     if (!ing.isCorrect) {
       setAttempts((a) => a + 1);
-      setWrongIngId(ing.id);
+      setWrongIngIds((prev) => (prev.includes(ing.id) ? prev : [...prev, ing.id]));
       playWrongBuzzSound();
-      window.setTimeout(() => setWrongIngId(null), 650);
       return;
     }
 
@@ -2121,11 +2121,13 @@ export function LifeSkillsActivity({
   // HANDLERS: BÉ TỰ LẬP (CHỈ DÙNG TIẾNG "TINH!" / "TÈNG!" 0ms)
   // ==========================================================================
   const handleSelectHabitTool = (tool: HabitPrepTool) => {
+    if (wrongToolIds.includes(tool.id)) return;
     if (!tool.isCorrect) {
       setAttempts((a) => a + 1);
-      setWrongToolId(tool.id);
+      setWrongToolIds((prev) =>
+        prev.includes(tool.id) ? prev : [...prev, tool.id],
+      );
       playWrongBuzzSound();
-      window.setTimeout(() => setWrongToolId(null), 650);
       return;
     }
 
@@ -2144,13 +2146,19 @@ export function LifeSkillsActivity({
   };
 
   const handleSelectHabitSequenceStep = (step: HabitSequenceStep) => {
-    if (completedStepOrders.includes(step.order)) return;
+    if (
+      completedStepOrders.includes(step.order) ||
+      wrongStepIds.includes(step.id)
+    ) {
+      return;
+    }
 
     const expectedOrder = completedStepOrders.length + 1;
     if (step.order === expectedOrder) {
       playCorrectDingSound();
       const next = [...completedStepOrders, step.order];
       setCompletedStepOrders(next);
+      setWrongStepIds([]);
 
       if (next.length === 3) {
         playRewardTone();
@@ -2161,9 +2169,10 @@ export function LifeSkillsActivity({
       }
     } else {
       setAttempts((a) => a + 1);
-      setWrongStepId(step.id);
+      setWrongStepIds((prev) =>
+        prev.includes(step.id) ? prev : [...prev, step.id],
+      );
       playWrongBuzzSound();
-      window.setTimeout(() => setWrongStepId(null), 650);
     }
   };
 
@@ -2616,14 +2625,25 @@ export function LifeSkillsActivity({
               <div className="cooking-ingredients-grid fullboard-5-cols">
                 {shuffledIngredients.map((ing) => {
                   const isPicked = selectedIngIds.includes(ing.id);
-                  const isWrong = wrongIngId === ing.id;
+                  const isWrong = wrongIngIds.includes(ing.id);
+                  const isDimmedOther =
+                    selectedIngIds.length === 3 && !isPicked;
                   return (
                     <button
                       key={ing.id}
                       type="button"
+                      disabled={
+                        isPicked || isWrong || selectedIngIds.length === 3
+                      }
                       className={`ingredient-card-btn ${
-                        isPicked ? "picked" : ""
-                      } ${isWrong ? "wrong-shake" : ""}`}
+                        isPicked
+                          ? "picked kawaii-answer-correct"
+                          : isWrong
+                            ? "kawaii-answer-eliminated"
+                            : isDimmedOther
+                              ? "kawaii-answer-dimmed-others"
+                              : ""
+                      }`}
                       onClick={() => handleSelectIngredient(ing)}
                     >
                       <div className="ing-visual-wrap">
@@ -2734,14 +2754,25 @@ export function LifeSkillsActivity({
               <div className="cooking-ingredients-grid fullboard-5-cols">
                 {shuffledHabitTools.map((tool) => {
                   const isPicked = pickedToolIds.includes(tool.id);
-                  const isWrong = wrongToolId === tool.id;
+                  const isWrong = wrongToolIds.includes(tool.id);
+                  const isDimmedOther =
+                    pickedToolIds.length === 3 && !isPicked;
                   return (
                     <button
                       key={tool.id}
                       type="button"
+                      disabled={
+                        isPicked || isWrong || pickedToolIds.length === 3
+                      }
                       className={`ingredient-card-btn ${
-                        isPicked ? "picked" : ""
-                      } ${isWrong ? "wrong-shake" : ""}`}
+                        isPicked
+                          ? "picked kawaii-answer-correct"
+                          : isWrong
+                            ? "kawaii-answer-eliminated"
+                            : isDimmedOther
+                              ? "kawaii-answer-dimmed-others"
+                              : ""
+                      }`}
                       onClick={() => handleSelectHabitTool(tool)}
                     >
                       <div className="ing-visual-wrap">
@@ -2807,15 +2838,19 @@ export function LifeSkillsActivity({
                 <div className="habit-shuffled-cards-grid">
                   {shuffledHabitSteps.map((step) => {
                     const isPlaced = completedStepOrders.includes(step.order);
-                    const isWrong = wrongStepId === step.id;
+                    const isWrong = wrongStepIds.includes(step.id);
                     return (
                       <button
                         key={step.id}
                         type="button"
-                        disabled={isPlaced}
+                        disabled={isPlaced || isWrong}
                         className={`habit-shuffled-card-btn ${
-                          isPlaced ? "placed-done" : ""
-                        } ${isWrong ? "wrong-shake" : ""}`}
+                          isPlaced
+                            ? "placed-done kawaii-answer-correct"
+                            : isWrong
+                              ? "kawaii-answer-eliminated"
+                              : ""
+                        }`}
                         onClick={() => handleSelectHabitSequenceStep(step)}
                       >
                         <div className="habit-card-img-wrap">
@@ -2925,14 +2960,22 @@ export function LifeSkillsActivity({
             >
               {shuffledSafetyChoices.map((ch) => {
                 const isSelectedCorrect = safetyAnswered && ch.isCorrect;
-                const isWrong = wrongSafetyChoiceId === ch.id;
+                const isWrong = wrongSafetyChoiceIds.includes(ch.id);
+                const isDimmedOther = safetyAnswered && !ch.isCorrect;
                 return (
                   <button
                     key={ch.id}
                     type="button"
+                    disabled={safetyAnswered || isWrong}
                     className={`habit-shuffled-card-btn ${
-                      isSelectedCorrect ? "placed-done" : ""
-                    } ${isWrong ? "wrong-shake" : ""}`}
+                      isSelectedCorrect
+                        ? "placed-done kawaii-answer-correct"
+                        : isWrong
+                          ? "kawaii-answer-eliminated"
+                          : isDimmedOther
+                            ? "kawaii-answer-dimmed-others"
+                            : ""
+                    }`}
                     style={{
                       display: "flex",
                       flexDirection: "column",
@@ -2945,7 +2988,8 @@ export function LifeSkillsActivity({
                         ? "4px solid #16A34A"
                         : "3px solid #CBD5E1",
                       background: isSelectedCorrect ? "#DCFCE7" : "#FFFFFF",
-                      cursor: safetyAnswered ? "default" : "pointer",
+                      cursor:
+                        safetyAnswered || isWrong ? "default" : "pointer",
                     }}
                     onClick={() => handleSelectSafetyChoice(ch)}
                   >

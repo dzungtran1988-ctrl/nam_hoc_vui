@@ -302,8 +302,11 @@ export function BandStageView({
     }
     try {
       window.speechSynthesis.cancel();
+      const viVoice = window.speechSynthesis.getVoices().find((v) => v.lang.toLowerCase().startsWith("vi"));
+      if (!viVoice) return;
       const utter = new SpeechSynthesisUtterance(text);
-      utter.lang = "vi-VN";
+      utter.voice = viVoice;
+      utter.lang = viVoice.lang;
       utter.volume = 0.55;
       utter.rate = 0.78;
       utter.pitch = 1.32;

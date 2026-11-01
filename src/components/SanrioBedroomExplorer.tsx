@@ -328,7 +328,7 @@ export function SanrioBedroomExplorer({
   const [activeHotspotId, setActiveHotspotId] = useState<string | null>(null);
   const [activeQuestion, setActiveQuestion] = useState<BedroomQuestionItem | null>(null);
   const [selectedOptionId, setSelectedOptionId] = useState<string | null>(null);
-  const [wrongShakeId, setWrongShakeId] = useState<string | null>(null);
+  const [wrongOptionIds, setWrongOptionIds] = useState<string[]>([]);
   const [mapModalOpen, setMapModalOpen] = useState<boolean>(false);
 
   // Tiến độ 5 ngôi sao / viên kẹo mỗi phòng
@@ -370,6 +370,7 @@ export function SanrioBedroomExplorer({
     setActiveHotspotId(null);
     setActiveQuestion(null);
     setSelectedOptionId(null);
+    setWrongOptionIds([]);
     setMapModalOpen(false);
     setUnlockedSticker(null);
     setUnlockedHalloweenBundle(null);
@@ -408,7 +409,7 @@ export function SanrioBedroomExplorer({
     setActiveHotspotId(hotspot.id);
     setActiveQuestion(generated);
     setSelectedOptionId(generated.skill === "poem" ? "poem-read-done" : null);
-    setWrongShakeId(null);
+    setWrongOptionIds([]);
     setStage("question");
 
     if (generated.skill === "poem" && generated.poemVisual) {
@@ -438,7 +439,7 @@ export function SanrioBedroomExplorer({
     setSelectedOptionId(
       freshQuestion.skill === "poem" ? "poem-read-done" : null,
     );
-    setWrongShakeId(null);
+    setWrongOptionIds([]);
 
     if (freshQuestion.skill === "poem" && freshQuestion.poemVisual) {
       speech.speak(
@@ -454,9 +455,9 @@ export function SanrioBedroomExplorer({
    * Khi bé chạm chọn 1 ô đáp án
    */
   const handleSelectOption = (option: BedroomOptionCard) => {
+    if (wrongOptionIds.includes(option.id)) return;
     if (soundEnabled) playCardPlaceSound();
     setSelectedOptionId(option.id);
-    setWrongShakeId(null);
 
     speech.speak(
       option.ttsText || option.label,
@@ -493,7 +494,10 @@ export function SanrioBedroomExplorer({
       onReaction?.("happy", activeQuestion.praiseTitle);
     } else {
       if (soundEnabled) playWrongBuzzSound();
-      setWrongShakeId(selectedOptionId);
+      setWrongOptionIds((prev) =>
+        prev.includes(selectedOptionId) ? prev : [...prev, selectedOptionId],
+      );
+      setSelectedOptionId(null);
       speech.speak("Chưa đúng rồi, Nấm thử chọn đáp án khác nhé!", "vi-VN");
       onReaction?.("sad", "Nấm thử chọn lại nhé!");
     }
@@ -1127,15 +1131,16 @@ export function SanrioBedroomExplorer({
                   >
                     {activeQuestion.options.map((opt) => {
                       const isSelected = selectedOptionId === opt.id;
-                      const isWrongShake = wrongShakeId === opt.id;
+                      const isEliminated = wrongOptionIds.includes(opt.id);
 
                       return (
                         <button
                           key={opt.id}
                           type="button"
+                          disabled={isEliminated}
                           className={`porcelain-option-tile visual-${opt.visualStyle} ${
                             isSelected ? "is-selected" : ""
-                          } ${isWrongShake ? "is-wrong-shake" : ""}`}
+                          } ${isEliminated ? "kawaii-answer-eliminated" : ""}`}
                           onClick={() => handleSelectOption(opt)}
                         >
                           {opt.visualStyle === "book" ? (

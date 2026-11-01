@@ -1,4 +1,5 @@
 import React, { useEffect, useRef, useState, useCallback, useMemo } from 'react';
+import { useSpeech } from '../hooks/useSpeech';
 
 interface EarthDefenderSpaceGameProps {
   soundEnabled?: boolean;
@@ -598,21 +599,14 @@ export const EarthDefenderSpaceGame: React.FC<EarthDefenderSpaceGameProps> = ({
     return audioCtxRef.current;
   }, [soundOn]);
 
+  const { speak: speakNeural, stop: stopNeuralSpeech, speaking: isSpeakingQuiz } = useSpeech(soundOn);
+
   const speakVi = useCallback(
     (text: string) => {
-      if (!soundOn || !('speechSynthesis' in window)) return;
-      try {
-        window.speechSynthesis.cancel();
-        const u = new SpeechSynthesisUtterance(text);
-        u.lang = 'vi-VN';
-        u.rate = 1.04;
-        u.pitch = 1.1;
-        window.speechSynthesis.speak(u);
-      } catch {
-        // ignore
-      }
+      if (!soundOn) return;
+      speakNeural(text, 'vi-VN');
     },
-    [soundOn]
+    [soundOn, speakNeural]
   );
 
   const playLaserSfx = useCallback(
@@ -852,9 +846,9 @@ export const EarthDefenderSpaceGame: React.FC<EarthDefenderSpaceGameProps> = ({
       setQuizFeedback(promptMap[reason]);
       setActiveQuiz({ ...raw, shuffledOptions });
       syncHud();
-      speakVi(raw.question);
+      stopNeuralSpeech();
     },
-    [clearPendingQuizTimer, speakVi, syncHud]
+    [clearPendingQuizTimer, stopNeuralSpeech, syncHud]
   );
 
   const startBossDyingSequence = useCallback(() => {
@@ -890,6 +884,7 @@ export const EarthDefenderSpaceGame: React.FC<EarthDefenderSpaceGameProps> = ({
 
   const handleSelectQuizOption = (opt: { text: string; isCorrect: boolean }, idx: number) => {
     if (quizSelectedIdx !== null || !activeQuiz) return;
+    stopNeuralSpeech();
     setQuizSelectedIdx(idx);
     const s = stateRef.current;
 
@@ -2731,11 +2726,20 @@ export const EarthDefenderSpaceGame: React.FC<EarthDefenderSpaceGameProps> = ({
                 </span>
                 <button
                   type="button"
-                  onClick={() => speakVi(activeQuiz.question)}
+                  onClick={() => {
+                    if (isSpeakingQuiz) {
+                      stopNeuralSpeech();
+                    } else {
+                      speakVi(activeQuiz.question);
+                    }
+                  }}
                   className="sd-btn"
-                  style={{ background: '#FDE047', color: '#0F172A' }}
+                  style={{
+                    background: isSpeakingQuiz ? '#38BDF8' : '#FDE047',
+                    color: '#0F172A',
+                  }}
                 >
-                  🔊 Nghe câu hỏi
+                  {isSpeakingQuiz ? '🔊 Đang đọc... (Dừng)' : '🔊 Nghe câu hỏi'}
                 </button>
               </div>
 

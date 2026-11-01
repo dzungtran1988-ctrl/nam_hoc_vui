@@ -83,6 +83,7 @@ export function MathActivity({
   const [selectedBakeryNumberB, setSelectedBakeryNumberB] = useState<
     number | null
   >(null);
+  const [wrongBakeryNumbers, setWrongBakeryNumbers] = useState<number[]>([]);
   const [activeMissingSlot, setActiveMissingSlot] = useState<"A" | "B">("A");
   const [countedItemIndices, setCountedItemIndices] = useState<number[]>([]);
 
@@ -97,6 +98,9 @@ export function MathActivity({
     pizzaRounds[roundIdx % pizzaRounds.length] || pizzaRounds[0];
   const [selectedComparisonSign, setSelectedComparisonSign] =
     useState<ComparisonSign | null>(null);
+  const [wrongComparisonSigns, setWrongComparisonSigns] = useState<
+    ComparisonSign[]
+  >([]);
   const [rightPlateCount, setRightPlateCount] = useState<number>(
     currentPizzaRound.initialRightCount,
   );
@@ -108,7 +112,7 @@ export function MathActivity({
   const [tableBase, setTableBase] = useState<number>(2);
   const [selectedRowIdx, setSelectedRowIdx] = useState<number>(1);
   const [solvedTableRows, setSolvedTableRows] = useState<number[]>([]);
-  const [wrongGuessChoice, setWrongGuessChoice] = useState<number | null>(null);
+  const [wrongGuessChoices, setWrongGuessChoices] = useState<number[]>([]);
   const hiddenRowIndices = useMemo(
     () => generateHiddenTableIndices(level, seedOffset),
     [level, seedOffset, tableOp, tableBase],
@@ -185,6 +189,7 @@ export function MathActivity({
       setTrayCountB(ord.initialCountB || 0);
       setSelectedBakeryNumber(null);
       setSelectedBakeryNumberB(null);
+      setWrongBakeryNumbers([]);
       setActiveMissingSlot("A");
       setCountedItemIndices([]);
       if (soundEnabled && ord) {
@@ -203,6 +208,7 @@ export function MathActivity({
     } else if (activeGameId === "pizza-party") {
       const pRound = pizzaRounds[roundIdx % pizzaRounds.length] || pizzaRounds[0];
       setSelectedComparisonSign(null);
+      setWrongComparisonSigns([]);
       setRightPlateCount(pRound.initialRightCount);
       if (soundEnabled && pRound?.prompt) {
         void rawPrefetch(formatMathForSpeech(pRound.prompt), "vi-VN");
@@ -210,7 +216,7 @@ export function MathActivity({
     } else if (activeGameId === "arithmetic-tables") {
       setSolvedTableRows([]);
       setSelectedRowIdx(hiddenRowIndices[0] || 1);
-      setWrongGuessChoice(null);
+      setWrongGuessChoices([]);
       if (soundEnabled) {
         const rows = buildArithmeticTable(tableOp, tableBase);
         for (const r of rows.slice(0, 4)) {
@@ -289,9 +295,11 @@ export function MathActivity({
   // ===========================================================================
   const handleSelectBakeryNumber = (num: number) => {
     if (feedbackState === "correct") return;
-    setFeedbackState("idle");
-
     const ord = currentBakeryOrder;
+    if (ord.mode !== "dual" && wrongBakeryNumbers.includes(num)) {
+      return;
+    }
+    setFeedbackState("idle");
 
     // Cấp 1: x + y = ?  hoặc  x − y = ? -> Chạm 1 phát chấm điểm luôn!
     if (ord.mode === "single") {
@@ -313,6 +321,9 @@ export function MathActivity({
         onReaction?.("happy", formulaSummary);
       } else {
         setFeedbackState("wrong");
+        setWrongBakeryNumbers((prev) =>
+          prev.includes(num) ? prev : [...prev, num],
+        );
         setHintsUsedCount((h) => h + 1);
         const hintMsg =
           opSymbol === "+"
@@ -352,6 +363,9 @@ export function MathActivity({
         onReaction?.("happy", formulaSummary);
       } else {
         setFeedbackState("wrong");
+        setWrongBakeryNumbers((prev) =>
+          prev.includes(num) ? prev : [...prev, num],
+        );
         setHintsUsedCount((h) => h + 1);
         const hintMsg =
           ord.operator === "+"
@@ -607,7 +621,9 @@ export function MathActivity({
 
   // Chọn dấu <, =, > ở Cấp 1 & Cấp 3 -> Chạm 1 phát chấm điểm luôn!
   const handleSelectComparisonSign = (sign: ComparisonSign) => {
-    if (feedbackState === "correct") return;
+    if (feedbackState === "correct" || wrongComparisonSigns.includes(sign)) {
+      return;
+    }
     setSelectedComparisonSign(sign);
     setAttemptsCount((c) => c + 1);
 
@@ -629,6 +645,9 @@ export function MathActivity({
       onReaction?.("happy", msg);
     } else {
       setFeedbackState("wrong");
+      setWrongComparisonSigns((prev) =>
+        prev.includes(sign) ? prev : [...prev, sign],
+      );
       setHintsUsedCount((h) => h + 1);
       const expectedWord = signToVietnameseWord(pRound.expectedSign);
       const hint = pRound.leftExprParts
@@ -746,9 +765,10 @@ export function MathActivity({
   })();
 
   const handleAnswerTableMystery = (choice: number) => {
+    if (wrongGuessChoices.includes(choice)) return;
     setAttemptsCount((c) => c + 1);
     if (choice === activeTableRow.answer) {
-      setWrongGuessChoice(null);
+      setWrongGuessChoices([]);
       const nextSolved = solvedTableRows.includes(activeTableRow.index)
         ? solvedTableRows
         : [...solvedTableRows, activeTableRow.index];
@@ -768,6 +788,7 @@ export function MathActivity({
       if (nextHidden) {
         window.setTimeout(() => {
           setSelectedRowIdx(nextHidden);
+          setWrongGuessChoices([]);
         }, 700);
       } else {
         setFeedbackState("correct");
@@ -776,7 +797,9 @@ export function MathActivity({
         );
       }
     } else {
-      setWrongGuessChoice(choice);
+      setWrongGuessChoices((prev) =>
+        prev.includes(choice) ? prev : [...prev, choice],
+      );
       setHintsUsedCount((h) => h + 1);
       if (soundEnabled) {
         playAttentionChime();
@@ -1472,15 +1495,34 @@ export function MathActivity({
                             (activeMissingSlot === "B" &&
                               selectedBakeryNumberB === num)
                           : selectedBakeryNumber === num;
+                      const isEliminated =
+                        currentBakeryOrder.mode !== "dual" &&
+                        wrongBakeryNumbers.includes(num);
+                      const isCorrectNum =
+                        feedbackState === "correct" &&
+                        (currentBakeryOrder.mode === "dual"
+                          ? selectedBakeryNumber === num ||
+                            selectedBakeryNumberB === num
+                          : isSelected);
+                      const isDimmedOther =
+                        feedbackState === "correct" && !isCorrectNum;
                       return (
                         <button
                           key={`num-choice-${num}`}
                           type="button"
                           className={`numbered-pastry-choice-btn pure-number-btn ${
                             isSelected ? "selected" : ""
+                          } ${
+                            isCorrectNum
+                              ? "kawaii-answer-correct"
+                              : isEliminated
+                                ? "kawaii-answer-eliminated"
+                                : isDimmedOther
+                                  ? "kawaii-answer-dimmed-others"
+                                  : ""
                           }`}
                           onClick={() => handleSelectBakeryNumber(num)}
-                          disabled={feedbackState === "correct"}
+                          disabled={feedbackState === "correct" || isEliminated}
                         >
                           <span className="pure-number-digit">{num}</span>
                         </button>
@@ -1824,12 +1866,28 @@ export function MathActivity({
                       ]
                     ).map((opt) => {
                       const isSel = selectedComparisonSign === opt.sign;
+                      const isEliminated = wrongComparisonSigns.includes(
+                        opt.sign,
+                      );
+                      const isCorrectSign =
+                        feedbackState === "correct" &&
+                        opt.sign === currentPizzaRound.expectedSign;
+                      const isDimmedOther =
+                        feedbackState === "correct" && !isCorrectSign;
                       return (
                         <button
                           key={opt.sign}
                           type="button"
                           className={`numbered-pastry-choice-btn ${
                             isSel ? "selected" : ""
+                          } ${
+                            isCorrectSign
+                              ? "kawaii-answer-correct"
+                              : isEliminated
+                                ? "kawaii-answer-eliminated"
+                                : isDimmedOther
+                                  ? "kawaii-answer-dimmed-others"
+                                  : ""
                           }`}
                           style={{
                             padding: "8px 12px",
@@ -1837,7 +1895,9 @@ export function MathActivity({
                             flexDirection: "column",
                             gap: "2px",
                           }}
-                          disabled={feedbackState === "correct"}
+                          disabled={
+                            feedbackState === "correct" || isEliminated
+                          }
                           onClick={() => handleSelectComparisonSign(opt.sign)}
                         >
                           <strong
@@ -1955,7 +2015,7 @@ export function MathActivity({
                         }}
                         onClick={() => {
                           setSelectedRowIdx(row.index);
-                          setWrongGuessChoice(null);
+                          setWrongGuessChoices([]);
                           if (soundEnabled) {
                             speak(
                               isHidden ? row.spokenQuestion : row.spokenFull,
@@ -2014,23 +2074,27 @@ export function MathActivity({
                         Nấm chạm chọn Hộp Quà có kết quả đúng nhé:
                       </div>
                       <div className="mystery-choices-row">
-                        {tableQuizChoices.map((ch) => (
-                          <button
-                            key={ch}
-                            type="button"
-                            className={`mystery-gift-choice-card ${
-                              wrongGuessChoice === ch ? "wrong" : ""
-                            }`}
-                            onClick={() => handleAnswerTableMystery(ch)}
-                          >
-                            <img
-                              src={KAWAII_ITEM_IMAGES.mysteryGift}
-                              alt=""
-                              className="mystery-choice-gift-img"
-                            />
-                            <span className="mystery-choice-num">{ch}</span>
-                          </button>
-                        ))}
+                        {tableQuizChoices.map((ch) => {
+                          const isEliminated = wrongGuessChoices.includes(ch);
+                          return (
+                            <button
+                              key={ch}
+                              type="button"
+                              disabled={isEliminated}
+                              className={`mystery-gift-choice-card ${
+                                isEliminated ? "kawaii-answer-eliminated" : ""
+                              }`}
+                              onClick={() => handleAnswerTableMystery(ch)}
+                            >
+                              <img
+                                src={KAWAII_ITEM_IMAGES.mysteryGift}
+                                alt=""
+                                className="mystery-choice-gift-img"
+                              />
+                              <span className="mystery-choice-num">{ch}</span>
+                            </button>
+                          );
+                        })}
                       </div>
                     </div>
                   ) : null}
@@ -2277,6 +2341,7 @@ export function MathActivity({
                       setTrayCountB(currentBakeryOrder.initialCountB || 0);
                       setSelectedBakeryNumber(null);
                       setSelectedBakeryNumberB(null);
+                      setWrongBakeryNumbers([]);
                       setActiveMissingSlot("A");
                       setFeedbackState("idle");
                       setFeedbackMessage("");

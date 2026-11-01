@@ -22,6 +22,23 @@ export function cleanSpeechText(text: string): string {
     .trim();
 }
 
+export function normalizeDynamicSpeechText(text: string, lang = "vi-VN"): string {
+  const cleaned = cleanSpeechText(text);
+  if (!cleaned) return "";
+  if (lang.toLowerCase().startsWith("en")) return cleaned;
+  return cleaned
+    .replace(/\[\s*\?\s*\]|\(\s*\?\s*\)|_{2,}|\.{3,}/g, " ô trống ")
+    .replace(/(\d)\s*\+\s*(\d)/g, "$1 cộng $2")
+    .replace(/(\d)\s*-\s*(\d)/g, "$1 trừ $2")
+    .replace(/(\d)\s*[x×*]\s*(\d)/gi, "$1 nhân $2")
+    .replace(/(\d)\s*[:÷/]\s*(\d)/g, "$1 chia $2")
+    .replace(/=\s*\?/g, " bằng mấy ")
+    .replace(/=/g, " bằng ")
+    .replace(/\bvs\b/gi, " và ")
+    .replace(/\s+/g, " ")
+    .trim();
+}
+
 /**
  * Pure TypeScript UTF-8 MD5 implementation (khớp 100% với Node crypto & Python hashlib.md5)
  * để tra cứu trực tiếp file tĩnh /tts-cache/<md5>.mp3 trên cả Vercel CDN và Local.
@@ -117,7 +134,8 @@ export function buildTtsUrl(cleanedText: string, lang = "vi-VN"): string {
 }
 
 export function buildDynamicTtsApiUrl(cleanedText: string, lang = "vi-VN"): string {
-  return `/api/tts?lang=${encodeURIComponent(lang)}&text=${encodeURIComponent(cleanedText)}`;
+  const dynamicText = normalizeDynamicSpeechText(cleanedText, lang) || cleanedText;
+  return `/api/tts?lang=${encodeURIComponent(lang)}&text=${encodeURIComponent(dynamicText)}`;
 }
 
 function setRamCachedUrl(ttsUrl: string, objectUrl: string) {
@@ -349,13 +367,14 @@ export function useSpeech(soundEnabled: boolean, hookOptions?: UseSpeechOptions)
 
         let triedDynamicFallback = false;
         let triedDirectNorthFallback = false;
+        const normalizedFallbackText = normalizeDynamicSpeechText(cleaned, lang) || cleaned;
         audio.onerror = () => {
           if (audioRef.current !== audio) return;
           if (!triedDynamicFallback && !isBlobUrl) {
             triedDynamicFallback = true;
             audio.src = buildDynamicTtsApiUrl(cleaned, lang);
-            audio.play().catch(() => {
-              if (audioRef.current === audio) {
+            audio.play().catch((err) => {
+              if (err?.name === "NotAllowedError" && audioRef.current === audio) {
                 cancelRaf();
                 setSpeaking(false);
                 options?.onEnd?.();
@@ -368,9 +387,9 @@ export function useSpeech(soundEnabled: boolean, hookOptions?: UseSpeechOptions)
             audio.setAttribute("referrerpolicy", "no-referrer");
             audio.src =
               "https://translate.google.com/translate_tts?ie=UTF-8&tl=vi&client=tw-ob&q=" +
-              encodeURIComponent(cleaned);
-            audio.play().catch(() => {
-              if (audioRef.current === audio) {
+              encodeURIComponent(normalizedFallbackText);
+            audio.play().catch((err) => {
+              if (err?.name === "NotAllowedError" && audioRef.current === audio) {
                 cancelRaf();
                 setSpeaking(false);
                 options?.onEnd?.();
@@ -388,7 +407,7 @@ export function useSpeech(soundEnabled: boolean, hookOptions?: UseSpeechOptions)
               v.lang.toLowerCase().startsWith(prefix),
             );
             if (matchedVoice) {
-              const utt = new SpeechSynthesisUtterance(cleaned);
+              const utt = new SpeechSynthesisUtterance(normalizedFallbackText);
               utt.voice = matchedVoice;
               utt.lang = matchedVoice.lang;
               utt.rate = 0.85;
@@ -400,8 +419,9 @@ export function useSpeech(soundEnabled: boolean, hookOptions?: UseSpeechOptions)
           options?.onEnd?.();
         };
 
-        audio.play().catch(() => {
-          if (audioRef.current === audio) {
+        audio.play().catch((err) => {
+          // Chỉ hủy khi bị chặn Autoplay (NotAllowedError); các lỗi 404/NotSupportedError đã có audio.onerror xử lý fallback
+          if (err?.name === "NotAllowedError" && audioRef.current === audio) {
             cancelRaf();
             setSpeaking(false);
             options?.onEnd?.();

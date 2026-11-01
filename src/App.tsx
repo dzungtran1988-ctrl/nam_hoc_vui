@@ -1,4 +1,4 @@
-import { Suspense, lazy, useEffect, useRef, useState } from "react";
+import { Suspense, useEffect, useRef, useState } from "react";
 import {
   BookOpen,
   Clock,
@@ -77,56 +77,16 @@ import {
   type LocalVideoItem,
 } from "./components/screens/VideoTheaterModal";
 
-const ReadingActivity = lazy(() =>
-  import("./components/ReadingActivity").then((m) => ({
-    default: m.ReadingActivity,
-  })),
-);
-const MathActivity = lazy(() =>
-  import("./components/MathActivity").then((m) => ({
-    default: m.MathActivity,
-  })),
-);
-const MusicActivity = lazy(() =>
-  import("./components/MusicActivity").then((m) => ({
-    default: m.MusicActivity,
-  })),
-);
-const EnglishActivity = lazy(() =>
-  import("./components/EnglishActivity").then((m) => ({
-    default: m.EnglishActivity,
-  })),
-);
-const StorybookActivity = lazy(() =>
-  import("./components/StorybookActivity").then((m) => ({
-    default: m.StorybookActivity,
-  })),
-);
-const ColoringActivity = lazy(() =>
-  import("./components/ColoringActivity").then((m) => ({
-    default: m.ColoringActivity,
-  })),
-);
-const PochaccoActivity = lazy(() =>
-  import("./components/PochaccoActivity").then((m) => ({
-    default: m.PochaccoActivity,
-  })),
-);
-const LifeSkillsActivity = lazy(() =>
-  import("./components/LifeSkillsActivity").then((m) => ({
-    default: m.LifeSkillsActivity,
-  })),
-);
-const StickerBookScreen = lazy(() =>
-  import("./components/StickerBookScreen").then((m) => ({
-    default: m.StickerBookScreen,
-  })),
-);
-const ParentPanel = lazy(() =>
-  import("./components/ParentPanel").then((m) => ({
-    default: m.ParentPanel,
-  })),
-);
+import { ReadingActivity } from "./components/ReadingActivity";
+import { MathActivity } from "./components/MathActivity";
+import { MusicActivity } from "./components/MusicActivity";
+import { EnglishActivity } from "./components/EnglishActivity";
+import { StorybookActivity } from "./components/StorybookActivity";
+import { ColoringActivity } from "./components/ColoringActivity";
+import { PochaccoActivity } from "./components/PochaccoActivity";
+import { LifeSkillsActivity } from "./components/LifeSkillsActivity";
+import { StickerBookScreen } from "./components/StickerBookScreen";
+import { ParentPanel } from "./components/ParentPanel";
 
 const NAM_TAP_LINES = [
   "Hihi, nhột quá! Tớ là Nấm chăm học đây!",

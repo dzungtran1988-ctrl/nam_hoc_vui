@@ -2238,7 +2238,7 @@ export const WordBlendQuizModal: React.FC<WordBlendQuizModalProps> = ({
   const [stepIdx, setStepIdx] = useState(0);
   const [earnedStars, setEarnedStars] = useState(0);
   const [attempts, setAttempts] = useState(0);
-  const [wrongChoice, setWrongChoice] = useState<string | null>(null);
+  const [wrongChoices, setWrongChoices] = useState<string[]>([]);
   const [solvedCurrent, setSolvedCurrent] = useState(false);
   const [roundDone, setRoundDone] = useState(false);
 
@@ -2282,13 +2282,20 @@ export const WordBlendQuizModal: React.FC<WordBlendQuizModalProps> = ({
     setStepIdx(0);
     setEarnedStars(0);
     setAttempts(0);
-    setWrongChoice(null);
+    setWrongChoices([]);
     setSolvedCurrent(false);
     setRoundDone(false);
   };
 
   const handlePickChoice = (choice: string) => {
-    if (solvedCurrent || roundDone || !currentQuestion) return;
+    if (
+      solvedCurrent ||
+      roundDone ||
+      !currentQuestion ||
+      wrongChoices.includes(choice)
+    ) {
+      return;
+    }
 
     const expected =
       quizMode === "fill-rhyme"
@@ -2300,7 +2307,6 @@ export const WordBlendQuizModal: React.FC<WordBlendQuizModalProps> = ({
 
     if (choice.toLowerCase() === expected.toLowerCase()) {
       // ĐÚNG!
-      setWrongChoice(null);
       setSolvedCurrent(true);
       setEarnedStars((prev) => prev + 1);
       playCorrectDingSound();
@@ -2321,14 +2327,16 @@ export const WordBlendQuizModal: React.FC<WordBlendQuizModalProps> = ({
         if (stepIdx + 1 < questions.length) {
           setStepIdx((prev) => prev + 1);
           setSolvedCurrent(false);
-          setWrongChoice(null);
+          setWrongChoices([]);
         } else {
           setRoundDone(true);
         }
       }, 1550);
     } else {
-      // SAI!
-      setWrongChoice(choice);
+      // SAI -> Làm mờ xám 35% & khóa nút không cho chọn lại
+      setWrongChoices((prev) =>
+        prev.includes(choice) ? prev : [...prev, choice],
+      );
       playWrongBuzzSound();
       onReaction?.("sad", "Chưa đúng rồi, Nấm nhìn kỹ chữ rồi chọn lại nhé!");
     }
@@ -2379,7 +2387,7 @@ export const WordBlendQuizModal: React.FC<WordBlendQuizModalProps> = ({
             }`}
             style={{ padding: "4px 12px", fontSize: "0.8rem" }}
             onClick={() => {
-              setWrongChoice(null);
+              setWrongChoices([]);
               setQuizMode("fill-rhyme");
             }}
           >
@@ -2393,7 +2401,7 @@ export const WordBlendQuizModal: React.FC<WordBlendQuizModalProps> = ({
             }`}
             style={{ padding: "4px 12px", fontSize: "0.8rem" }}
             onClick={() => {
-              setWrongChoice(null);
+              setWrongChoices([]);
               setQuizMode("fill-onset");
             }}
           >
@@ -2750,12 +2758,23 @@ export const WordBlendQuizModal: React.FC<WordBlendQuizModalProps> = ({
               const isCorrectChoice =
                 solvedCurrent &&
                 choice.toLowerCase() === expected.toLowerCase();
-              const isWrongChoice = wrongChoice === choice;
+              const isWrongChoice = wrongChoices.includes(choice);
+              const isDimmedOther = solvedCurrent && !isCorrectChoice;
 
               return (
                 <button
                   key={choice}
                   type="button"
+                  disabled={isWrongChoice || solvedCurrent}
+                  className={
+                    isCorrectChoice
+                      ? "kawaii-answer-correct"
+                      : isWrongChoice
+                        ? "kawaii-answer-eliminated"
+                        : isDimmedOther
+                          ? "kawaii-answer-dimmed-others"
+                          : ""
+                  }
                   onClick={() => handlePickChoice(choice)}
                   style={{
                     display: "flex",
@@ -2766,24 +2785,19 @@ export const WordBlendQuizModal: React.FC<WordBlendQuizModalProps> = ({
                     borderRadius: "22px",
                     background: isCorrectChoice
                       ? "linear-gradient(180deg, #DCFCE7 0%, #BBF7D0 100%)"
-                      : isWrongChoice
-                        ? "linear-gradient(180deg, #FEE2E2 0%, #FECACA 100%)"
-                        : "#FFFFFF",
+                      : "#FFFFFF",
                     border: isCorrectChoice
                       ? "3.5px solid #22C55E"
-                      : isWrongChoice
-                        ? "3.5px solid #EF4444"
-                        : quizMode === "fill-rhyme"
-                          ? "3px solid #F472B6"
-                          : "3px solid #60A5FA",
+                      : quizMode === "fill-rhyme"
+                        ? "3px solid #F472B6"
+                        : "3px solid #60A5FA",
                     boxShadow: isCorrectChoice
                       ? "0 6px 0 #16A34A"
-                      : isWrongChoice
-                        ? "0 6px 0 #DC2626"
-                        : quizMode === "fill-rhyme"
-                          ? "0 6px 0 #DB2777"
-                          : "0 6px 0 #2563EB",
-                    cursor: "pointer",
+                      : quizMode === "fill-rhyme"
+                        ? "0 6px 0 #DB2777"
+                        : "0 6px 0 #2563EB",
+                    cursor:
+                      isWrongChoice || solvedCurrent ? "default" : "pointer",
                     fontFamily: "inherit",
                     transition: "transform 0.15s ease",
                   }}
@@ -2794,11 +2808,9 @@ export const WordBlendQuizModal: React.FC<WordBlendQuizModalProps> = ({
                       fontWeight: 900,
                       color: isCorrectChoice
                         ? "#15803D"
-                        : isWrongChoice
-                          ? "#B91C1C"
-                          : quizMode === "fill-rhyme"
-                            ? "#DB2777"
-                            : "#2563EB",
+                        : quizMode === "fill-rhyme"
+                          ? "#DB2777"
+                          : "#2563EB",
                       lineHeight: 1.1,
                     }}
                   >
@@ -2814,11 +2826,9 @@ export const WordBlendQuizModal: React.FC<WordBlendQuizModalProps> = ({
                   >
                     {isCorrectChoice
                       ? "🌟 Đúng rồi!"
-                      : isWrongChoice
-                        ? "Thử lại nhé!"
-                        : quizMode === "fill-rhyme"
-                          ? `${currentQuestion.onset} + ${choice}`
-                          : `${choice} + ${currentQuestion.rhymeWithTone}`}
+                      : quizMode === "fill-rhyme"
+                        ? `${currentQuestion.onset} + ${choice}`
+                        : `${choice} + ${currentQuestion.rhymeWithTone}`}
                   </span>
                 </button>
               );

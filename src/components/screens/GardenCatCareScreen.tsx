@@ -951,6 +951,8 @@ export function GardenCatCareScreen({
   const [quizModalOpen, setQuizModalOpen] = useState(false);
   const [quizIdx, setQuizIdx] = useState(0);
   const [quizFeedback, setQuizFeedback] = useState<string | null>(null);
+  const [wrongQuizLabels, setWrongQuizLabels] = useState<string[]>([]);
+  const [quizCorrectLabel, setQuizCorrectLabel] = useState<string | null>(null);
   const [stickerTradeModalAction, setStickerTradeModalAction] =
     useState<CareActionConfig | null>(null);
   const [vaultModalOpen, setVaultModalOpen] = useState(false);
@@ -1405,6 +1407,8 @@ export function GardenCatCareScreen({
       if (state.dailyQuizUsed < MAX_DAILY_QUIZZES) {
         setQuizModalOpen(true);
         setQuizFeedback(null);
+        setWrongQuizLabels([]);
+        setQuizCorrectLabel(null);
       } else {
         const msg =
           "Hôm nay Nấm đã giải hết 2 câu Đố Vui tại vườn rồi! Hãy ra Sảnh Chính học thêm bài mới để nhận 🌟 Sương Bài Học nhé!";
@@ -1438,7 +1442,13 @@ export function GardenCatCareScreen({
   }
 
   function handleAnswerMiniQuiz(option: { label: string; isCorrect: boolean }) {
+    if (quizCorrectLabel !== null || wrongQuizLabels.includes(option.label)) {
+      return;
+    }
     if (!option.isCorrect) {
+      setWrongQuizLabels((prev) =>
+        prev.includes(option.label) ? prev : [...prev, option.label],
+      );
       setQuizFeedback("Chưa đúng rồi, bé Nấm thử chọn đáp án khác nhé! 💪");
       if (soundEnabled) {
         playCharacterTapSound();
@@ -1447,6 +1457,7 @@ export function GardenCatCareScreen({
       return;
     }
 
+    setQuizCorrectLabel(option.label);
     const today = getTodayDateKey();
     if (soundEnabled) {
       playRewardTone();
@@ -1466,18 +1477,23 @@ export function GardenCatCareScreen({
       saveGardenCatState(next);
       return next;
     });
-    setQuizModalOpen(false);
-    setQuizFeedback(null);
-    setQuizIdx((i) => (i + 1) % MINI_QUIZ_BANK.length);
 
-    applyExpToActiveEntity(
-      20,
-      "/assets/garden-cat/icon_nam_mascot.webp",
-      "#69DB7C",
-      "#FFD43B",
-      false,
-      "🎓 Đố Vui +20 EXP & +3 Xu!",
-    );
+    window.setTimeout(() => {
+      setQuizModalOpen(false);
+      setQuizFeedback(null);
+      setWrongQuizLabels([]);
+      setQuizCorrectLabel(null);
+      setQuizIdx((i) => (i + 1) % MINI_QUIZ_BANK.length);
+
+      applyExpToActiveEntity(
+        20,
+        "/assets/garden-cat/icon_nam_mascot.webp",
+        "#69DB7C",
+        "#FFD43B",
+        false,
+        "🎓 Đố Vui +20 EXP & +3 Xu!",
+      );
+    }, 550);
   }
 
   function handleHarvestAllFruits() {
@@ -3653,26 +3669,45 @@ export function GardenCatCareScreen({
             )}
 
             <div style={{ display: "flex", flexDirection: "column", gap: "9px" }}>
-              {currentQuestion.options.map((opt, idx) => (
-                <button
-                  key={idx}
-                  type="button"
-                  onClick={() => handleAnswerMiniQuiz(opt)}
-                  style={{
-                    padding: "12px 16px",
-                    borderRadius: "16px",
-                    border: "2.5px solid #FCC419",
-                    background: "#FFFFFF",
-                    color: "#3B2045",
-                    fontWeight: 900,
-                    fontSize: "16px",
-                    cursor: "pointer",
-                    textAlign: "left",
-                  }}
-                >
-                  {opt.label}
-                </button>
-              ))}
+              {currentQuestion.options.map((opt, idx) => {
+                const isEliminated = wrongQuizLabels.includes(opt.label);
+                const isRightPicked = quizCorrectLabel === opt.label;
+                const isDimmedOther =
+                  quizCorrectLabel !== null && !isRightPicked;
+                return (
+                  <button
+                    key={idx}
+                    type="button"
+                    disabled={isEliminated || quizCorrectLabel !== null}
+                    className={
+                      isRightPicked
+                        ? "kawaii-answer-correct"
+                        : isEliminated
+                          ? "kawaii-answer-eliminated"
+                          : isDimmedOther
+                            ? "kawaii-answer-dimmed-others"
+                            : ""
+                    }
+                    onClick={() => handleAnswerMiniQuiz(opt)}
+                    style={{
+                      padding: "12px 16px",
+                      borderRadius: "16px",
+                      border: "2.5px solid #FCC419",
+                      background: "#FFFFFF",
+                      color: "#3B2045",
+                      fontWeight: 900,
+                      fontSize: "16px",
+                      cursor:
+                        isEliminated || quizCorrectLabel !== null
+                          ? "default"
+                          : "pointer",
+                      textAlign: "left",
+                    }}
+                  >
+                    {opt.label}
+                  </button>
+                );
+              })}
             </div>
           </div>
         </div>

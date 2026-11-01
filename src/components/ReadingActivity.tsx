@@ -81,7 +81,10 @@ export function ReadingActivity({
   const [quizTargetCard, setQuizTargetCard] = useState<PictureWordCard>(
     PICTURE_WORD_FLASHCARD_SETS[0].cards[0],
   );
-  const [flashcardQuizWrongId, setFlashcardQuizWrongId] = useState<
+  const [flashcardQuizWrongIds, setFlashcardQuizWrongIds] = useState<string[]>(
+    [],
+  );
+  const [flashcardQuizCorrectId, setFlashcardQuizCorrectId] = useState<
     string | null
   >(null);
 
@@ -110,6 +113,7 @@ export function ReadingActivity({
   const [selectedChoiceIdx, setSelectedChoiceIdx] = useState<number | null>(
     null,
   );
+  const [wrongChoiceIndices, setWrongChoiceIndices] = useState<number[]>([]);
   const [showEvidencePeek, setShowEvidencePeek] = useState(false);
   const [poemFeedback, setPoemFeedback] = useState<{
     type: "success" | "retry";
@@ -267,6 +271,7 @@ export function ReadingActivity({
     setQuestionIdx(qIndex);
     setShuffledChoices(shuffleArray(rawChoices, qIndex + 1));
     setSelectedChoiceIdx(null);
+    setWrongChoiceIndices([]);
     setShowEvidencePeek(false);
     setPoemFeedback(null);
     setPoemStage("question");
@@ -286,6 +291,7 @@ export function ReadingActivity({
     setPoemStage("reading");
     setQuestionIdx(0);
     setSelectedChoiceIdx(null);
+    setWrongChoiceIndices([]);
     setShowEvidencePeek(false);
     setPoemFeedback(null);
     setAttemptsCount(0);
@@ -386,7 +392,9 @@ export function ReadingActivity({
   };
 
   const handlePickQuizChoice = (choiceIdx: number) => {
-    if (poemStage === "correct") return;
+    if (poemStage === "correct" || wrongChoiceIndices.includes(choiceIdx)) {
+      return;
+    }
     const picked = shuffledChoices[choiceIdx];
     if (!picked) return;
 
@@ -414,6 +422,9 @@ export function ReadingActivity({
         speak(currentQuestion.feedback, "vi-VN");
       }
     } else {
+      setWrongChoiceIndices((prev) =>
+        prev.includes(choiceIdx) ? prev : [...prev, choiceIdx],
+      );
       setHintsUsedCount((h) => h + 1);
       setShowEvidencePeek(true);
       setPoemFeedback({
@@ -482,7 +493,8 @@ export function ReadingActivity({
     setActiveFlashcards(drawnCards);
     setRevealedCardIds([]);
     setFlashcardStage("cards");
-    setFlashcardQuizWrongId(null);
+    setFlashcardQuizWrongIds([]);
+    setFlashcardQuizCorrectId(null);
     const quizPool = shuffleArray(drawnCards).slice(0, 5);
     setFlashcardQuizQueue(quizPool);
     setFlashcardQuizStep(0);
@@ -506,7 +518,8 @@ export function ReadingActivity({
     setActiveFlashcards(newCards);
     setRevealedCardIds([]);
     setFlashcardStage("cards");
-    setFlashcardQuizWrongId(null);
+    setFlashcardQuizWrongIds([]);
+    setFlashcardQuizCorrectId(null);
     const quizPool = shuffleArray(newCards).slice(0, 5);
     setFlashcardQuizQueue(quizPool);
     setFlashcardQuizStep(0);
@@ -540,7 +553,8 @@ export function ReadingActivity({
     setFlashcardQuizQueue(quizQueue);
     setFlashcardQuizStep(0);
     setQuizTargetCard(firstTarget);
-    setFlashcardQuizWrongId(null);
+    setFlashcardQuizWrongIds([]);
+    setFlashcardQuizCorrectId(null);
     setFlashcardStage("quiz");
     if (soundEnabled) {
       speak(`Câu 1 trên 5: Chữ ${firstTarget.word} là hình nào nhỉ?`, "vi-VN", {
@@ -550,15 +564,19 @@ export function ReadingActivity({
   };
 
   const handlePickFlashcardQuiz = (card: PictureWordCard) => {
-    if (flashcardStage === "done") return;
+    if (
+      flashcardStage === "done" ||
+      flashcardQuizCorrectId !== null ||
+      flashcardQuizWrongIds.includes(card.id)
+    ) {
+      return;
+    }
     if (card.id === quizTargetCard.id) {
       playRewardTone();
-      setFlashcardQuizWrongId(null);
+      setFlashcardQuizCorrectId(card.id);
       const nextStep = flashcardQuizStep + 1;
       if (nextStep < flashcardQuizQueue.length) {
         const nextTarget = flashcardQuizQueue[nextStep];
-        setFlashcardQuizStep(nextStep);
-        setQuizTargetCard(nextTarget);
         const stepMsg = `Đúng rồi «${card.word}»! Câu ${nextStep + 1}: Chữ «${nextTarget.word}» là hình nào nhỉ?`;
         onReaction?.("happy", stepMsg);
         if (soundEnabled) {
@@ -568,6 +586,12 @@ export function ReadingActivity({
             { playbackRate: 0.93 },
           );
         }
+        window.setTimeout(() => {
+          setFlashcardQuizCorrectId(null);
+          setFlashcardQuizWrongIds([]);
+          setFlashcardQuizStep(nextStep);
+          setQuizTargetCard(nextTarget);
+        }, 650);
       } else {
         setFlashcardStage("done");
         const msg = `Giỏi quá! Nấm đã đọc đúng cả ${flashcardQuizQueue.length} thẻ chữ và nhớ mặt chữ siêu đỉnh!`;
@@ -588,7 +612,9 @@ export function ReadingActivity({
       }
     } else {
       playCardPlaceSound(0);
-      setFlashcardQuizWrongId(card.id);
+      setFlashcardQuizWrongIds((prev) =>
+        prev.includes(card.id) ? prev : [...prev, card.id],
+      );
       const hint = `Hình này là «${card.word}». Nấm tìm hình của chữ «${quizTargetCard.word}» nhé!`;
       onReaction?.("sad", hint);
       if (soundEnabled) {
@@ -1003,13 +1029,29 @@ export function ReadingActivity({
                 }}
               >
                 {activeFlashcards.map((card) => {
+                  const isStepSolved =
+                    flashcardStage === "done" ||
+                    flashcardQuizCorrectId !== null;
                   const isRight =
-                    flashcardStage === "done" && card.id === quizTargetCard.id;
-                  const isWrong = flashcardQuizWrongId === card.id;
+                    (flashcardStage === "done" &&
+                      card.id === quizTargetCard.id) ||
+                    flashcardQuizCorrectId === card.id;
+                  const isWrong = flashcardQuizWrongIds.includes(card.id);
+                  const isDimmedOther = isStepSolved && !isRight;
                   return (
                     <button
                       key={card.id}
                       type="button"
+                      disabled={isWrong || isStepSolved}
+                      className={
+                        isRight
+                          ? "kawaii-answer-correct"
+                          : isWrong
+                            ? "kawaii-answer-eliminated"
+                            : isDimmedOther
+                              ? "kawaii-answer-dimmed-others"
+                              : ""
+                      }
                       onClick={() => handlePickFlashcardQuiz(card)}
                       style={{
                         display: "flex",
@@ -1017,19 +1059,14 @@ export function ReadingActivity({
                         alignItems: "center",
                         justifyContent: "center",
                         gap: "6px",
-                        background: isRight
-                          ? "#dcfce7"
-                          : isWrong
-                            ? "#fee2e2"
-                            : "#ffffff",
+                        background: isRight ? "#dcfce7" : "#ffffff",
                         border: isRight
                           ? "3px solid #22c55e"
-                          : isWrong
-                            ? "3px solid #ef4444"
-                            : "3px solid #e2e8f0",
+                          : "3px solid #e2e8f0",
                         borderRadius: "18px",
                         padding: "8px 6px",
-                        cursor: "pointer",
+                        cursor:
+                          isWrong || isStepSolved ? "default" : "pointer",
                         minWidth: 0,
                       }}
                     >
@@ -1410,16 +1447,23 @@ export function ReadingActivity({
               <div className="wb-choices-row">
                 {shuffledChoices.map((choice, idx) => {
                   const isPicked = selectedChoiceIdx === idx;
-                  const showState =
-                    poemStage === "correct" && isPicked
-                      ? "correct"
-                      : isPicked
-                        ? "selected-pending"
+                  const isEliminated = wrongChoiceIndices.includes(idx);
+                  const isCorrectState =
+                    poemStage === "correct" && (isPicked || choice.isCorrect);
+                  const isDimmedOther =
+                    poemStage === "correct" && !isCorrectState;
+                  const showState = isCorrectState
+                    ? "correct kawaii-answer-correct"
+                    : isEliminated
+                      ? "kawaii-answer-eliminated"
+                      : isDimmedOther
+                        ? "kawaii-answer-dimmed-others"
                         : "";
                   return (
                     <button
                       key={choice.text}
                       type="button"
+                      disabled={isEliminated || poemStage === "correct"}
                       className={`chunky-choice-btn ${showState}`}
                       onClick={() => handlePickQuizChoice(idx)}
                     >
