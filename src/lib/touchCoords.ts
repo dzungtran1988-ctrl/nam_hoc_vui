@@ -9,6 +9,13 @@ export function isViewportRotated90(): boolean {
   if (typeof window === "undefined" || typeof window.matchMedia !== "function") {
     return false;
   }
+  if (
+    typeof document !== "undefined" &&
+    (document.documentElement.classList.contains("ui-mode-minimal-portrait") ||
+      Boolean(document.querySelector(".game-viewport.ui-mode-minimal-portrait")))
+  ) {
+    return false;
+  }
   return window.matchMedia(
     "screen and (orientation: portrait) and (max-width: 960px)",
   ).matches;

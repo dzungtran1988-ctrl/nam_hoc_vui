@@ -137,6 +137,68 @@ const BOARD_CLASS_MAP: Record<1 | 2 | 3 | 4, string> = {
   4: "kawaii-board-v1",
 };
 
+type UiModePref = "auto" | "kawaii" | "minimal-portrait";
+const UI_MODE_STORAGE_KEY = "nam_hoc_vui_ui_mode_v1";
+
+const MINIMAL_SUBJECT_META: Record<
+  SubjectId,
+  { mascotImg: string; softBg: string; softBorder: string; accentText: string }
+> = {
+  reading: {
+    mascotImg: "/assets/lobby/char-1-kitty.webp",
+    softBg: "#F9EEF2",
+    softBorder: "#EED7DF",
+    accentText: "#A85670",
+  },
+  math: {
+    mascotImg: "/assets/lobby/char-3-mymelody.webp",
+    softBg: "#FDF5E6",
+    softBorder: "#EFE1C4",
+    accentText: "#9E7127",
+  },
+  english: {
+    mascotImg: "/assets/lobby/char-9-kuromi.webp",
+    softBg: "#F3EFFA",
+    softBorder: "#E0D6F0",
+    accentText: "#6F539B",
+  },
+  music: {
+    mascotImg: "/assets/lobby/char-8-cinnamoroll.webp",
+    softBg: "#ECF5FC",
+    softBorder: "#D2E5F4",
+    accentText: "#3E759E",
+  },
+  coloring: {
+    mascotImg: "/assets/lobby/char-5-pompompurin.webp",
+    softBg: "#EDF7F0",
+    softBorder: "#D2E8D9",
+    accentText: "#457E59",
+  },
+  storybook: {
+    mascotImg: "/assets/lobby/char-4-kiki.webp",
+    softBg: "#FBF0F5",
+    softBorder: "#EDD6E1",
+    accentText: "#9B5678",
+  },
+  minigame: {
+    mascotImg: "/assets/lobby/char-7-pochacco.webp",
+    softBg: "#EEF7F2",
+    softBorder: "#D3E7DC",
+    accentText: "#3F7C59",
+  },
+  lifeskills: {
+    mascotImg: "/assets/lobby/char-2-nam.webp",
+    softBg: "#EFF5FB",
+    softBorder: "#D5E2F0",
+    accentText: "#446E9B",
+  },
+};
+
+function detectNaturalPortraitDevice(): boolean {
+  if (typeof window === "undefined") return false;
+  return window.innerWidth <= 860 && window.innerHeight >= window.innerWidth;
+}
+
 function App() {
   const [page, setPage] = useState<Page>({ type: "home" });
   const [attemptKey, setAttemptKey] = useState(0);
@@ -152,11 +214,37 @@ function App() {
   const particleRef = useRef<ParticleBurstHandle | null>(null);
   const tapLineIdxRef = useRef(0);
 
+  const [uiModePref, setUiModePref] = useState<UiModePref>(() => {
+    if (typeof window === "undefined") return "auto";
+    const saved = window.localStorage.getItem(UI_MODE_STORAGE_KEY);
+    if (saved === "kawaii" || saved === "minimal-portrait" || saved === "auto") {
+      return saved;
+    }
+    return "auto";
+  });
+  const [isPortraitDevice, setIsPortraitDevice] = useState<boolean>(() =>
+    detectNaturalPortraitDevice(),
+  );
+
+  const effectiveUiMode: "kawaii" | "minimal-portrait" =
+    uiModePref === "auto"
+      ? isPortraitDevice
+        ? "minimal-portrait"
+        : "kawaii"
+      : uiModePref;
+  const isMinimalPortrait = effectiveUiMode === "minimal-portrait";
+
   const [isDeviceFullscreen, setIsDeviceFullscreen] = useState(false);
   const [lobbyPage, setLobbyPage] = useState<0 | 1>(0);
   const [uiScale, setUiScale] = useState<number>(() => {
     if (typeof window === "undefined") return 1;
-    if (window.innerWidth <= 960 || window.innerHeight <= 540) return 1;
+    if (
+      detectNaturalPortraitDevice() ||
+      window.innerWidth <= 960 ||
+      window.innerHeight <= 540
+    ) {
+      return 1;
+    }
     return Number(
       Math.max(
         1,
@@ -166,8 +254,34 @@ function App() {
   });
 
   useEffect(() => {
+    if (typeof document === "undefined") return;
+    const root = document.documentElement;
+    const body = document.body;
+    if (isMinimalPortrait) {
+      root.classList.add("ui-mode-minimal-portrait");
+      root.classList.remove("ui-mode-kawaii");
+      body.classList.add("ui-mode-minimal-portrait");
+      body.classList.remove("ui-mode-kawaii");
+    } else {
+      root.classList.add("ui-mode-kawaii");
+      root.classList.remove("ui-mode-minimal-portrait");
+      body.classList.add("ui-mode-kawaii");
+      body.classList.remove("ui-mode-minimal-portrait");
+    }
+  }, [isMinimalPortrait]);
+
+  useEffect(() => {
     const updateScale = () => {
-      if (window.innerWidth <= 960 || window.innerHeight <= 540) {
+      const portraitNow = detectNaturalPortraitDevice();
+      setIsPortraitDevice(portraitNow);
+      const activeMinimal =
+        uiModePref === "minimal-portrait" ||
+        (uiModePref === "auto" && portraitNow);
+      if (
+        activeMinimal ||
+        window.innerWidth <= 960 ||
+        window.innerHeight <= 540
+      ) {
         setUiScale(1);
         return;
       }
@@ -188,7 +302,27 @@ function App() {
       window.removeEventListener("resize", updateScale);
       document.removeEventListener("fullscreenchange", onFsChange);
     };
-  }, []);
+  }, [uiModePref]);
+
+  function toggleUiMode() {
+    if (progress.soundEnabled) {
+      playCharacterTapSound();
+    }
+    const nextTarget: "kawaii" | "minimal-portrait" = isMinimalPortrait
+      ? "kawaii"
+      : "minimal-portrait";
+    const naturalDefault: "kawaii" | "minimal-portrait" = isPortraitDevice
+      ? "minimal-portrait"
+      : "kawaii";
+    const nextPref: UiModePref =
+      nextTarget === naturalDefault ? "auto" : nextTarget;
+    setUiModePref(nextPref);
+    try {
+      window.localStorage.setItem(UI_MODE_STORAGE_KEY, nextPref);
+    } catch {
+      // ignore storage errors
+    }
+  }
 
   async function toggleDeviceFullscreen() {
     try {
@@ -209,10 +343,12 @@ function App() {
           );
           return;
         }
-        const scr = window.screen as Screen & {
-          orientation?: { lock?: (mode: string) => Promise<void> };
-        };
-        scr.orientation?.lock?.("landscape").catch(() => {});
+        if (!isMinimalPortrait) {
+          const scr = window.screen as Screen & {
+            orientation?: { lock?: (mode: string) => Promise<void> };
+          };
+          scr.orientation?.lock?.("landscape").catch(() => {});
+        }
       } else if (document.exitFullscreen) {
         await document.exitFullscreen();
       } else if (doc.webkitExitFullscreen) {
@@ -611,9 +747,11 @@ function App() {
   return (
     <div
       ref={viewportRef}
-      className="game-viewport"
+      className={`game-viewport ${
+        isMinimalPortrait ? "ui-mode-minimal-portrait" : "ui-mode-kawaii"
+      }`}
       style={
-        uiScale > 1.01
+        !isMinimalPortrait && uiScale > 1.01
           ? ({
               "--ui-scale": uiScale,
               width: `${100 / uiScale}vw`,
@@ -627,9 +765,321 @@ function App() {
       <ParticleBurstCanvas ref={particleRef} />
 
       {/* =====================================================================
-          1. MÀN HÌNH SẢNH CHÍNH PASTEL (8 MÔN HỌC 4x2 TRÊN KHAY KEM SỮA)
+          1A. MÀN HÌNH SẢNH DỌC TINH GỌN (KEM SỮA & PASTEL DỊU - MUJI / DUOLINGO)
          ===================================================================== */}
-      {page.type === "home" && (
+      {page.type === "home" && isMinimalPortrait && (
+        <div className="scene-screen minimal-portrait-lobby">
+          <header className="minimal-top-bar">
+            <button
+              type="button"
+              className="minimal-brand-chip"
+              onClick={(e) => {
+                triggerTapBurst(e, "gold");
+                const line =
+                  NAM_TAP_LINES[tapLineIdxRef.current % NAM_TAP_LINES.length];
+                tapLineIdxRef.current += 1;
+                speech.speak(line, "vi-VN");
+              }}
+              title="Chạm để nghe Bé Nấm chào!"
+            >
+              <span className="minimal-brand-avatar">
+                <img src="/assets/lobby/char-2-nam.webp" alt="Bé Nấm" />
+              </span>
+              <span className="minimal-brand-text">
+                <strong>Nấm Học Vui</strong>
+                <small>Giao diện Kem Sữa Dịu Mắt</small>
+              </span>
+            </button>
+
+            <nav
+              className="minimal-top-nav-links"
+              aria-label="Menu điều hướng ngang bản tối giản"
+            >
+              <button
+                type="button"
+                className="minimal-top-nav-pill active"
+                onClick={() => setPage({ type: "home" })}
+              >
+                <Home size={15} />
+                <span>Học bài</span>
+              </button>
+              <button
+                type="button"
+                className="minimal-top-nav-pill"
+                onClick={() => setDailyChestModalOpen(true)}
+              >
+                <Gift size={15} />
+                <span>Nhiệm vụ ({doneQuestCount}/3)</span>
+              </button>
+              <button
+                type="button"
+                className="minimal-top-nav-pill"
+                onClick={() =>
+                  setPage({ type: "sticker-book", initialFilter: "unlocked" })
+                }
+              >
+                <BookOpen size={15} />
+                <span>Vở Sticker ({totalUnlockedInBook})</span>
+              </button>
+              <button
+                type="button"
+                className="minimal-top-nav-pill"
+                onClick={() => setPage({ type: "stars" })}
+              >
+                <Trophy size={15} />
+                <span>Phòng Cúp ({totalLitStickers}/48)</span>
+              </button>
+              <button
+                type="button"
+                className="minimal-top-nav-pill"
+                onClick={() => setPage({ type: "parents" })}
+              >
+                <ShieldCheck size={15} />
+                <span>Ba Mẹ</span>
+              </button>
+            </nav>
+
+            <div className="minimal-top-actions">
+              <button
+                type="button"
+                className="minimal-pill-btn minimal-coin-btn"
+                onClick={handleOpenClawMachine}
+                title="Xu vàng của Nấm • Bấm để vào Máy Gắp Thú"
+              >
+                <img
+                  src="/assets/math/items/gold-coin.webp"
+                  alt=""
+                  className="minimal-coin-icon"
+                />
+                <span>{goldCoins} Xu</span>
+              </button>
+
+              <button
+                type="button"
+                className="minimal-pill-btn minimal-icon-only"
+                onClick={() => setSoundEnabled(!progress.soundEnabled)}
+                title={progress.soundEnabled ? "Tắt âm thanh" : "Bật âm thanh"}
+              >
+                {progress.soundEnabled ? (
+                  <Volume2 size={16} />
+                ) : (
+                  <VolumeX size={16} />
+                )}
+              </button>
+
+              <button
+                type="button"
+                className="minimal-pill-btn minimal-switch-mode-btn"
+                onClick={toggleUiMode}
+                title="Chuyển sang giao diện Sân Khấu Kawaii Đầy Đủ (Ngang)"
+              >
+                <span>🌈 Bản Kawaii</span>
+              </button>
+            </div>
+          </header>
+
+          <div className="minimal-lobby-scroll">
+            {/* Thẻ Nhiệm vụ hôm nay & Nhịp nghỉ mắt */}
+            <section className="minimal-quest-card">
+              <div className="minimal-quest-top">
+                <div className="minimal-quest-title-wrap">
+                  <span className="minimal-quest-eyebrow">
+                    ✨ MỤC TIÊU HÔM NAY ({doneQuestCount}/3)
+                  </span>
+                  <h2>
+                    {allThreeQuestsDone && !dailyQuests.chestClaimed
+                      ? "Nấm đã xong đủ 3 bài! Mở rương nhận quà thôi!"
+                      : "Hoàn thành 3 môn để mở Rương Kho Báu"}
+                  </h2>
+                </div>
+                <button
+                  type="button"
+                  className={`minimal-quest-open-btn ${
+                    allThreeQuestsDone && !dailyQuests.chestClaimed
+                      ? "is-ready"
+                      : ""
+                  }`}
+                  onClick={() => setDailyChestModalOpen(true)}
+                >
+                  <Gift size={15} />
+                  <span>
+                    {allThreeQuestsDone && !dailyQuests.chestClaimed
+                      ? "Mở Rương!"
+                      : "Xem Rương"}
+                  </span>
+                </button>
+              </div>
+
+              <div className="minimal-quest-pills-row">
+                {dailyQuests.quests.map((q) => {
+                  const qSubj = getSubject(q.subjectId);
+                  return (
+                    <button
+                      key={q.subjectId}
+                      type="button"
+                      className={`minimal-quest-subject-chip ${
+                        q.done ? "is-done" : "is-pending"
+                      }`}
+                      onClick={() =>
+                        q.done
+                          ? setDailyChestModalOpen(true)
+                          : startLesson(q.subjectId)
+                      }
+                    >
+                      <span>{q.done ? "✅" : qSubj.icon}</span>
+                      <span>{qSubj.name}</span>
+                    </button>
+                  );
+                })}
+                {eyeRest.studyLimitMinutes > 0 && (
+                  <button
+                    type="button"
+                    className="minimal-eye-rest-chip"
+                    onClick={() => {
+                      const minsLeft = Math.max(
+                        1,
+                        Math.ceil(eyeRest.remainingStudySeconds / 60),
+                      );
+                      if (progress.soundEnabled) {
+                        speech.speak(
+                          `Còn khoảng ${minsLeft} phút học nữa là đến giờ nghỉ mắt mười phút nhé!`,
+                          "vi-VN",
+                        );
+                      }
+                    }}
+                  >
+                    <Clock size={13} />
+                    <span>
+                      Nghỉ mắt: {Math.ceil(eyeRest.remainingStudySeconds / 60)}p
+                    </span>
+                  </button>
+                )}
+              </div>
+            </section>
+
+            {/* Tiêu đề danh sách 8 môn học */}
+            <div className="minimal-section-heading">
+              <h3>📚 8 Môn Học Của Nấm</h3>
+              <span>Chạm vào môn học để bắt đầu</span>
+            </div>
+
+            {/* Lưới 2 cột dọc gọn nhẹ cho 8 môn học */}
+            <div className="minimal-subjects-grid">
+              {subjects.map((subj) => {
+                const meta = MINIMAL_SUBJECT_META[subj.id];
+                const questItem = dailyQuests.quests.find(
+                  (q) => q.subjectId === subj.id,
+                );
+                const litCount = stickerStore[subj.id]?.litIndices.length || 0;
+                return (
+                  <button
+                    key={subj.id}
+                    type="button"
+                    className={`minimal-subject-card ${
+                      questItem && !questItem.done ? "has-active-quest" : ""
+                    }`}
+                    style={
+                      {
+                        "--min-soft-bg": meta.softBg,
+                        "--min-soft-border": meta.softBorder,
+                        "--min-accent-text": meta.accentText,
+                      } as React.CSSProperties
+                    }
+                    onPointerDown={() =>
+                      warmupSubjectAudio(subj.id, progress.soundEnabled)
+                    }
+                    onClick={() => startLesson(subj.id)}
+                  >
+                    <div className="minimal-card-top-row">
+                      <span className="minimal-card-skill-tag">
+                        {subj.icon} {subj.skill}
+                      </span>
+                      {questItem ? (
+                        <span
+                          className={`minimal-card-quest-dot ${
+                            questItem.done ? "done" : "pending"
+                          }`}
+                        >
+                          {questItem.done ? "✓ Xong" : "★ Hôm nay"}
+                        </span>
+                      ) : (
+                        <span className="minimal-card-cup-count">
+                          🏆 {litCount}/6
+                        </span>
+                      )}
+                    </div>
+
+                    <div className="minimal-card-mascot-wrap">
+                      <div className="minimal-card-mascot-circle">
+                        <img src={meta.mascotImg} alt={subj.teacher} />
+                      </div>
+                    </div>
+
+                    <div className="minimal-card-info">
+                      <strong>{subj.name}</strong>
+                      <small>Cùng {subj.teacher}</small>
+                    </div>
+                  </button>
+                );
+              })}
+            </div>
+
+            {/* Góc Vườn Mèo, Gắp Thú & Xem Phim thu gọn */}
+            <div className="minimal-section-heading">
+              <h3>🌿 Góc Thư Giãn & Phần Thưởng</h3>
+              <span>Dùng xu vàng & chăm sóc thú cưng</span>
+            </div>
+
+            <div className="minimal-utilities-row">
+              <button
+                type="button"
+                className="minimal-utility-card"
+                onClick={() => {
+                  speech.stop();
+                  if (progress.soundEnabled) playCharacterTapSound();
+                  setGardenCatOpenedFromGames(false);
+                  setPage({ type: "garden-cat" });
+                }}
+              >
+                <span className="minimal-util-emoji">🌱🐱</span>
+                <div className="minimal-util-text">
+                  <strong>Vườn Cây & Mèo</strong>
+                  <small>Tưới cây & nuôi mèo Kawaii</small>
+                </div>
+              </button>
+
+              <button
+                type="button"
+                className="minimal-utility-card"
+                onClick={handleOpenClawMachine}
+              >
+                <span className="minimal-util-emoji">🧸</span>
+                <div className="minimal-util-text">
+                  <strong>Máy Gắp Thú</strong>
+                  <small>Đổi xu gắp gấu bông ({goldCoins} xu)</small>
+                </div>
+              </button>
+
+              <button
+                type="button"
+                className="minimal-utility-card"
+                onClick={openVideoTheater}
+              >
+                <span className="minimal-util-emoji">🎬</span>
+                <div className="minimal-util-text">
+                  <strong>Rạp Hoạt Hình</strong>
+                  <small>Xem clip & nhạc thiếu nhi</small>
+                </div>
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* =====================================================================
+          1B. MÀN HÌNH SẢNH CHÍNH PASTEL (8 MÔN HỌC 4x2 TRÊN KHAY KEM SỮA - PC)
+         ===================================================================== */}
+      {page.type === "home" && !isMinimalPortrait && (
         <div
           className="scene-screen lobby-screen pastel-lobby-screen"
           style={{
@@ -709,6 +1159,14 @@ function App() {
             </div>
 
             <div className="hud-right-group">
+              <button
+                type="button"
+                className="hud-pill hud-minimal-mode-trigger"
+                onClick={toggleUiMode}
+                title="Chuyển sang giao diện Kem Sữa Tối Giản (Hỗ trợ cả Web Ngang & Mobile Dọc)"
+              >
+                <span>🌿 Bản Tối Giản</span>
+              </button>
               {eyeRest.studyLimitMinutes > 0 && (
                 <button
                   type="button"
@@ -905,6 +1363,21 @@ function App() {
                 </div>
 
                 <div className="hud-right-group">
+                  <button
+                    type="button"
+                    className="hud-pill hud-minimal-mode-trigger"
+                    onClick={toggleUiMode}
+                    title={
+                      isMinimalPortrait
+                        ? "Chuyển sang giao diện Sân Khấu Kawaii"
+                        : "Chuyển sang giao diện Kem Sữa Tối Giản"
+                    }
+                  >
+                    <span>
+                      {isMinimalPortrait ? "🌈 Bản Kawaii" : "🌿 Bản Tối Giản"}
+                    </span>
+                  </button>
+
                   {(page.subject === "music" || isStorybook) && (
                     <button
                       type="button"
@@ -944,18 +1417,20 @@ function App() {
                       <VolumeX size={18} />
                     )}
                   </button>
-                  <button
-                    type="button"
-                    className="hud-pill hud-pink"
-                    onClick={toggleDeviceFullscreen}
-                    title="Bật / Tắt Toàn Màn Hình"
-                  >
-                    {isDeviceFullscreen ? (
-                      <Minimize2 size={16} />
-                    ) : (
-                      <Maximize2 size={16} />
-                    )}
-                  </button>
+                  {!isMinimalPortrait && (
+                    <button
+                      type="button"
+                      className="hud-pill hud-pink"
+                      onClick={toggleDeviceFullscreen}
+                      title="Bật / Tắt Toàn Màn Hình"
+                    >
+                      {isDeviceFullscreen ? (
+                        <Minimize2 size={16} />
+                      ) : (
+                        <Maximize2 size={16} />
+                      )}
+                    </button>
+                  )}
                 </div>
               </header>
 
@@ -1307,6 +1782,78 @@ function App() {
             eyeRest.snoozeBreak(extraMins);
           }}
         />
+      )}
+      {/* =====================================================================
+          10. THANH ĐIỀU HƯỚNG ĐÁY CHO GIAO DIỆN DỌC TINH GỌN (MINIMAL PORTRAIT)
+         ===================================================================== */}
+      {isMinimalPortrait && page.type !== "victory-video" && (
+        <nav
+          className="minimal-bottom-nav"
+          aria-label="Điều hướng chính bản tinh gọn"
+        >
+          <button
+            type="button"
+            className={`minimal-nav-tab ${
+              page.type === "home" || page.type === "lesson" ? "active" : ""
+            }`}
+            onClick={() => {
+              speech.stop();
+              setPage({ type: "home" });
+            }}
+          >
+            <Home size={18} />
+            <span>Học bài</span>
+          </button>
+
+          <button
+            type="button"
+            className={`minimal-nav-tab ${dailyChestModalOpen ? "active" : ""}`}
+            onClick={() => setDailyChestModalOpen(true)}
+          >
+            <Gift size={18} />
+            <span>Nhiệm vụ ({doneQuestCount}/3)</span>
+          </button>
+
+          <button
+            type="button"
+            className={`minimal-nav-tab ${
+              page.type === "sticker-book" ? "active" : ""
+            }`}
+            onClick={() => {
+              speech.stop();
+              setPage({ type: "sticker-book", initialFilter: "unlocked" });
+            }}
+          >
+            <BookOpen size={18} />
+            <span>Sticker ({totalUnlockedInBook})</span>
+          </button>
+
+          <button
+            type="button"
+            className={`minimal-nav-tab ${page.type === "stars" ? "active" : ""}`}
+            onClick={() => {
+              speech.stop();
+              setPage({ type: "stars" });
+            }}
+          >
+            <Trophy size={18} />
+            <span>Cúp ({totalLitStickers})</span>
+          </button>
+
+          <button
+            type="button"
+            className={`minimal-nav-tab ${
+              page.type === "parents" ? "active" : ""
+            }`}
+            onClick={() => {
+              speech.stop();
+              setPage({ type: "parents" });
+            }}
+          >
+            <ShieldCheck size={18} />
+            <span>Ba Mẹ</span>
+          </button>
+        </nav>
       )}
     </div>
   );
